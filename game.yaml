@@ -1,0 +1,56 @@
+ConvictionScore: 50
+AvailablePauseTime: 30
+Objections:
+  - rule: 404a
+    label: Bad Character
+    description: Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+  - rule: 404a
+    label: Bad Character
+    description: Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+  - rule: 404b
+    label: Bad Character (Acts)
+    description: Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+  - rule: 404b
+    label: Objection Card 4
+    description: Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+  - rule: 404b
+    label: Objection Card 5
+    description: Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+  - rule: 404b
+    label: Objection Card 6
+    description: Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+Rounds:
+  - Witness: Ed Bertram
+    Evidence:
+      text: Was your sister involved in a series of incidents involving domestic violence?
+      pointValue: 25
+      maxTime: !!js/function >
+        function(game){ return 15 + Math.floor(5 * Math.random()); }
+      valid_objection_rules:
+        404a:
+          - reason: Goes to the sister&apos;s character
+            correct: true
+          - reason: Vague as to how she might have been involved in any prior incidents of domestic violence
+            correct: false
+      invalid_objection_rules:
+        404b:
+          - reason: Because.
+          - reason: Because I say so.
+          - reason: Because, just because.
+      argument: Ladies and Gentlemen of the jury, you have seen that the defendant is a bad guy ...
+  - Evidence:
+      text: Where were you on the night in question?
+      pointValue: 50
+      maxTime: 25
+      valid_objection_rules:
+        404b:
+          - reason: reason 1
+            correct: false
+          - reason: reason 2 is much longer, and goes like this.
+            correct: true
+      invalid_objection_rules:
+        404a:
+          - reason: I dunno.
+          - reason: Um. Uh...
+          - reason: It&apos;s not fair!
+      argument: This witness confirms ...

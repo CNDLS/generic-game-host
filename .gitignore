@@ -1,0 +1,8 @@
+.DS_Store
+*.log
+*.pot
+*.pyc
+local_settings.py
+settings.py
+media
+wsgi

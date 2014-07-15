@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div id="top">
+	  <a href="{% url admin:index %}">Admin</a>
+		&nbsp; &nbsp;
+	  <a href="{% url index %}">Play Cases</a>
+	</div>
+	<div class="report dialog">
+		<h1>Case Reports</h1>
+		<ul id ="case_list">
+		{% for case in cases %}
+			<li><a href="{% url report case.id %}" case_nbr="{{ case.id }}">{{ case.name }}</a></li>
+		{% endfor %}
+		<ul>
+	</div>
+{% endblock %}

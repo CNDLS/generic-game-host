@@ -1,0 +1,12 @@
+{% extends "admin/app_index.html" %}
+{% load i18n admin_urls %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url index %}">Cases</a>
+  &#304;
+  <a href="/">{% trans 'Home' %}</a>
+  {% if title %} &rsaquo; {{ title }}
+  {% endif %}
+  </div>
+{% endblock %}

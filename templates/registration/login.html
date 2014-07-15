@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="login-box">
+
+	<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+  	<p>
+    	<label for="id_username" class="form-label">Username</label> <input class="form-control" type="text" name="username" id="id_username" placeholder="Georgetown NetID" />
+  	</p>
+  	<p>
+    	<label for="id_password" class="form-label">Password</label> <input class="form-control" type="password" name="password" id="id_password" placeholder="Password" />
+    	<input type="hidden" name="this_is_the_login_form" value="1" />
+  	</p>
+  	<p>
+    	<label>&nbsp;</label><input class="btn" type="submit" value="Log in" />
+  	</p>
+	</form>
+	</div>
+
+</div><!-- /#game -->
+<script type="text/javascript">
+document.getElementById('id_username').focus()
+</script>
+{% endblock %}

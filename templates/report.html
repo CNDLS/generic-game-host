@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div id="top">
+	  <a href="{% url admin:index %}">Admin</a>
+		&nbsp; &nbsp;
+	  <a href="{% url index %}">Play Cases</a>
+	</div>
+	<div class="report dialog">
+		<h1>Case: {{ case.name }}</h1>
+		<ul id="summary">
+			<li>Sessions: {{ whole_game_results.num_sessions }}</li>
+			{% if whole_game_results.student_id != None %}
+				<li>User ID: {{ whole_game_results.student_id }}</li> 
+			{% else %}
+				<li>Users: {{ whole_game_results.num_users }}</li> 
+			{% endif %}
+			<li>Wins: {{ whole_game_results.winning_sessions }}</li>
+		</ul>
+		<table id="detail">
+			<tr>
+				<th>Round</th>
+				<th># Attempts</th>
+				<th>% Correct</th>
+				<th>Ave. Time (sec)</th>
+				<th>Points</th>
+			</tr>
+			{% for by_round_result in by_round_results %}
+				<tr class="{% cycle 'odd' 'even' %}">
+					<td>{{ by_round_result.round_nbr }}</td>
+					<td>{{ by_round_result.num_attempts }}</td>
+					<td>{{ by_round_result.percent_correct }}</td>
+					<td>{{ by_round_result.ave_time }}</td>
+					<td>{{ by_round_result.points }}</td>
+				</tr>
+			{% endfor %}
+		</table>
+	</div>
+{% endblock %}

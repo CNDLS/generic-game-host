@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="top">
+	<div class="right">
+    <a href="{% url login %}">login</a>
+  </div>
+</div>
+  
+<div id="dialog_placement">
+  <div id="dialog">
+  	<p>You are now logged out.</p>
+  </div>
+</div>
+{% endblock %}
