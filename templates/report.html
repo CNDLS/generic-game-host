@@ -2,12 +2,12 @@
 
 {% block content %}
 	<div id="top">
-	  <a href="{% url admin:index %}">Admin</a>
+	  <a href="{% url 'admin:index' %}">Admin</a>
 		&nbsp; &nbsp;
-	  <a href="{% url index %}">Play Cases</a>
+	  <a href="{% url 'index' %}">Play Games</a>
 	</div>
 	<div class="report dialog">
-		<h1>Case: {{ case.name }}</h1>
+		<h1>Game: {{ game.name }}</h1>
 		<ul id="summary">
 			<li>Sessions: {{ whole_game_results.num_sessions }}</li>
 			{% if whole_game_results.student_id != None %}

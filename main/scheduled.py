@@ -4,7 +4,7 @@ import os, sys, json
 os.environ['DJANGO_SETTINGS_MODULE'] = 'host.settings'
 
 from browser.models import Session, PlayedRound, Event
-from main.models import Case, Round, CaseReport
+from main.models import Game, Round, GameReport
 from django.contrib.auth.models import User
 
 import time
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def process_payloads():
 	print "running process_payloads()"
 	
-	report_list = CaseReport.objects.all()
+	report_list = GameReport.objects.all()
 
 	for report in report_list:
 		# make sure the payload isn't empty

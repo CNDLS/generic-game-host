@@ -1,4 +1,4 @@
-evidence-game-host
+generic-game-host
 ==================
 
-Host app for the Evidence Game ITEL project
+Host app for ITEL Game Cohort projects

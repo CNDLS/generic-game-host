@@ -6,72 +6,46 @@
 
 
   <div id="top">
-    <!-- <div id="panel">
-      <div id="message" readonly>
-        <ul id="messagelist"></ul>
-      </div>
-    </div>
-
-    <p class="slide"><a href="#" class="btn-slide">Game Log</a></p> -->
-
-
-    <!-- <label for="clock">Clock<label> -->
     <textarea id="clock" readonly></textarea>  
     <h1 id="title">&nbsp;</h1>
-
-    <!-- <label for="points">Score<label>
-      <textarea id="points" readonly></textarea>  --> 
-    <!-- <a class="viewgamelog">Click</a> -->
     
     <div class="right">
-      <span class="replay"><a href="#" onclick="window.location.reload();"><img src="{{ MEDIA_URL }}game/images/reload.png"/>replay</a></span>
-      <a href="{% url logout %}">logout</a>
+      <span class="replay"><a href="#" onclick="window.location.reload();"><img src="{{ STATIC_URL }}img/reload.png"/>replay</a></span>
+      <a href="{% url 'logout' %}">logout</a>
     </div>
 
   </div><!-- end of top --> 
 
 
-  <div class="blur_container">
-    <div id="evidencebox">
-      <div id="questions">
+  <div class="boxes_container">
+    <div id="prompt_box">
+      <div id="prompts">
       </div>
       </div>
   </div>
-  
-  <div id="objectionsbox">
-    <div id="hand" class="clearfix">&nbsp;</div>
 
-    <div id="reasons" class="clearfix">
-      <ul></ul>
-    </div>  
-  </div>
-
-</div><!-- end game --> 
-
-<!-- load the card backing image first, so we're sure it is there for the animation. -->
-<img src="{{ MEDIA_URL }}game/images/cardback.png" class="hidden">
+</div><!-- end game -->
 
 
-<!-- this is a template to describe how to lay out a card. classes will distinguish evidence from objection cards. -->
-<script id="card_template" type="text/template">
-  <div class="card">
-    <div class="front"><h2></h2></div>
-    <div class="back">&nbsp;</div>
+<!-- this is a template to describe how to lay out a prompt. -->
+<script id="prompt_template" type="text/template">
+  <div class="prompt">
   </div>
 </script>
 
-<script type="text/javascript" src="{{ MEDIA_URL }}jquery-1.10.2.min.js" ></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}jquery.enumerable.js" ></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}jquery.easing.1.3.js" ></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}state-machine.js" ></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}game/game.js" ></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}js-yaml.js" ></script>
-<script type="text/javascript" src="{{ MEDIA_URL }}inflection.js" ></script>
-<script type="text/javascript" id="reader" src="{{ MEDIA_URL }}yaml-reader.js"  read-from="{{ AJAX_PREFIX }}/read/{{ case.id }}/"></script>
-<script type="text/javascript" id="reporter" src="{{ MEDIA_URL }}reporting.js"  report-to="{{ AJAX_PREFIX }}/write/{{ case.id }}/" csrftoken="{{ csrf_token }}"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.10.2.min.js" ></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.enumerable.js" ></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.easing.1.3.js" ></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/state-machine.js" ></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/game.js" ></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/js-yaml.js" ></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/inflection.js" ></script>
+<script type="text/javascript" id="reader" src="{{ STATIC_URL }}js/yaml-reader.js"  read-from="{{ AJAX_PREFIX }}/read/{{ game.id }}/"></script>
+<script type="text/javascript" id="reporter" src="{{ STATIC_URL }}js/reporting.js"  report-to="{{ AJAX_PREFIX }}/write/{{ game.id }}/" csrftoken="{{ csrf_token }}"></script>
 <script type="text/javascript">
   var media_url ="{{ MEDIA_URL }}";
   var ajax_prefix = "{{ AJAX_PREFIX }}";
+	var PROMPT_OFFSET = { left:120, top: -500 };
 </script>
 
 {% endblock %}

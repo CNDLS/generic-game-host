@@ -2,17 +2,17 @@
 
 {% block content %}
   <div id="top">
-    <a href="{% url admin:index %}">Admin</a>
+    <a href="{% url 'admin:index' %}">Admin</a>
 		&nbsp; &nbsp;
-	  <a href="{% url browse %}">Reports</a>
+	  <a href="{% url 'browse' %}">Reports</a>
   </div>
   <div id="chooser" class="left">
     <div class="dialog_placement">
       <div class="dialog">
-        <h1>Cases</h1>
-        <ul id ="case_list">
-        {% for case in cases %}
-          <li><a href="{% url play case.id %}" case_nbr="{{ case.id }}">{{ case.name }}</a></li>
+        <h1>Games</h1>
+        <ul id ="game_list">
+        {% for game in games %}
+          <li><a href="{% url 'play' game.id %}" game_nbr="{{ game.id }}">{{ game.name }}</a></li>
         {% endfor %}
         <ul>
       </div>
@@ -23,10 +23,7 @@
       <div class="dialog instructions">
         <h2>General Instructions</h2>
           <p>
-          In each round of the game, the prosecution attempts to introduce an item of evidence.  The game has a number of timed rounds of play, each with one item of evidence. Your task is to object to inadmissible evidence by playing the right card and identifying the right reason that the card applies to the evidence. The possible reasons are in a drop down menu on the card.  Sometimes an objection card will apply, but may not list a correct reason for its application.
-          </p>
-          <p>
-          You have a limited number of cards, and whenever you play a card, you lose it.  Therefore, you will have to make strategic choices about when to play a card. Not all the evidence offered by the prosecution has equal weight. It is not enough to play the right objection card, in order to win, you need to object correctly to the inadmissible evidence that is most damaging to the defense.
+          	<em>&lt;Here is where you put some general info about how to play the games.&gt;</em>
           </p>
       </div>
     </div>
@@ -34,12 +31,12 @@
   <div class="clearfix">&nbsp;</div>
   <div class="hidden">
     {% autoescape off %}
-    {% for case in cases %}
-      <div id="description_{{ case.id }}">
-        <h2>In '{{ case.name }}' ...</h2>
-        {{ case.description }}
+    {% for game in games %}
+      <div id="description_{{ game.id }}">
+        <h2>In '{{ game.name }}' ...</h2>
+        {{ game.description }}
         <p>
-          <a class="btn" href="{% url play case.id %}" class='button'>Play</a>
+          <a class="btn" href="{% url 'play' game.id %}" class='button'>Play</a>
           <a class="btn" href="" class='button'>Cancel</a>
         </p>
       </div>
@@ -47,6 +44,6 @@
     {% endautoescape %}
   </div>
   
-  <script type="text/javascript" src="{{ MEDIA_URL }}jquery-1.10.2.min.js" %}></script>
-  <script type="text/javascript"src="{{ MEDIA_URL }}index.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.10.2.min.js" %}></script>
+  <script type="text/javascript"src="{{ STATIC_URL }}js/index.js"></script>
 {% endblock %}

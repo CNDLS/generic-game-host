@@ -3,11 +3,11 @@
 <!DOCTYPE html> 
 <html>
   <head>
-    <title>Evidence Game</title>
+    <title>CNDLS-ITEL Generic Game</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
-    <link href="{{ MEDIA_URL }}game/game.css" media="screen, print" rel="stylesheet" type="text/css" /> 
+    <link href="{{ STATIC_URL }}css/game.css" media="screen, print" rel="stylesheet" type="text/css" /> 
    	<link href='https://fonts.googleapis.com/css?family=Rationale' rel='stylesheet' type='text/css'>
-    <link rel="shortcut icon" href="{{ MEDIA_URL }}favicon.ico" />
+    <link rel="shortcut icon" href="{{ STATIC_URL }}favicon.ico" />
   </head> 
   <body class="{{ view_name }}">
     {% block content %}{% endblock %}

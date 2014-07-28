@@ -1,4 +1,4 @@
 from django.contrib import admin
-from main.models import Case
+from main.models import Game
 
-admin.site.register(Case)
+admin.site.register(Game)
