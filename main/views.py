@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect,  Http404
+from django.http import StreamingHttpResponse, HttpResponseRedirect,  Http404
 from django.template import RequestContext
 from django.core import serializers
 from django.core.context_processors import csrf
@@ -34,7 +34,7 @@ def read(request, game_id):
 		requested_game = Game.objects.get(pk=game_id)
 		the_file = MEDIA_ROOT+str(requested_game.game_spec)
 		filename = os.path.basename(the_file)
-		response = HttpResponse(FileWrapper(open(the_file)),
+		response = StreamingHttpResponse(FileWrapper(open(the_file)),
 		                        content_type='application/x-yaml')
 		response['Content-Length'] = os.path.getsize(the_file)    
 		response['Content-Disposition'] = "attachment; filename=%s" % filename
@@ -59,7 +59,7 @@ def write_results(request, game_id):
 		game_report = GameReport(payload=request.body, student=current_user, case=case)
 		game_report.save()
 		# payload = json.loads(payload)
-		return HttpResponse(request.body, mimetype='application/json')
+		return StreamingHttpResponse(request.body, mimetype='application/json')
 
 
 def custom_404(request):
