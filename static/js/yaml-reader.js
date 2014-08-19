@@ -15,22 +15,13 @@ var GAME_SCHEMA = jsyaml.Schema.create([ MyFunctionType ]);
 		success: function(data, textStatus, XMLHttpRequest){ 
 			 // send the parsed data to the callback.
 			 try {
-				 var parsed_game = new YAML(jsyaml.safeLoad(data, { schema: GAME_SCHEMA }));
+				 var parsed_game_data = new YAML(jsyaml.safeLoad(data, { schema: GAME_SCHEMA }));
 			 } catch (err){
 				 alert("Warning: cannot parse game file. " + err);
 				 console.log(err);
 				return;
 			}
-			// build the game.
-			try {
-				new Game(parsed_game);
-			 } catch (err){
-				alert("Warning: cannot build game. " + err);
-				var obj = {};
-				Error.captureStackTrace(obj, this);
-				console.log(obj.stack);
-				return;
-			}
+			window.BuildGame(parsed_game_data);
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown){
 		 console.log(XMLHttpRequest, textStatus, errorThrown);
@@ -43,7 +34,7 @@ var GAME_SCHEMA = jsyaml.Schema.create([ MyFunctionType ]);
  * Wrap parsed results in a YAML object, which we can customize (see get method).
  */
 function YAML(parsed_data){
-	var proto = parsed_data.prototype;
+	this.default_context = $.noop;
 	
 	// crawl through parsed_data & give all objects a custom get() function.
 	// for now, we're assuming they're all vanilla Objects.
@@ -52,37 +43,49 @@ function YAML(parsed_data){
 			parsed_data[key] = new YAML(parsed_data[key]);
 		}
 	}
-	
-	var yaml_obj = $.extend(this, parsed_data);
+	$.extend(this, parsed_data);
 }
 
 /*
- * YAML.get() method, to be more forgiving about object keys.
+ * YAML.setDefaultContext() method, sets a default context in which to execute any named functions.
  */
-YAML.prototype.get = function(key, context /*, function params */){
-	key = key.toString();
+YAML.prototype.setDefaultContext = function(context){
+	if (typeof context == "object"){ this.default_context = context; }
+	else console.log("failed to setContext(", context);
+}
+
+/*
+ * YAML.get() method, to be more forgiving about object keys, and to evaluate functions named in the YAML.
+ */
+YAML.prototype.get = function(key /*, context, function params */){
+	var args = Array.prototype.slice.apply(arguments);
+	var key = args.shift().toString();
+	var context = args.shift() || this.default_context;
+	var value;
+	
 	if (this.hasOwnProperty(key)){
-		// if the value returned is the name of a function defined on the given context, exectute it and return the value.
-		if (context && context.hasOwnProperty(this[key]) && (typeof context[this[key]] == "function")){
-			var params = Array.prototype.slice.apply(arguments);
-			// remove key, remove context, and pass any remaining params to the function.
-			params.shift();  params.shift();
-			return context[this[key]].apply(params);
-		} else {
-			return this[key];
-		}
+		value = this[key];
 	} else if (this.hasOwnProperty(key.underscore())){
-		return this[key.underscore()];
+		value = this[key.underscore()];
 	} else if (this.hasOwnProperty(key.camelize(false))){
-		return this[key.camelize(false)];
+		value = this[key.camelize(false)];
 	} else {
 		console.log("Could not find '"+key+"' in ",this);
 		return false;
 	}
+	return this.eval(value, context, args);
+}
+
+YAML.prototype.eval = function(value, context, args){
+	if (context && context.hasOwnProperty(value) && (typeof context[value] == "function")){
+		// pass any remaining params to the function.
+		return context[value].apply(args);
+	} else {
+		return value;
+	}
 }
 
 YAML.prototype.shift = function(){
-	console.log((this))
 	return Array.prototype.shift.call(this);
 }
 

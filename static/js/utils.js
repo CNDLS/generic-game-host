@@ -2,24 +2,6 @@
  *** Utilities.
  */
 
-// use a template in the html page to generate cards.
-function createCard(spec){
-	// spec can contain template, title, content, type, container.
-	// spec *must* contain at least content and container.
-  var card_holder = $(document.createElement('div'));
-  card_holder.html(spec.card_template || window.card_template);
-  var card_front = card_holder.find(".front") || card_holder;
-  if (spec.title || false) card_front.find("h2").html(spec.title);
-  if (spec.type || false) card_holder.find("div.card").addClass(spec.type);
-	var card = card_holder.children().first();
-	if (spec.content && (spec.content != "")){
-	  card_front.append(spec.content);
-	}
-  $(spec.container).append(card);
-	// console.log(card);
-	return card;
-}
-
 // put an action off until the current calling chain has completed.
 function defer(f, context){
   setTimeout(f.bind(context));
