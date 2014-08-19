@@ -83,13 +83,13 @@ Game.prototype.addPoints = function(points){
 
 Game.prototype.gameFeedback = function(){
   if (this.cumulative_score >= this.winning_score) {
-		var gameFeedbackMessage = this.spec.get("WonGameFeedback") || ":points";
+		var gameFeedbackMessage = this.spec.get("WonGameFeedback") || this.DEFAULTS.WonGameFeedback;
   } else {
-		var gameFeedbackMessage = this.spec.get("LostGameFeedback") || ":points";
+		var gameFeedbackMessage = this.spec.get("LostGameFeedback") || this.DEFAULTS.LostGameFeedback;
   }
 	gameFeedbackMessage = gameFeedbackMessage.insert_values(this.cumulative_score);
 	var feedback_card = {
-												title: "Introduction", 
+												title: "Summary", 
 												content: gameFeedbackMessage, 
 												class: "ruling", 
 												container: "#cards"
@@ -243,11 +243,11 @@ Round.prototype.onleaveEvaluateResponse = function(eventname, from, to){
 }
 
 Round.prototype.onCorrectResponse = function(){
+	game.addPoints(this.pointValue);
   this.advance();
 }
 
 Round.prototype.onIncorrectResponse = function(){
-  game.sendMessage(arguments[0].toString());
   this.advance(); 
 }
 
