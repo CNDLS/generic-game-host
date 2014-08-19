@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import StreamingHttpResponse, HttpResponseRedirect,  Http404
-from django.template import RequestContext
+from django.template import RequestContext, TemplateDoesNotExist
 from django.core import serializers
 from django.core.context_processors import csrf
 from django.views.decorators.csrf import ensure_csrf_cookie, requires_csrf_token, csrf_protect
@@ -46,8 +46,10 @@ def read(request, game_id):
 @csrf_protect
 def play(request, game_id):
    	requested_game = get_object_or_404(Game, pk=game_id)
-   	return render_to_response('play.html', { 'game':requested_game, 'AJAX_PREFIX':AJAX_PREFIX }, context_instance=RequestContext(request))
-   	
+	try:
+	   	return render_to_response('play.html', { 'game':requested_game, 'AJAX_PREFIX':AJAX_PREFIX }, context_instance=RequestContext(request))
+	except TemplateDoesNotExist:
+   		return render_to_response('example-play.html', { 'game':requested_game, 'AJAX_PREFIX':AJAX_PREFIX }, context_instance=RequestContext(request))
  
 @csrf_protect
 def write_results(request, game_id):

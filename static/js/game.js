@@ -17,6 +17,7 @@ function Game(game_spec){
 		Utilities: {},
 		Intro: "Welcome to the game!",
 		Resources: {},
+		winning_score: 1,
 		WonGameFeedback: "<h3>Hey, you won!</h3>",
 		LostGameFeedback: "<h3>That didn't work out so well; you lost. Better luck next time!</h3>"
 	}
@@ -30,6 +31,9 @@ function Game(game_spec){
 	this.rounds = this.spec.get("Rounds") || this.DEFAULTS.Rounds; // the rounds of the game.
 	this.utils = this.spec.get("Utilities") || this.DEFAULTS.Utiilities; // reusable functions.
 	this.title = $("#title").html(this.spec.get("Title") || this.DEFAULTS.Title);
+	this.clock = this.spec.get("Clock") || new CountdownClock(this);
+	
+	this.winning_score = this.spec.get("winning_score") || this.DEFAULTS.winning_score;
   
 	// execute any customization, defined in play.html template.
 	if (typeof (window.customize || null) == "function"){ customize(this); }
@@ -49,7 +53,8 @@ Game.prototype.setup = function(){
 											title: "Introduction", 
 											content: intro_prompt, 
 											class: "intro", 
-											container: "#cards"
+											container: "#cards",
+											okClick: this.newRound.bind(this)
 										}
 	
 	// collect any global_resources that may become available to the user throughout the game.
@@ -62,27 +67,10 @@ Game.prototype.setup = function(){
 	
 	// deliver the intro card. we will require a click-through on this card.
 	var intro_card = new Card(this.intro_card);
-	intro_card.addOKButton(this.newRound.bind(this));
 }
 
-Game.prototype.tick = function(){
-  if (!!this.current_round && this.current_round.is("WaitForPlayer")){
-    var current_time = this.clock_face.val() - 1;
-    this.clock_face.val(current_time);
-    if (current_time == 0){
-      this.current_round.timeout();
-    }
-  }
-}
-
-Game.prototype.startClock = function(max_time){
-  clearInterval(this.clock);
-  this.clock = setInterval(this.tick.bind(this), 1000);
-  this.clock_face.val(max_time);
-}
-
-Game.prototype.stopClock = function(){
-  clearInterval(this.clock);
+Game.prototype.timeoutRound = function(){
+  this.current_round.timeout();
 }
 
 Game.prototype.addPoints = function(points){
@@ -94,13 +82,19 @@ Game.prototype.addPoints = function(points){
 }
 
 Game.prototype.gameFeedback = function(){
-  if (this.cumulative_score >= this.spec.get("winning_score")){
+  if (this.cumulative_score >= this.winning_score) {
 		var gameFeedbackMessage = this.spec.get("WonGameFeedback") || ":points";
   } else {
 		var gameFeedbackMessage = this.spec.get("LostGameFeedback") || ":points";
   }
 	gameFeedbackMessage = gameFeedbackMessage.insert_values(this.cumulative_score);
-	var feedback_card = $(createCard(gameFeedbackMessage, "", "ruling", "#prompts"));
+	var feedback_card = {
+												title: "Introduction", 
+												content: gameFeedbackMessage, 
+												class: "ruling", 
+												container: "#cards"
+											}
+	new Card(feedback_card);
   this.sendMessage(gameFeedbackMessage);
 }
 
@@ -116,12 +110,11 @@ Game.prototype.newRound = function(){
   // do reporting here.
   // only advance upon successfully reporting progress.
   // if there's a communications failure, we'll at least know when it happened.
-  var game = this;
 	window.reporter.sendReport(function(){
-	  if (game.rounds.length){
+	  if (game.rounds.count() > 0){
       delete game.current_round;
-      game.current_round = new Round(game.rounds.shift(), game);
       ++game.round_nbr;
+      game.current_round = new Round(game.rounds.shift());
       game.current_round.start();
     } else {
       game.gameFeedback();
@@ -134,28 +127,32 @@ Game.prototype.newRound = function(){
 /* 
  * Rounds of the Game.
  */
-function Round(round_spec, game) {
+function Round(round_spec) {
 	if (round_spec == undefined){
 		console.log("no round_spec provided");
 		return;
 	}
 	
-  this.game = game;
-	this.nbr = this.game.round_nbr;
+	this.nbr = game.round_nbr;
 	this.spec = round_spec;
 	this.spec.setDefaultContext(game);
 
 	this.DEFAULTS = {
 		Points: 1,
 		Resources: {},
-		MaxTime: 3000,
-		Prompt: "Round :nbr",
+		MaxTime: 2,
+		Prompt: {
+								title: function(round){ "Round :nbr".insert_values(round.nbr); }, 
+								content: prompt, 
+								class: "round_prompt", 
+								container: "#cards"
+							},
 		WonRoundFeedback: "<h3>Good Round!</h3>",
 		LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
 	}	
 	
   this.resources = this.spec.get("Resources") || this.DEFAULTS.Resources;
-  this.pointValue = this.spec.get("Value") || this.DEFAULTS.Points;
+  this.pointValue = this.spec.get("Points") || this.DEFAULTS.Points;
   this.max_time = this.spec.get("MaxTime") || this.DEFAULTS.MaxTime;
 	this.played_round = {}; // to store data of what happened in the round.
 
@@ -174,9 +171,9 @@ function Round(round_spec, game) {
         { name: 'advance',      from: ['CorrectResponse','IncorrectResponse'],   to: 'end' }
      ];
 		 
-	// debugging.
-	this.onchangestate = function(){
-		console.log(arguments);
+	// *** DEBUGGING ***
+	this.onchangestate = function(name, from, to){
+		console.log(name + ": " + from + " to " + to);
 	};
 	
 	// INTIALIZING THE ROUND.
@@ -187,7 +184,7 @@ function Round(round_spec, game) {
 }
 
 Round.prototype.onstart = function(eventname, from, to){
-  this.game.sendMessage("Starting Round " + this.nbr);
+  game.sendMessage("Starting Round " + this.nbr);
 	var round = this;
 	// record the start time of the round.
 	window.reporter.addData({ round_nbr: this.nbr, event: "start of round" });
@@ -201,30 +198,24 @@ Round.prototype.onPresentRound = function(){
 }
 
 Round.prototype.onGivePrompt = function(){
-  var prompt = this.spec.get("Prompt") || this.DEFAULTS.Prompt;
-	var prompt_card = {
-											title: "Round :nbr".insert_values(this.nbr), 
-											content: prompt, 
-											class: "round_prompt", 
-											container: "#cards"
-										}
+  var custom_prompt = this.spec.get("Prompt") || false;
+	var prompt = custom_prompt ? $.extend(this.DEFAULTS.Prompt, custom_prompt) : this.DEFAULTS.Prompt;
 	// deliver the prompt card. we will require a click-through on this card.
-	prompt_card = new Card(prompt_card);
-	prompt_card.addOKButton(this.wait.bind(this));
+	new Card(prompt);
 }
 
 Round.prototype.onWaitForPlayer = function(){
-  this.game.startClock(this.max_time);
+  game.clock.start(this.max_time);
 }
 
 // doing a little more cleanup now, before we issue the ruling.
 Round.prototype.onbeforeevaluate = function(){
-  this.game.stopClock();
+  game.clock.stop();
 }
 
 //  user 'passes' on their turn.
 Round.prototype.onbeforepass = function(){	
-  this.game.stopClock();
+  game.clock.stop();
 }
 
 Round.prototype.onEvaluateResponse = function(){
@@ -239,9 +230,14 @@ Round.prototype.onEvaluateResponse = function(){
 }
 
 Round.prototype.onleaveEvaluateResponse = function(eventname, from, to){
+	var ruling_card = {
+											content: prompt, 
+											class: "ruling", 
+											container: "#cards"
+										}
+	// deliver the prompt card. we will require a click-through on this card.
+	new Card(ruling_card);
   this.ruling_card = $(createCard(eventname.capitalize().past_tense() + ".", "", "ruling", "#questions"));
-	// no animation. just hold on the ruling long enough for the user to read it.
-	setTimeout(this.transition.bind(this), 2000);
   
 	return StateMachine.ASYNC;
 }
@@ -251,13 +247,13 @@ Round.prototype.onCorrectResponse = function(){
 }
 
 Round.prototype.onIncorrectResponse = function(){
-  this.game.sendMessage(arguments[0].toString());
+  game.sendMessage(arguments[0].toString());
   this.advance(); 
 }
 
 Round.prototype.onbeforetimeout = function(){
-  this.game.sendMessage("ran out of time.");
-  this.game.stopClock();
+  game.sendMessage("ran out of time.");
+  game.clock.stop();
 }
 
 Round.prototype.onbeforeadvance = function(){
@@ -269,25 +265,43 @@ Round.prototype.onbeforeadvance = function(){
 }
 
 Round.prototype.onend = function(){
-  defer(this.game.newRound, this.game);
+  defer(game.newRound, game);
 }
 
 
 /* 
  * Cards
  * Use a template in the html page to generate 'cards,' any (potentially animated) messages to the player.
+ * note: providing  spec.<key> || false  suppresses KeyNotFound errors.
  */
 function Card(spec){
+	this.DEFAULTS = {
+		timeout: 1000,
+		okClick: function(){ game.current_round.wait(); }
+	}
+	
 	// spec can contain template, title, content, class, container.
 	// spec *must* contain at least content and container.
   var card_holder = $(document.createElement('div'));
   card_holder.html(spec.card_template || Card.default_template);
   var card_front = card_holder.find(".front") || card_holder;
-  if (spec.title || false) card_front.find("h2").html(spec.title);
+  card_front.find("h2").html(spec.title || "");
+	
   if (spec.class || false) card_holder.find("div.card").addClass(spec.class);
 	this.elem = card_holder.children().first();
+	
 	if (spec.content && (spec.content != "")){
 	  card_front.append(spec.content);
+	}
+	if ((spec.okClick || false) && (typeof spec.okClick == "function")){
+		this.addOKButton(spec.okClick);
+	} else {
+		// just hold on the card long enough for the user to read it.
+		if ((game.current_round.transition) && (typeof game.current_round.transition == "function")){
+			setTimeout(game.current_round.transition.bind(game), spec.timeout || this.DEFAULTS.timeout);
+		} else {
+			this.addOKButton(this.DEFAULTS.okClick)
+		}
 	}
   $(spec.container).append(this.elem);
 }
@@ -306,10 +320,38 @@ Card.prototype.addOKButton = function(onclick_handler){
 }
 
 
+/* 
+ * CountdownClock
+ * This is a default clock -- it just puts numbers into a field, counting down from max_time for the Round.
+ * Custom clocks need to expose start(), stop(), and a tick() function, which should return the current time.
+ */
+function CountdownClock(){
+	this.clock_face = $("textarea#clock");
+}
+
+CountdownClock.prototype.start = function(max_time){
+  clearInterval(this.clock);
+  this.clock = setInterval(this.tick.bind(this), 1000);
+  this.clock_face.val(max_time);
+}
+
+CountdownClock.prototype.tick = function(){
+	var current_time = this.clock_face.val() - 1;
+  this.clock_face.val(current_time);
+	if (current_time == 0){ game.timeoutRound(); }
+}
+
+CountdownClock.prototype.stop = function(){
+  clearInterval(this.clock);
+}
+
+
+
 // This is what gets it all started. It gets called once we've retrieved & parsed a valid game YAML file.
+var game;
 function BuildGame(parsed_game_data){
 	try {
-		new Game(parsed_game_data);
+		game = new Game(parsed_game_data);
 	 } catch (err){
 		alert("Warning: cannot build game. " + err);
 		var obj = {};

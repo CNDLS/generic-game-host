@@ -47,11 +47,20 @@ function YAML(parsed_data){
 }
 
 /*
- * YAML.setDefaultContext() method, sets a default context in which to execute any named functions.
+ * Set a default context in which to execute any named functions.
  */
 YAML.prototype.setDefaultContext = function(context){
 	if (typeof context == "object"){ this.default_context = context; }
 	else console.log("failed to setContext(", context);
+}
+
+/*
+ * Return the numbef of items remaining in a YAML array.
+ */
+YAML.prototype.count = function(){
+	var keys = Object.keys(this);
+	keys = $(keys).reject(function() { return ["default_context"].indexOf(this.toString()) > -1 });
+	return keys.length;
 }
 
 /*
