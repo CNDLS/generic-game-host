@@ -7,4 +7,4 @@ settings.py
 media
 wsgi
 templates/play.html
-css/custom.css
+static/css/custom.css
