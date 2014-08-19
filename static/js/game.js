@@ -1,36 +1,35 @@
 /******************************************************************************
  * Generic Game Engine
  * Copyright (c) 2014 Bill Garr and CNDLS, Georgetown University -- https://github.com/CNDLS/generic-game-host
- * Released under Creative Commons license -- http://creativecommons.org/licenses/by-nc-sa/4.0/ (subject to GU Counsel's approval)
+ * Released under Creative Commons license -- http://creativecommons.org/licenses/by-nc-sa/4.0/
  *
  * VERSION 0.1.0
  * (release notes to go here).
  ******************************************************************************/
 
-DEfAULTS = {
-	Title: "Generic Game",
-	Rounds: [],
-	Utilities: {},
-	Intro: "Welcome to the game!",
-	Resources: {},
-	WonGameFeedback: "<h3>Hey, you won!</h3>",
-	LostGameFeedback: "<h3>That didn't work out so well; you lost. Better luck next time!</h3>"
-}
-
-
 /* 
  * Game
  */
 function Game(game_spec){
+	this.DEFAULTS = {
+		Title: "Generic Game",
+		Rounds: [],
+		Utilities: {},
+		Intro: "Welcome to the game!",
+		Resources: {},
+		WonGameFeedback: "<h3>Hey, you won!</h3>",
+		LostGameFeedback: "<h3>That didn't work out so well; you lost. Better luck next time!</h3>"
+	}
+	
 	this.spec = game_spec;
 	this.spec.setDefaultContext(this);
 	
   this.current_round;
   this.round_nbr = 0;
 	
-	this.rounds = this.spec.get("Rounds") || DEfAULTS.Rounds; // the rounds of the game.
-	this.utils = this.spec.get("Utilities") || DEfAULTS.Utiilities; // reusable functions.
-	this.title = $("#title").html(this.spec.get("Title") || DEfAULTS.Title);
+	this.rounds = this.spec.get("Rounds") || this.DEFAULTS.Rounds; // the rounds of the game.
+	this.utils = this.spec.get("Utilities") || this.DEFAULTS.Utiilities; // reusable functions.
+	this.title = $("#title").html(this.spec.get("Title") || this.DEFAULTS.Title);
   
 	// execute any customization, defined in play.html template.
 	if (typeof (window.customize || null) == "function"){ customize(this); }
@@ -44,7 +43,7 @@ function Game(game_spec){
 
 Game.prototype.setup = function(){
   // introduce any explanatory note. place them on onscreen 'cards,' styled for each game.
-	var intro_prompt = this.spec.get("Intro") || DEfAULTS.Intro;
+	var intro_prompt = this.spec.get("Intro") || this.DEFAULTS.Intro;
 	// attach spec for an intro card to the game, so we can optionally edit it in a setup_function.
 	this.intro_card = {
 											title: "Introduction", 
@@ -55,11 +54,11 @@ Game.prototype.setup = function(){
 	
 	// collect any global_resources that may become available to the user throughout the game.
 	// attach global_resources to the game, so we can optionally edit them in a setup_function.
-  this.global_resources = this.spec.get("Resources") || DEfAULTS.Resources;
+  this.global_resources = this.spec.get("Resources") || this.DEFAULTS.Resources;
 
 	// just calling get() on a YAML fragment will execute a function if that is what is returned,
 	// so this has the effect of doing any custom setup that is refered to in the this.spec.
-	var setup_function = this.spec.get("SetUpGame");
+	this.spec.get("SetUpGame");
 	
 	// deliver the intro card. we will require a click-through on this card.
 	var intro_card = new Card(this.intro_card);
@@ -89,7 +88,7 @@ Game.prototype.stopClock = function(){
 Game.prototype.addPoints = function(points){
   this.cumulative_score += points;
   this.points_display.val(this.cumulative_score);
-	var addPointsMessage = this.spec.get("AddPoints") || ":points";
+	var addPointsMessage = this.spec.get("AddPoints") || ":points".insert_values(points);
 	addPointsMessage = addPointsMessage.insert_values(points);
   this.sendMessage(addPointsMessage);
 }
@@ -109,6 +108,10 @@ Game.prototype.sendMessage = function(msgText){
   console.log(" - " + msgText);
 }
 
+Game.prototype.allowReplay = function(){
+  $("#top .replay").show();
+}
+
 Game.prototype.newRound = function(){
   // do reporting here.
   // only advance upon successfully reporting progress.
@@ -122,7 +125,7 @@ Game.prototype.newRound = function(){
       game.current_round.start();
     } else {
       game.gameFeedback();
-      $("#top .replay").show();
+			game.allowReplay();
     }
 	});
 }
@@ -138,19 +141,30 @@ function Round(round_spec, game) {
 	}
 	
   this.game = game;
+	this.nbr = this.game.round_nbr;
 	this.spec = round_spec;
-  this.resources = round_spec.get("resources", game) || [];
-  this.prompt = round_spec.get("prompt", game);
-  this.pointValue = round_spec.get("value", game) || 1;
-  this.max_time = round_spec.get("max_time", game) || 3000;
+	this.spec.setDefaultContext(game);
+
+	this.DEFAULTS = {
+		Points: 1,
+		Resources: {},
+		MaxTime: 3000,
+		Prompt: "Round :nbr",
+		WonRoundFeedback: "<h3>Good Round!</h3>",
+		LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
+	}	
+	
+  this.resources = this.spec.get("Resources") || this.DEFAULTS.Resources;
+  this.pointValue = this.spec.get("Value") || this.DEFAULTS.Points;
+  this.max_time = this.spec.get("MaxTime") || this.DEFAULTS.MaxTime;
 	this.played_round = {}; // to store data of what happened in the round.
 
   // event names start with lower case. 
   // state names start with upper case, so their callback names will be camel-case (eg; onPlayEvidenceCard)
 	this.events = [
         { name: 'start',        from: 'none',                                    to: 'PresentRound' },
-        { name: 'ask',        	from: 'PresentRound',                            to: 'GiveSituationCard' },
-        { name: 'wait',         from: 'GiveSituationCard',                       to: 'WaitForPlayer' },
+        { name: 'prompt',     	from: 'PresentRound',                            to: 'GivePrompt' },
+        { name: 'wait',         from: 'GivePrompt',	      				               to: 'WaitForPlayer' },
         { name: 'respond',      from: 'WaitForPlayer',                           to: 'UserResponds' },
         { name: 'pass',		      from: 'WaitForPlayer',                           to: 'UserPasses' },
         { name: 'evaluate',     from: 'UserResponds',                            to: 'EvaluateResponse' },
@@ -159,26 +173,44 @@ function Round(round_spec, game) {
         { name: 'timeout',      from: 'WaitForPlayer',                           to: 'IncorrectResponse' },
         { name: 'advance',      from: ['CorrectResponse','IncorrectResponse'],   to: 'end' }
      ];
-
+		 
+	// debugging.
+	this.onchangestate = function(){
+		console.log(arguments);
+	};
 	
 	// INTIALIZING THE ROUND.
-	var round_initer = round_spec.get("InitializeRound");
-	if (round_initer){
-		// adjust any of the default values,
-		// or add data or functions to the Round object,
-		// and/or alter the events used to create the StateMachine.
-		round_initer.apply(this, game);
-	}
+	this.spec.get("SetUp");
 
   // create a StateMachine to track what user can do in various situations.
   $.extend(this, StateMachine.create({ events: this.events }));
 }
 
-Round.prototype.onbeforestart = function(eventname, from, to){
-  this.game.sendMessage("Starting Round "+this.game.round_nbr);
+Round.prototype.onstart = function(eventname, from, to){
+  this.game.sendMessage("Starting Round " + this.nbr);
 	var round = this;
 	// record the start time of the round.
-	window.reporter.addData({ round_nbr: this.game.round_nbr, event: "start of round" })
+	window.reporter.addData({ round_nbr: this.nbr, event: "start of round" });
+	this.prompt();
+}
+
+Round.prototype.onPresentRound = function(){
+	// do any presentation that sets up the round for the player(s).
+	var presentation = this.spec.get("Present");
+	return presentation ? StateMachine.ASYNC : false;
+}
+
+Round.prototype.onGivePrompt = function(){
+  var prompt = this.spec.get("Prompt") || this.DEFAULTS.Prompt;
+	var prompt_card = {
+											title: "Round :nbr".insert_values(this.nbr), 
+											content: prompt, 
+											class: "round_prompt", 
+											container: "#cards"
+										}
+	// deliver the prompt card. we will require a click-through on this card.
+	prompt_card = new Card(prompt_card);
+	prompt_card.addOKButton(this.wait.bind(this));
 }
 
 Round.prototype.onWaitForPlayer = function(){
@@ -249,7 +281,7 @@ function Card(spec){
 	// spec can contain template, title, content, class, container.
 	// spec *must* contain at least content and container.
   var card_holder = $(document.createElement('div'));
-  card_holder.html(spec.card_template || window.card_template);
+  card_holder.html(spec.card_template || Card.default_template);
   var card_front = card_holder.find(".front") || card_holder;
   if (spec.title || false) card_front.find("h2").html(spec.title);
   if (spec.class || false) card_holder.find("div.card").addClass(spec.class);
@@ -260,13 +292,15 @@ function Card(spec){
   $(spec.container).append(this.elem);
 }
 
+Card.default_template = $("#card_template").html();
+
 Card.prototype.addOKButton = function(onclick_handler){
 	// once the user clicks to continue, we can move onto the game.
 	// for now, we're going to stick to the notion that all intros require a click to continue.
+	var card = this;
   var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function(){
-    $(this).remove();
-		this.elem.remove();
-		setTimeout(function(){ onclick_handler.call(); delete this; }, 500); // pause before triggering animations?
+		card.elem.remove();
+		setTimeout(function(){ onclick_handler.call(); delete card; }, 500); // pause before triggering animations?
   });
 	ok_button.appendTo(this.elem)
 }
@@ -279,7 +313,7 @@ function BuildGame(parsed_game_data){
 	 } catch (err){
 		alert("Warning: cannot build game. " + err);
 		var obj = {};
-		Error.captureStackTrace(obj, this);
+		Error.captureStackTrace(err);
 		console.log(obj.stack);
 	}
 }

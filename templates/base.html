@@ -8,6 +8,7 @@
     <link href="{{ STATIC_URL }}css/game.css" media="screen, print" rel="stylesheet" type="text/css" /> 
    	<link href='https://fonts.googleapis.com/css?family=Rationale' rel='stylesheet' type='text/css'>
     <link rel="shortcut icon" href="{{ STATIC_URL }}favicon.ico" />
+		{% block css %}{% endblock %}
   </head> 
   <body class="{{ view_name }}">
   {% block content %}{% endblock %}
