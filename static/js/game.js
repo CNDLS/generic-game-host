@@ -7,11 +7,13 @@
  * (release notes to go here).
  ******************************************************************************/
 
+
+
 /* 
  * Game
  */
 function Game(game_spec){
-	this.DEFAULTS = {
+	Game.DEFAULTS = {
 		Title: "Generic Game",
 		Rounds: [],
 		Utilities: {},
@@ -28,14 +30,14 @@ function Game(game_spec){
   this.current_round;
   this.round_nbr = 0;
 	
-	this.rounds = this.spec.get("Rounds") || this.DEFAULTS.Rounds; // the rounds of the game.
-	this.utils = this.spec.get("Utilities") || this.DEFAULTS.Utiilities; // reusable functions.
-	this.title = $("#title").html(this.spec.get("Title") || this.DEFAULTS.Title);
+	this.rounds = this.spec.get("Rounds") || Game.DEFAULTS.Rounds; // the rounds of the game.
+	this.title = $("#title").html(this.spec.get("Title") || Game.DEFAULTS.Title);
 	this.clock = this.spec.get("Clock") || new CountdownClock(this);
 	
-	this.winning_score = this.spec.get("winning_score") || this.DEFAULTS.winning_score;
+	this.winning_score = this.spec.get("winning_score") || Game.DEFAULTS.winning_score;
   
 	// execute any customization, defined in play.html template.
+	// THIS IS WHERE !my FUNCTIONS GET ADDED TO THE GAME OBJECT.
 	if (typeof (window.customize || null) == "function"){ customize(this); }
 
 	// record the time the game was started.
@@ -47,7 +49,7 @@ function Game(game_spec){
 
 Game.prototype.setup = function(){
   // introduce any explanatory note. place them on onscreen 'cards,' styled for each game.
-	var intro_prompt = this.spec.get("Intro") || this.DEFAULTS.Intro;
+	var intro_prompt = this.spec.get("Intro") || Game.DEFAULTS.Intro;
 	// attach spec for an intro card to the game, so we can optionally edit it in a setup_function.
 	this.intro_card = {
 											title: "Introduction", 
@@ -59,11 +61,7 @@ Game.prototype.setup = function(){
 	
 	// collect any global_resources that may become available to the user throughout the game.
 	// attach global_resources to the game, so we can optionally edit them in a setup_function.
-  this.global_resources = this.spec.get("Resources") || this.DEFAULTS.Resources;
-
-	// just calling get() on a YAML fragment will execute a function if that is what is returned,
-	// so this has the effect of doing any custom setup that is refered to in the this.spec.
-	this.spec.get("SetUpGame");
+  this.global_resources = this.spec.get("Resources") || Game.DEFAULTS.Resources;
 	
 	// deliver the intro card. we will require a click-through on this card.
 	var intro_card = new Card(this.intro_card);
@@ -83,9 +81,9 @@ Game.prototype.addPoints = function(points){
 
 Game.prototype.gameFeedback = function(){
   if (this.cumulative_score >= this.winning_score) {
-		var gameFeedbackMessage = this.spec.get("WonGameFeedback") || this.DEFAULTS.WonGameFeedback;
+		var gameFeedbackMessage = this.spec.get("WonGameFeedback") || Game.DEFAULTS.WonGameFeedback;
   } else {
-		var gameFeedbackMessage = this.spec.get("LostGameFeedback") || this.DEFAULTS.LostGameFeedback;
+		var gameFeedbackMessage = this.spec.get("LostGameFeedback") || Game.DEFAULTS.LostGameFeedback;
   }
 	gameFeedbackMessage = gameFeedbackMessage.insert_values(this.cumulative_score);
 	var feedback_card = {
@@ -124,6 +122,7 @@ Game.prototype.newRound = function(){
 }
 
 
+
 /* 
  * Rounds of the Game.
  */
@@ -137,7 +136,7 @@ function Round(round_spec) {
 	this.spec = round_spec;
 	this.spec.setDefaultContext(game);
 
-	this.DEFAULTS = {
+	Round.DEFAULTS = {
 		Points: 1,
 		Resources: {},
 		MaxTime: 2,
@@ -151,9 +150,9 @@ function Round(round_spec) {
 		LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
 	}	
 	
-  this.resources = this.spec.get("Resources") || this.DEFAULTS.Resources;
-  this.pointValue = this.spec.get("Points") || this.DEFAULTS.Points;
-  this.max_time = this.spec.get("MaxTime") || this.DEFAULTS.MaxTime;
+  this.resources = this.spec.get("Resources") || Round.DEFAULTS.Resources;
+  this.pointValue = this.spec.get("Points") || Round.DEFAULTS.Points;
+  this.max_time = this.spec.get("MaxTime") || Round.DEFAULTS.MaxTime;
 	this.played_round = {}; // to store data of what happened in the round.
 
   // event names start with lower case. 
@@ -199,8 +198,8 @@ Round.prototype.onPresentRound = function(){
 
 Round.prototype.onGivePrompt = function(){
   var custom_prompt = this.spec.get("Prompt") || false;
-	var prompt = custom_prompt ? $.extend(this.DEFAULTS.Prompt, custom_prompt) : this.DEFAULTS.Prompt;
-	// deliver the prompt card. we will require a click-through on this card.
+	var prompt = custom_prompt ? $.extend(Round.DEFAULTS.Prompt, custom_prompt) : Round.DEFAULTS.Prompt;
+	// deliver the prompt card.
 	new Card(prompt);
 }
 
@@ -269,44 +268,70 @@ Round.prototype.onend = function(){
 }
 
 
+
 /* 
  * Cards
  * Use a template in the html page to generate 'cards,' any (potentially animated) messages to the player.
  * note: providing  spec.<key> || false  suppresses KeyNotFound errors.
  */
 function Card(spec){
-	this.DEFAULTS = {
-		timeout: 1000,
-		okClick: function(){ game.current_round.wait(); }
+	var _this = this;
+	
+	Card.DEFAULTS = {
+		template: $("#card_template").html(),
+		timeout: null,
+		parts: { "label":"H2" }
 	}
 	
 	// spec can contain template, title, content, class, container.
 	// spec *must* contain at least content and container.
   var card_holder = $(document.createElement('div'));
-  card_holder.html(spec.card_template || Card.default_template);
-  var card_front = card_holder.find(".front") || card_holder;
-  card_front.find("h2").html(spec.title || "");
+  card_holder.html(spec.card_template || Card.DEFAULTS.template);
+  this.card_front = card_holder.find(".front") || card_holder;
+
+	this.parts = $.extend(spec.parts || {}, Card.DEFAULTS.parts);
+	
+	// get all the elements in the template.
+	this.elements = {}
+	this.card_front.find('*').each(function(){
+		if (this instanceof HTMLElement){
+			var classnames = $(this).attr("class") || false;
+			var selector = this.nodeName + ((classnames) ? "."+ classnames.split(" ").join(".") : "");
+			if (_this.parts[selector]){
+				_this.elements[_this.parts[selector]] = this;
+			} else {
+				$(this).remove(); // pull out from the card template any HTML elements that aren't used in this card.
+			}
+		}
+	});
 	
   if (spec.class || false) card_holder.find("div.card").addClass(spec.class);
-	this.elem = card_holder.children().first();
+	
+	$.each(this.parts, function(key, value){
+		if (spec.hasOwnProperty(key)) {
+			_this.card_front.find(value).html(spec[key] || "");
+		}
+	});
+	
 	
 	if (spec.content && (spec.content != "")){
-	  card_front.append(spec.content);
+	  this.card_front.append(spec.content);
 	}
 	if ((spec.okClick || false) && (typeof spec.okClick == "function")){
 		this.addOKButton(spec.okClick);
-	} else {
-		// just hold on the card long enough for the user to read it.
+	} else if (spec.timeout || false) {
+		// hold on the card for some predetermined time.
 		if ((game.current_round.transition) && (typeof game.current_round.transition == "function")){
-			setTimeout(game.current_round.transition.bind(game), spec.timeout || this.DEFAULTS.timeout);
+			setTimeout(game.current_round.transition.bind(game), spec.timeout || Card.DEFAULTS.timeout);
 		} else {
-			this.addOKButton(this.DEFAULTS.okClick)
+			// just leave the card up indefinitely.
 		}
 	}
+	
+	// the card holder is just temporary. put the card within it into the container.
+	this.elem = card_holder.children().first();
   $(spec.container).append(this.elem);
 }
-
-Card.default_template = $("#card_template").html();
 
 Card.prototype.addOKButton = function(onclick_handler){
 	// once the user clicks to continue, we can move onto the game.
@@ -316,9 +341,8 @@ Card.prototype.addOKButton = function(onclick_handler){
 		card.elem.remove();
 		setTimeout(function(){ onclick_handler.call(); delete card; }, 500); // pause before triggering animations?
   });
-	ok_button.appendTo(this.elem)
+	ok_button.appendTo(this.card_front);
 }
-
 
 /* 
  * CountdownClock
@@ -350,12 +374,11 @@ CountdownClock.prototype.stop = function(){
 // This is what gets it all started. It gets called once we've retrieved & parsed a valid game YAML file.
 var game;
 function BuildGame(parsed_game_data){
-	try {
+	// try {
 		game = new Game(parsed_game_data);
-	 } catch (err){
-		alert("Warning: cannot build game. " + err);
-		var obj = {};
-		Error.captureStackTrace(err);
-		console.log(obj.stack);
-	}
+	//  } catch (err){
+	// 	alert("Warning: cannot build game. " + err);
+	// 	Error.captureStackTrace(err);
+	// 	console.log(err.stack);
+	// }
 }
