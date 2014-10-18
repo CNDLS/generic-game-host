@@ -8,3 +8,4 @@ media
 wsgi
 templates/play.html
 static/css/custom.css
+static/admin
