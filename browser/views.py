@@ -9,7 +9,7 @@ from decimal import Decimal, ROUND_FLOOR
 
 import datetime
 
-from main.models import Game, Round, GameReport
+from game.models import Game, Round, GameReport
 from browser.models import Session, PlayedRound, Event
 from django.contrib.auth.models import User
 
@@ -17,16 +17,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models.base import ObjectDoesNotExist
 
-from main.scheduled import process_payloads
-
 
 # list the available games.
 @login_required
 @staff_member_required
 def index(request):
-	# last-ditch to update reports prior to rendering
-	# process_payloads()
-	
 	if request.user.is_authenticated():
 		games = Game.objects.filter(public=True) #Game.objects.all()
 	else:

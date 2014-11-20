@@ -2,7 +2,7 @@ from django.db import models
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
-from main.models import Game, Round
+from game.models import Game, Round
 
 class Session(models.Model):
 	student = models.ForeignKey(User, db_column="student")
@@ -18,7 +18,7 @@ class PlayedRound(models.Model):
 	student = models.ForeignKey(User, db_column="student")
 	objection = models.CharField(max_length=32, blank=True, null=True)
 	reason = models.IntegerField()
-	success = models.BooleanField()
+	success = models.BooleanField(default=False)
 	points = models.IntegerField()
 	timestamp = models.DateTimeField(blank=True, null=True)
 
