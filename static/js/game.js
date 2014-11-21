@@ -15,11 +15,12 @@
 function Game(game_spec){
 	Game.DEFAULTS = {
 		Title: "Generic Game",
+		Clock: new CountdownClock(),
 		Rounds: [],
 		Utilities: {},
 		Intro: "Welcome to the game!",
 		Resources: {},
-		winning_score: 1,
+		WinningScore: 1,
 		WonGameFeedback: "<h3>Hey, you won!</h3>",
 		LostGameFeedback: "<h3>That didn't work out so well; you lost. Better luck next time!</h3>"
 	}
@@ -30,11 +31,11 @@ function Game(game_spec){
   this.current_round;
   this.round_nbr = 0;
 	
-	this.rounds = this.spec.get("Rounds") || Game.DEFAULTS.Rounds; // the rounds of the game.
-	this.title = $("#title").html(this.spec.get("Title") || Game.DEFAULTS.Title);
-	this.clock = this.spec.get("Clock") || new CountdownClock(this);
+	this.title = $("#title").html(this.read("Title"));
+	this.rounds = this.read("Rounds"); // the rounds of the game.
+	this.clock = this.read("Clock");
 	
-	this.winning_score = this.spec.get("winning_score") || Game.DEFAULTS.winning_score;
+	this.winning_score = this.read("WinningScore");
   
 	// execute any customization, defined in play.html template.
 	// THIS IS WHERE !my FUNCTIONS GET ADDED TO THE GAME OBJECT.
@@ -49,7 +50,7 @@ function Game(game_spec){
 
 Game.prototype.setup = function(){
   // introduce any explanatory note. place them on onscreen 'cards,' styled for each game.
-	var intro_prompt = this.spec.get("Intro") || Game.DEFAULTS.Intro;
+	var intro_prompt = this.read("Intro");
 	// attach spec for an intro card to the game, so we can optionally edit it in a setup_function.
 	this.intro_card = {
 											title: "Introduction", 
@@ -59,9 +60,11 @@ Game.prototype.setup = function(){
 											okClick: this.newRound.bind(this)
 										}
 	
+	this.cumulative_score = 0;
+										
 	// collect any global_resources that may become available to the user throughout the game.
 	// attach global_resources to the game, so we can optionally edit them in a setup_function.
-  this.global_resources = this.spec.get("Resources") || Game.DEFAULTS.Resources;
+  this.global_resources = this.read("Resources");
 	
 	// deliver the intro card. we will require a click-through on this card.
 	var intro_card = new Card(this.intro_card);
@@ -74,16 +77,16 @@ Game.prototype.timeoutRound = function(){
 Game.prototype.addPoints = function(points){
   this.cumulative_score += points;
   this.points_display.val(this.cumulative_score);
-	var addPointsMessage = this.spec.get("AddPoints") || ":points".insert_values(points);
+	var addPointsMessage = this.spec.read("AddPoints", ":points".insert_values(points));
 	addPointsMessage = addPointsMessage.insert_values(points);
   this.sendMessage(addPointsMessage);
 }
 
 Game.prototype.gameFeedback = function(){
   if (this.cumulative_score >= this.winning_score) {
-		var gameFeedbackMessage = this.spec.get("WonGameFeedback") || Game.DEFAULTS.WonGameFeedback;
+		var gameFeedbackMessage = this.read("WonGameFeedback");
   } else {
-		var gameFeedbackMessage = this.spec.get("LostGameFeedback") || Game.DEFAULTS.LostGameFeedback;
+		var gameFeedbackMessage = this.read("LostGameFeedback");
   }
 	gameFeedbackMessage = gameFeedbackMessage.insert_values(this.cumulative_score);
 	var feedback_card = {
@@ -94,6 +97,13 @@ Game.prototype.gameFeedback = function(){
 											}
 	new Card(feedback_card);
   this.sendMessage(gameFeedbackMessage);
+}
+
+Game.prototype.read = function(fieldName, defaultValue){
+	if (this.spec.get(fieldName) != undefined){ return this.spec.get(fieldName); }
+	if (defaultValue != undefined){ return defaultValue; }
+	if (Game.DEFAULTS[fieldName] != undefined){ return Game.DEFAULTS[fieldName]; }
+	return undefined;
 }
 
 Game.prototype.sendMessage = function(msgText){
@@ -109,15 +119,20 @@ Game.prototype.newRound = function(){
   // only advance upon successfully reporting progress.
   // if there's a communications failure, we'll at least know when it happened.
 	window.reporter.sendReport(function(){
-	  if (game.rounds.count() > 0){
-      delete game.current_round;
-      ++game.round_nbr;
-      game.current_round = new Round(game.rounds.shift());
-      game.current_round.start();
-    } else {
+		try {
+		  if (game.rounds.count() > 0){
+	      delete game.current_round;
+	      ++game.round_nbr;
+	      game.current_round = new Round(game.rounds.shift());
+	      game.current_round.start();
+	    } else {
+	      game.gameFeedback();
+				game.allowReplay();
+	    }
+		} catch (e) {
       game.gameFeedback();
 			game.allowReplay();
-    }
+		}
 	});
 }
 

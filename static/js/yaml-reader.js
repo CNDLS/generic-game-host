@@ -1,4 +1,5 @@
 // See node kinds in YAML spec: http://www.yaml.org/spec/1.2/spec.html#kind
+// This adds a !my identifier, which signifies a local function to be executed when the value is requested.
 var MyFunctionType = new jsyaml.Type('!my', { kind: 'scalar' });
 var GAME_SCHEMA = jsyaml.Schema.create([ MyFunctionType ]);
 
@@ -35,6 +36,7 @@ var GAME_SCHEMA = jsyaml.Schema.create([ MyFunctionType ]);
  */
 function YAML(parsed_data){
 	this.default_context = $.noop;
+	this.debug = false;
 	
 	// crawl through parsed_data & give all objects a custom get() function.
 	// for now, we're assuming they're all vanilla Objects.
@@ -79,8 +81,8 @@ YAML.prototype.get = function(key /*, context, function params */){
 	} else if (this.hasOwnProperty(key.camelize(false))){
 		value = this[key.camelize(false)];
 	} else {
-		console.log("Could not find '"+key+"' in ",this);
-		return false;
+		if (this.debug){ console.log("Could not find '"+key+"' in ",this); }
+		return undefined;
 	}
 	return this.eval(value, context, args);
 }

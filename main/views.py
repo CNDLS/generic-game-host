@@ -61,7 +61,7 @@ def write_results(request, game_id):
 		game_report = GameReport(payload=request.body, student=current_user, case=case)
 		game_report.save()
 		# payload = json.loads(payload)
-		return StreamingHttpResponse(request.body, mimetype='application/json')
+		return StreamingHttpResponse(request.body, content_type='application/json')
 
 
 def custom_404(request):

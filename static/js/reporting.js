@@ -34,6 +34,9 @@
 					// this way, if we see multiple copies of the session object, we know some connection attempts have failed.
           reporter.user_data = [];
           on_success.call();
+				},
+				error: function(){
+					console.log(arguments)
 				}
 			});
       

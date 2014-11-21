@@ -9,13 +9,20 @@ from host.settings import MEDIA_ROOT
 from django.core.servers.basehttp import FileWrapper
 
 
+class GameType(models.Model):
+	name = models.CharField(max_length=255)
+	description = models.TextField(blank=True,null=True)
+	score_accrues_to_computer = models.BooleanField(default=False)
+		
+	def __unicode__(self):
+		return self.name
+    
 class Game(models.Model):
 	name = models.CharField(max_length=255)
 	description = models.TextField(blank=True,null=True)
-	public = models.BooleanField()
-	parsed = models.BooleanField()
-	winning_score = models.IntegerField()
-	score_accrues_to_computer = models.BooleanField()
+	game_type = models.ForeignKey(GameType, unique=False)
+	public = models.BooleanField(default=False)
+	parsed = models.BooleanField(default=False)
 	game_spec = models.FileField(
 						null = True,
 						blank = True,
@@ -29,7 +36,6 @@ class Game(models.Model):
 
 	def save(self, *args, **kwargs):
 		# create Round objects as nec. set a 'parsed' flag to true when done.
-
 		super(Game, self).save(*args, **kwargs)
 		
 		game_yaml_file_path = MEDIA_ROOT + str(self.game_spec)

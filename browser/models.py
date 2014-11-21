@@ -2,7 +2,7 @@ from django.db import models
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
-from game.models import Game, Round
+from main.models import Game, Round
 
 class Session(models.Model):
 	student = models.ForeignKey(User, db_column="student")

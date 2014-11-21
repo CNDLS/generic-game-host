@@ -7,7 +7,7 @@ class ProcessUserData(CronJobBase):
 	RUN_AT_TIMES = ['3:32']
 
 	schedule = Schedule(run_at_times=RUN_AT_TIMES)
-	code = 'main.process_payloads_cron_job'    # a unique code
+    # code = 'main.process_payloads_cron_job'    # a unique code
 
 	def do(self):
 		# This will be executed once per day at the specified time.

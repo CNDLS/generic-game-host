@@ -9,7 +9,7 @@ from decimal import Decimal, ROUND_FLOOR
 
 import datetime
 
-from game.models import Game, Round, GameReport
+from main.models import Game, Round, GameReport
 from browser.models import Session, PlayedRound, Event
 from django.contrib.auth.models import User
 
