@@ -12,10 +12,19 @@ from django.core.servers.basehttp import FileWrapper
 class GameType(models.Model):
 	name = models.CharField(max_length=255)
 	description = models.TextField(blank=True,null=True)
+	template = models.FileField(
+						null = True,
+						blank = True,
+						upload_to = 'uploads/custom_templates/')
+	css = models.FileField(
+						null = True,
+						blank = True,
+						upload_to = 'uploads/custom_css/')
 	score_accrues_to_computer = models.BooleanField(default=False)
 		
 	def __unicode__(self):
 		return self.name
+
     
 class Game(models.Model):
 	name = models.CharField(max_length=255)
@@ -26,7 +35,7 @@ class Game(models.Model):
 	game_spec = models.FileField(
 						null = True,
 						blank = True,
-						upload_to = 'uploads/')
+						upload_to = 'uploads/games/')
 						# max_upload_size = 102400, # 100KB
 						# content_types = ['application/x-yaml','text/yaml','text/plain','text/plain; charset=us-ascii'])
 		
@@ -69,6 +78,7 @@ class Round(models.Model):
 	nbr = models.IntegerField()
 	correct_answer = models.CharField(max_length=32)
 	points = models.IntegerField()
+
 
 class Struct:
 	def __init__(self, **entries):

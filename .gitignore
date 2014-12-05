@@ -6,6 +6,5 @@ local_settings.py
 settings.py
 media
 wsgi
-templates/play.html
 static/css/custom.css
 static/admin

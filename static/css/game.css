@@ -415,6 +415,31 @@ table#detail td {
   right: 0.25em;
 }
 
+.blurb {
+  padding: 2em;
+}
+
+#banner {
+  padding: 0.25em 0.5em;
+}
+
+#footer ul {
+  background:#ccc;
+  list-style: none;
+  padding-left:0;
+}
+#footer ul li {
+  float: left;
+  padding: 0.25em 1em;
+}
+#footer ul li img {
+  height: 64px;
+}
+
+#logo-gu {
+  padding-top: 0.25em;
+}
+
 .disabled {
    pointer-events: none;
    cursor: default;

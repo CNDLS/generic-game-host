@@ -5,12 +5,12 @@
   <head>
     <title>CNDLS-ITEL Generic Game</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
-    <link href="{{ STATIC_URL }}css/game.css" media="screen, print" rel="stylesheet" type="text/css" /> 
    	<link href='https://fonts.googleapis.com/css?family=Rationale' rel='stylesheet' type='text/css'>
     <link rel="shortcut icon" href="{{ STATIC_URL }}favicon.ico" />
+    <link href="{{ STATIC_URL }}css/game.css" media="screen, print" rel="stylesheet" type="text/css" />
 		{% block css %}{% endblock %}
   </head> 
-  <body class="{{ view_name }}">
+  <body class="{{ body_class }}">
   {% block content %}{% endblock %}
 	
 

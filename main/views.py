@@ -14,15 +14,19 @@ from django.core.servers.basehttp import FileWrapper
 
 from django.contrib.auth.decorators import login_required
 
-# list the available .
-@login_required
+
 def index(request):
+    return render_to_response('index.html', context_instance=RequestContext(request))
+    
+# list all the games that are available to students.
+@login_required
+def list(request):
 	if request.user.is_authenticated():
-		games = Game.objects.filter(public=True) #Game.objects.all()
+		games = Game.objects.filter(public=True)
 	else:
 	    games = ''
         
-	return render_to_response('index.html', { 'games':games }, context_instance=RequestContext(request))
+	return render_to_response('list.html', { 'games':games }, context_instance=RequestContext(request))
 
 
 # get a game file from which to construct a game.
@@ -41,15 +45,18 @@ def read(request, game_id):
 		return response
 
 
-# play the game, using a case file.
+# play a game, defined by a yaml file.
 @login_required
 @csrf_protect
 def play(request, game_id):
-   	requested_game = get_object_or_404(Game, pk=game_id)
-	try:
-	   	return render_to_response('play.html', { 'game':requested_game, 'AJAX_PREFIX':AJAX_PREFIX }, context_instance=RequestContext(request))
-	except TemplateDoesNotExist:
-   		return render_to_response('example-play.html', { 'game':requested_game, 'AJAX_PREFIX':AJAX_PREFIX }, context_instance=RequestContext(request))
+    game = get_object_or_404(Game, pk=game_id)
+    game_type = game.game_type or GameType()
+    template_vars = { 'game': game,
+                      'game_content_template': game_type.template or None,
+                      'game_css':  game_type.css or None,
+                      'current_user': request.user,
+                      'AJAX_PREFIX':AJAX_PREFIX }
+    return render_to_response('play.html', template_vars, context_instance=RequestContext(request))
  
 @csrf_protect
 def write_results(request, game_id):

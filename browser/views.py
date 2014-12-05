@@ -27,7 +27,7 @@ def index(request):
 	else:
 	    games = ''
         
-	return render_to_response('browser.html', { 'games':games, 'view_name':'browser' }, context_instance=RequestContext(request))
+	return render_to_response('browser.html', { 'games':games, 'body_class':'browser' }, context_instance=RequestContext(request))
 	
 
 # report on students results with a 
@@ -103,7 +103,7 @@ def report(request, game_id):
 			
 		by_round_results.append({ 'round_nbr':round.nbr, 'points':round.points, 'ave_time':ave_time_spent_on_round, 'num_attempts':played_rounds.count, 'percent_correct': percent_correct  })
 	
-	return render_to_response('report.html', { 'game':game, 'view_name':'browser', 'whole_game_results':whole_game_results, 'by_round_results':by_round_results }, context_instance=RequestContext(request))
+	return render_to_response('report.html', { 'game':game, 'body_class':'browser', 'whole_game_results':whole_game_results, 'by_round_results':by_round_results }, context_instance=RequestContext(request))
 	
 	
 # report on INDIVIDUAL students results with a 
@@ -180,7 +180,7 @@ def report_for_student(request, game_id, student_netID):
 			
 		by_round_results.append({ 'round_nbr':round.nbr, 'points':round.points, 'ave_time':ave_time_spent_on_round, 'num_attempts':played_rounds.count, 'percent_correct': percent_correct  })
 	
-	return render_to_response('report.html', { 'game':game, 'view_name':'browser', 'whole_game_results':whole_game_results, 'by_round_results':by_round_results }, context_instance=RequestContext(request))
+	return render_to_response('report.html', { 'game':game, 'body_class':'browser', 'whole_game_results':whole_game_results, 'by_round_results':by_round_results }, context_instance=RequestContext(request))
 	
 	
 	
