@@ -416,7 +416,19 @@ table#detail td {
 }
 
 .blurb {
-  padding: 2em;
+  padding: 1em 2em;
+}
+.gallery {
+  padding: 0 2em;
+}
+.gallery a {
+	color: #011e41;
+	text-decoration:none;
+	padding: 0.25em 1em;
+}
+.gallery a:hover {
+	color: white;
+	background: #011e41;
 }
 
 #banner {

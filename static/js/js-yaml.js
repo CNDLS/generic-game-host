@@ -1992,6 +1992,7 @@ function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact
         state.result = type.construct(state.result);
       }
     } else {
+		debugger;
       throwWarning(state, 'unknown tag !<' + state.tag + '>');
     }
   }

@@ -7,4 +7,5 @@ settings.py
 media
 wsgi
 static/css/custom.css
+static/js/game_utils.js
 static/admin

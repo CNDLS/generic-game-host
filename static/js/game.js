@@ -19,6 +19,37 @@
 
 var game;
 
+
+// script to start things off by getting the appropriate YAML file & parsing it.
+$(function(){
+	if ($ === undefined) { return; }
+	this.script_tag = $("script#reader");
+	if (this.script_tag.length === 0) { return; }
+	this.read_url = this.script_tag.attr("read-from");
+
+	$.ajax(
+	{
+		url: this.read_url,
+		type: "GET",
+		success: function (data /* , textStatus, XMLHttpRequest */) {
+			// send the parsed data to the callback.
+			var parsed_game_data;
+			try {
+				parsed_game_data = new YAML(jsyaml.safeLoad(data, { schema: GAME_SCHEMA }));
+			} catch (err) {
+				alert("Warning: cannot parse game file. " + err);
+				console.log(err);
+				return;
+			}
+			BuildGame(parsed_game_data);
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+			console.log(XMLHttpRequest, textStatus, errorThrown);
+		}
+	});
+});
+
+
 /* 
  * Game
  */
@@ -36,11 +67,10 @@ function Game(game_spec) {
 	};
 	
 	this.spec = game_spec;
-	this.spec.setDefaultContext(this);
 	
 	this.current_round = undefined;
 	this.round_nbr = 0;
-	
+	this.container = $("#game");
 	this.title = $("#title").html(this.read("Title"));
 	this.rounds = this.read("Rounds"); // the rounds of the game.
 	this.clock = this.read("Clock");
@@ -61,7 +91,7 @@ Game.prototype.setup = function () {
 	this.intro_card = {
 		title: "Introduction",
 		content: intro_prompt,
-		class: "intro",
+		klass: "intro",
 		container: "#cards",
 		okClick: this.newRound.bind(this)
 	};
@@ -73,7 +103,8 @@ Game.prototype.setup = function () {
 	this.global_resources = this.read("Resources");
 	
 	// deliver the intro card. we will require a click-through on this card.
-	createCard(this.intro_card);
+	this.intro_card = new Card(this.intro_card);
+	this.intro_card.deal();
 };
 
 Game.prototype.timeoutRound = function () {
@@ -99,18 +130,27 @@ Game.prototype.gameFeedback = function () {
 	var feedback_card = {
 		title: "Summary",
 		content: gameFeedbackMessage,
-		class: "ruling",
+		klass: "ruling",
 		container: "#cards"
 	};
-	createCard(feedback_card);
+	feedback_card = new Card(feedback_card);
+	feedback_card.deal();
 	this.sendMessage(gameFeedbackMessage);
 };
 
-Game.prototype.read = function (fieldName, defaultValue) {
-	if (this.spec.get(fieldName) !== undefined) { return this.spec.get(fieldName); }
-	if (defaultValue !== undefined) { return defaultValue; }
-	if (Game.DEFAULTS[fieldName] !== undefined) { return Game.DEFAULTS[fieldName]; }
-	return undefined;
+Game.prototype.read = function (fieldName /* , defaultValue */ ) {
+	if (!this.hasOwnProperty("spec")) { 
+		console.log("Warning: Game spec not defined.");
+		return undefined;
+	}
+	var defaultValue = arguments[1] || undefined;
+	var rtn_val = this.spec.get(fieldName);
+	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
+	if (rtn_val === undefined && (typeof Game.DEFAULTS[fieldName] !== "undefined")) { rtn_val = Game.DEFAULTS[fieldName]; }
+	if (rtn_val === undefined) {
+		console.log("Cannot provide a '" + fieldName + "' from Game spec or defaults.");
+	}
+	return rtn_val;
 };
 
 Game.prototype.sendMessage = function (msgText) {
@@ -130,7 +170,7 @@ Game.prototype.newRound = function () {
 			if (game.rounds.count() > 0) {
 				delete game.current_round;
 				++game.round_nbr;
-				game.current_round = new Round(game.rounds.shift());
+				game.current_round = new Round(game.rounds[game.round_nbr - 1]);
 				game.current_round.start();
 			} else {
 				game.gameFeedback();
@@ -156,7 +196,6 @@ function Round(round_spec) {
 	
 	this.nbr = game.round_nbr;
 	this.spec = round_spec;
-	this.spec.setDefaultContext(game);
 
 	Round.DEFAULTS = {
 		Points: 1,
@@ -165,16 +204,16 @@ function Round(round_spec) {
 		Prompt: {
 			title: function (round) { "Round :nbr".insert_values(round.nbr); },
 			content: prompt,
-			class: "round_prompt",
+			klass: "round_prompt",
 			container: "#cards"
 		},
 		WonRoundFeedback: "<h3>Good Round!</h3>",
 		LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
 	};
 	
-	this.resources = this.spec.get("Resources") || Round.DEFAULTS.Resources;
-	this.pointValue = this.spec.get("Points") || Round.DEFAULTS.Points;
-	this.max_time = this.spec.get("MaxTime") || Round.DEFAULTS.MaxTime;
+	this.resources = this.read("Resources") || Round.DEFAULTS.Resources;
+	this.pointValue = this.read("Points") || Round.DEFAULTS.Points;
+	this.max_time = this.read("MaxTime") || Round.DEFAULTS.MaxTime;
 	this.played_round = {}; // to store data of what happened in the round.
 
 	
@@ -197,11 +236,26 @@ function Round(round_spec) {
 	};
 	
 	// INTIALIZING THE ROUND.
-	this.spec.get("SetUp");
+	this.read("SetUp");
 
 	// create a StateMachine to track what user can do in various situations.
 	$.extend(this, StateMachine.create({ events: this.events }));
 }
+
+Round.prototype.read = function (fieldName /* , defaultValue */ ) {
+	if (!this.hasOwnProperty("spec")) { 
+		console.log("Warning: Round spec not defined.");
+		return undefined;
+	}
+	var defaultValue = arguments[1] || undefined;
+	var rtn_val = this.spec.get(fieldName);
+	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
+	if (rtn_val === undefined && (typeof Round.DEFAULTS[fieldName] !== "undefined")) { rtn_val = Round.DEFAULTS[fieldName]; }
+	if (rtn_val === undefined) {
+		console.log("Cannot provide a '" + fieldName + "' from Round spec or defaults.");
+	}
+	return rtn_val;
+};
 
 Round.prototype.onstart = function (/* eventname, from, to */) {
 	game.sendMessage("Starting Round " + this.nbr);
@@ -212,15 +266,15 @@ Round.prototype.onstart = function (/* eventname, from, to */) {
 
 Round.prototype.onPresentRound = function () {
 	// do any presentation that sets up the round for the player(s).
-	var presentation = this.spec.get("Present");
+	var presentation = this.read("Present");
 	return presentation ? StateMachine.ASYNC : false;
 };
 
 Round.prototype.onGivePrompt = function () {
-	var custom_prompt = this.spec.get("Prompt") || false;
-	var prompt = custom_prompt ? $.extend(Round.DEFAULTS.Prompt, custom_prompt) : Round.DEFAULTS.Prompt;
+	var prompt = this.read("Prompt");
 	// deliver the prompt card.
-	createCard(prompt);
+	prompt = new Card(prompt);
+	prompt.deal();
 };
 
 Round.prototype.onWaitForPlayer = function () {
@@ -251,12 +305,13 @@ Round.prototype.onEvaluateResponse = function () {
 Round.prototype.onleaveEvaluateResponse = function (eventname /*, from, to */) {
 	var ruling_card = {
 		content: prompt,
-		class: "ruling",
+		klass: "ruling",
 		container: "#cards"
 	};
 	// deliver the prompt card. we will require a click-through on this card.
-	createCard(ruling_card);
-	this.ruling_card = $(createCard(eventname.capitalize().past_tense() + ".", "", "ruling", "#questions"));
+	ruling_card = new Card(ruling_card);
+	ruling_card.deal();
+	this.ruling_card = $(new Card(eventname.capitalize().past_tense() + ".", "", "ruling", "#questions"));
   
 	return StateMachine.ASYNC;
 };
@@ -291,24 +346,33 @@ Round.prototype.onend = function () {
 /* 
  * Cards
  * Use a template in the html page to generate "cards," any (potentially animated) messages to the player.
+ * Card prototype specifies a generic 'deal' function, but that can be overridden by 'deal' function passed in a card spec.
  * note: providing	spec.<key> || false suppresses KeyNotFound errors.
  */
 function Card(spec) {
 	var _this = this;
 	
+	if (typeof spec === "string") {
+		spec = { content: spec };
+	} else if (typeof spec === "number") {
+		spec = { content: spec.toString() };
+	}
+	
 	Card.DEFAULTS = {
 		template: $("#card_template").html(),
 		timeout: null,
-		parts: { "label": "H2" }
+		parts: { "label": "H2" },
+		container: Game
 	};
 	
-	// spec can contain template, title, content, class, container.
+	// spec can contain template, title, content, klass, container, and deal <function>.
 	// spec *must* contain at least content and container.
 	var card_holder = $(document.createElement("div"));
 	card_holder.html(spec.card_template || Card.DEFAULTS.template);
 	this.card_front = card_holder.find(".front") || card_holder;
 
 	this.parts = $.extend(spec.parts || {}, Card.DEFAULTS.parts);
+	this.container = spec.container || Card.DEFAULTS.container;
 	
 	// get all the elements in the template.
 	this.elements = {};
@@ -324,7 +388,7 @@ function Card(spec) {
 		}
 	});
 	
-	if (spec.class || false) { card_holder.find("div.card").addClass(spec.class); }
+	if (spec.klass || false) { card_holder.find("div.card").addClass(spec.klass); }
 	
 	$.each(this.parts, function (key, value) {
 		if (spec.hasOwnProperty(key)) {
@@ -348,7 +412,6 @@ function Card(spec) {
 	
 	// the card holder is just temporary. put the card within it into the container.
 	this.elem = card_holder.children().first();
-	$(spec.container).append(this.elem);
 }
 
 Card.prototype.addOKButton = function (onclick_handler) {
@@ -362,11 +425,14 @@ Card.prototype.addOKButton = function (onclick_handler) {
 	ok_button.appendTo(this.card_front);
 };
 
-
-function createCard(spec) {
-	var card = new Card(spec);
-	return $(card.elem);
+Card.prototype.deal = function () {
+	if (this.container === Game){
+		this.container = window.game.container;
+	}
+	$(this.container).append(this.elem);
 }
+
+
 
 /* 
  * CountdownClock
