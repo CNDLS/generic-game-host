@@ -275,10 +275,15 @@ Round.prototype.onGivePrompt = function () {
 	// deliver the prompt card.
 	prompt = new Card(prompt);
 	prompt.deal();
+	
+	this.wait();
 };
 
 Round.prototype.onWaitForPlayer = function () {
 	game.clock.start(this.max_time);
+	// trigger response, based on the ResponseType(s).
+	this.response = Response(this.read("ResponseType"));
+	console.log("Response", this.response);
 };
 
 // doing a little more cleanup now, before we issue the ruling.
@@ -432,6 +437,34 @@ Card.prototype.deal = function () {
 	$(this.container).append(this.elem);
 }
 
+
+
+/* 
+ * Responses
+ * ResponseType drives the loading of some kind of widget. Lots of customization will probably happen here,
+ * so expect this to get refactored over time.
+ * Basic response widget types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
+ * Other types can be defined in a game_utils.js file for a particular instance. 
+ */
+function Response(spec) {
+	Response.DEFAULTS = {
+		Type: "MultipleChoice"
+	}
+	this.type = spec.ResponseType || Response.DEFAULTS.Type;
+	return new Response[this.type];
+}
+
+Response.MultipleChoice = function (spec) {
+	console.log("MultipleChoice", spec)
+}
+
+Response.MultipleAnswer = function (spec) {
+	console.log("MultipleAnswer")
+}
+
+Response.FreeResponse = function (spec) {
+	console.log("FreeResponse")
+}
 
 
 /* 
