@@ -187,6 +187,11 @@ Game.prototype.newRound = function () {
 	});
 };
 
+Game.prototype.abort = function() {
+	// this is our way of cleaning up following a fatal error.
+	delete this;
+}
+
 
 
 /* 
@@ -291,7 +296,12 @@ Round.prototype.onWaitForPlayer = function () {
 		response_types = [response_types];
 	}
 	this.responder = new Responder(response_types, this.spec);
-	console.log("Responder", this.responder);
+	if (this.responder && typeof this.responder["deal"] === "function") {
+		this.responder.deal();
+		return StateMachine.ASYNC;
+	} else {
+		return false;
+	}
 };
 
 // doing a little more cleanup now, before we issue the ruling.
@@ -458,23 +468,56 @@ function Responder(response_types, round_spec) {
 	Responder.DEFAULTS = {
 		Type: "MultipleChoice"
 	}
-	this.widgets = $.map(response_types, function(){
-		var response_type = this;
-		return new ResponseWidget( [response_type || Responder.DEFAULTS.Type] );
+	this.widgets = $.map(response_types, function(response_type){
+		return ResponseWidgetFactory.create([response_type || Responder.DEFAULTS.Type]);
 	});
 	this.spec = round_spec;
 }
-
-function ResponseWidget (){}
-
-ResponseWidget.MultipleChoice = function () {
+Responder.prototype.deal = function (){
+	$.each(this.widgets, function (index, widget) {
+		if ( widget.hasOwnProperty("card") && (widget.card instanceof Card) ) {
+			widget.card.deal();
+		}
+	});
 }
 
+function ResponseWidgetFactory() {}
 
-ResponseWidget.MultipleAnswer = function () {
+ResponseWidgetFactory.create = function (response_type) {
+	if (!ResponseWidgetFactory.hasOwnProperty(response_type)) {
+		console.log("Cannot find ResponseWidgetFactory." + response_type);
+		if (game){ game.abort(); }
+	}
+	var widget = new ResponseWidgetFactory[response_type]();
+	// we're going to always use Cards as our way of making 'moves' in a game,
+	// whether initiated by the game or, eventually, by users.
+	// Then, when we get to synchronous peer-to-peer games,
+	// we'll have a standard way of presenting 'moves' sent by peers.
+	// Also, cleaning up after Rounds should always just be a matter of removing Cards
+	// that are no longer relevant.
+	widget.card = widget.getCard();
+	return widget;
 }
 
-ResponseWidget.FreeResponse = function () {
+/* Each response widget type should provide a getContents() function that accepts no arguments,
+ * and that returns a spec for creating a Card.
+ */
+ResponseWidgetFactory.MultipleChoice = function () {}
+ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
+	/* set up a Card with a form with radio buttons */
+}
+
+ResponseWidgetFactory.MultipleAnswer = function () {}
+ResponseWidgetFactory.MultipleAnswer.prototype.getCard = function() {}
+
+ResponseWidgetFactory.FreeResponse = function () {}
+ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
+	var card_spec = {
+		parts: { "form": "form" },
+		content: "<form><input type=\"text\" /></form>",
+		container: Game
+	}
+	return new Card(card_spec);
 }
 
 
