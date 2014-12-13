@@ -318,12 +318,17 @@ table#detail td {
   display: none;
 }
 
+.card button {
+    padding: 0.5em 1.5em;
+}
+
 .intro.card {
   height: 300px;
   padding: 1em 6.5em 0em 6.5em;
 }
 .intro.card {
   height: 300px;
+  max-width: 500px;
   padding: 1em 6.5em 0em 6.5em;
 }
 

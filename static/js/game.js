@@ -170,13 +170,17 @@ Game.prototype.newRound = function () {
 			if (game.rounds.count() > 0) {
 				delete game.current_round;
 				++game.round_nbr;
-				game.current_round = new Round(game.rounds[game.round_nbr - 1]);
+				// NOTE: have to use get(), rather than array index ([]),
+				// so we can trigger !evaluate, if need be.
+				game.current_round = new Round(game.rounds.get(game.round_nbr - 1));
 				game.current_round.start();
 			} else {
 				game.gameFeedback();
 				game.allowReplay();
 			}
 		} catch (e) {
+			Error.captureStackTrace(e);
+			console.log(e.stack);
 			game.gameFeedback();
 			game.allowReplay();
 		}
@@ -281,9 +285,13 @@ Round.prototype.onGivePrompt = function () {
 
 Round.prototype.onWaitForPlayer = function () {
 	game.clock.start(this.max_time);
-	// trigger response, based on the ResponseType(s).
-	this.response = Response(this.read("ResponseType"));
-	console.log("Response", this.response);
+	// trigger response, based on the ResponseTypes.
+	var response_types = this.read("ResponseTypes");
+	if (typeof response_types === "string") {
+		response_types = [response_types];
+	}
+	this.responder = new Responder(response_types, this.spec);
+	console.log("Responder", this.responder);
 };
 
 // doing a little more cleanup now, before we issue the ruling.
@@ -441,29 +449,32 @@ Card.prototype.deal = function () {
 
 /* 
  * Responses
- * ResponseType drives the loading of some kind of widget. Lots of customization will probably happen here,
+ * each response_type creates a different drives the loading of some kind of widget. Lots of customization will probably happen here,
  * so expect this to get refactored over time.
  * Basic response widget types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
  * Other types can be defined in a game_utils.js file for a particular instance. 
  */
-function Response(spec) {
-	Response.DEFAULTS = {
+function Responder(response_types, round_spec) {
+	Responder.DEFAULTS = {
 		Type: "MultipleChoice"
 	}
-	this.type = spec.ResponseType || Response.DEFAULTS.Type;
-	return new Response[this.type];
+	this.widgets = $.map(response_types, function(){
+		var response_type = this;
+		return new ResponseWidget( [response_type || Responder.DEFAULTS.Type] );
+	});
+	this.spec = round_spec;
 }
 
-Response.MultipleChoice = function (spec) {
-	console.log("MultipleChoice", spec)
+function ResponseWidget (){}
+
+ResponseWidget.MultipleChoice = function () {
 }
 
-Response.MultipleAnswer = function (spec) {
-	console.log("MultipleAnswer")
+
+ResponseWidget.MultipleAnswer = function () {
 }
 
-Response.FreeResponse = function (spec) {
-	console.log("FreeResponse")
+ResponseWidget.FreeResponse = function () {
 }
 
 
