@@ -166,8 +166,8 @@ Game.prototype.newRound = function () {
 	// only advance upon successfully reporting progress.
 	// if there"s a communications failure, we"ll at least know when it happened.
 	window.reporter.sendReport(function () {
-		try {
-			if (game.rounds.count() > 0) {
+		// try {
+			if (game.rounds.count() > game.round_nbr) {
 				delete game.current_round;
 				++game.round_nbr;
 				// NOTE: have to use get(), rather than array index ([]),
@@ -178,12 +178,12 @@ Game.prototype.newRound = function () {
 				game.gameFeedback();
 				game.allowReplay();
 			}
-		} catch (e) {
-			Error.captureStackTrace(e);
-			console.log(e.stack);
-			game.gameFeedback();
-			game.allowReplay();
-		}
+		// } catch (e) {
+		// 	Error.captureStackTrace(e);
+		// 	console.log(e.stack);
+		// 	game.gameFeedback();
+		// 	game.allowReplay();
+		// }
 	});
 };
 

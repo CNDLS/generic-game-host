@@ -53,9 +53,7 @@ YAML.prototype.count = function () {
  * YAML.get() method, to be more forgiving about object keys, and to evaluate functions named in the YAML.
  */
 YAML.prototype.get = function (key) {
-	var args = Array.prototype.slice.apply(arguments);
-	args.shift().toString(); // var key = 
-	var context = args.shift() || this.default_context;
+	key = key.toString();
 	var value;
 	
 	if (this.hasOwnProperty(key)) {
