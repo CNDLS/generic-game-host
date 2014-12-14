@@ -50,6 +50,7 @@ $(function(){
 });
 
 
+
 /* 
  * Game
  */
@@ -74,6 +75,7 @@ function Game(game_spec) {
 	this.title = $("#title").html(this.read("Title"));
 	this.rounds = this.read("Rounds"); // the rounds of the game.
 	this.clock = this.read("Clock");
+	this.points_display = $("#points");
 	
 	this.winning_score = this.read("WinningScore");
 
@@ -114,7 +116,7 @@ Game.prototype.timeoutRound = function () {
 Game.prototype.addPoints = function (points) {
 	this.cumulative_score += points;
 	this.points_display.val(this.cumulative_score);
-	var addPointsMessage = this.spec.read("AddPoints", ":points".insert_values(points));
+	var addPointsMessage = this.read("AddPoints") || ":points";
 	addPointsMessage = addPointsMessage.insert_values(points);
 	this.sendMessage(addPointsMessage);
 };
@@ -208,6 +210,7 @@ function Round(round_spec) {
 
 	Round.DEFAULTS = {
 		Points: 1,
+		Threshold: 1,
 		Resources: {},
 		MaxTime: 2,
 		Prompt: {
@@ -220,8 +223,9 @@ function Round(round_spec) {
 		LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
 	};
 	
-	this.resources = this.read("Resources") || Round.DEFAULTS.Resources;
 	this.pointValue = this.read("Points") || Round.DEFAULTS.Points;
+	this.threshold_score = this.read("Threshold") || Round.DEFAULTS.Threshold;
+	this.resources = this.read("Resources") || Round.DEFAULTS.Resources;
 	this.max_time = this.read("MaxTime") || Round.DEFAULTS.MaxTime;
 	this.played_round = {}; // to store data of what happened in the round.
 
@@ -230,9 +234,8 @@ function Round(round_spec) {
 		{ name: "start",		from: "none",									to: "PresentRound" },
 		{ name: "prompt",		from: "PresentRound",							to: "GivePrompt" },
 		{ name: "wait",			from: "GivePrompt",								to: "WaitForPlayer" },
-		{ name: "respond",		from: "WaitForPlayer",							to: "UserResponds" },
+		{ name: "respond",		from: "WaitForPlayer",							to: "EvaluateResponse" },
 		{ name: "pass",			from: "WaitForPlayer",							to: "UserPasses" },
-		{ name: "evaluate",		from: "UserResponds",							to: "EvaluateResponse" },
 		{ name: "correct",		from: "EvaluateResponse",						to: "CorrectResponse" },
 		{ name: "incorrect",	from: "EvaluateResponse",						to: "IncorrectResponse" },
 		{ name: "timeout",		from: "WaitForPlayer",							to: "IncorrectResponse" },
@@ -295,7 +298,7 @@ Round.prototype.onWaitForPlayer = function () {
 	if (typeof response_types === "string") {
 		response_types = [response_types];
 	}
-	this.responder = new Responder(response_types, this.spec);
+	this.responder = new Responder(response_types, this);
 	if (this.responder && typeof this.responder["deal"] === "function") {
 		this.responder.deal();
 		return StateMachine.ASYNC;
@@ -315,28 +318,21 @@ Round.prototype.onbeforepass = function () {
 };
 
 Round.prototype.onEvaluateResponse = function () {
-	// s/b custom. find user response and compare to some stored values.
-	// this is a stub, to be replaced by a round_initer function in the YAML game spec. 
-	var correct = true;
-	if (correct) {
-		this.correct();
-	} else {
-		this.incorrect();
-	}
+	/*** maybe pass something in from the YAML..? ***/
+	/*** maybe return ASYNC, if we want to let responder widgets animate..? ***/
+	this.score = this.responder.evaluateResponse();
+	(this.score >= this.threshold_score) ? this.correct() : this.incorrect();
 };
 
 Round.prototype.onleaveEvaluateResponse = function (eventname /*, from, to */) {
-	var ruling_card = {
-		content: prompt,
-		klass: "ruling",
-		container: "#cards"
-	};
-	// deliver the prompt card. we will require a click-through on this card.
-	ruling_card = new Card(ruling_card);
-	ruling_card.deal();
-	this.ruling_card = $(new Card(eventname.capitalize().past_tense() + ".", "", "ruling", "#questions"));
-  
-	return StateMachine.ASYNC;
+	// var score_card = {
+	// 	content: prompt,
+	// 	klass: "score_card",
+	// 	container: "#cards"
+	// };
+	// // deliver the score_card. we will require a click-through on this card.
+	// score_card = new Card(score_card);
+	// score_card.deal();
 };
 
 Round.prototype.onCorrectResponse = function () {
@@ -370,7 +366,6 @@ Round.prototype.onend = function () {
  * Cards
  * Use a template in the html page to generate "cards," any (potentially animated) messages to the player.
  * Card prototype specifies a generic 'deal' function, but that can be overridden by 'deal' function passed in a card spec.
- * note: providing	spec.<key> || false suppresses KeyNotFound errors.
  */
 function Card(spec) {
 	var _this = this;
@@ -388,8 +383,8 @@ function Card(spec) {
 		container: Game
 	};
 	
-	// spec can contain template, title, content, klass, container, and deal <function>.
-	// spec *must* contain at least content and container.
+	// spec can contain template, title, klass, container, and deal <function>.
+	// spec *must* contain content.
 	var card_holder = $(document.createElement("div"));
 	card_holder.html(spec.card_template || Card.DEFAULTS.template);
 	this.card_front = card_holder.find(".front") || card_holder;
@@ -464,26 +459,38 @@ Card.prototype.deal = function () {
  * Basic response widget types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
  * Other types can be defined in a game_utils.js file for a particular instance. 
  */
-function Responder(response_types, round_spec) {
+function Responder(response_types, round) {
 	Responder.DEFAULTS = {
 		Type: "MultipleChoice"
 	}
-	this.widgets = $.map(response_types, function(response_type){
-		return ResponseWidgetFactory.create([response_type || Responder.DEFAULTS.Type]);
+	this.round = round;
+	var responder = this;
+	this.widgets = $.map(response_types, function(response_type) {
+		return ResponseWidgetFactory.create([response_type || Responder.DEFAULTS.Type], responder);
 	});
-	this.spec = round_spec;
 }
-Responder.prototype.deal = function (){
+Responder.prototype.deal = function () {
 	$.each(this.widgets, function (index, widget) {
 		if ( widget.hasOwnProperty("card") && (widget.card instanceof Card) ) {
 			widget.card.deal();
 		}
 	});
 }
+Responder.prototype.respond = function () {
+	this.round.respond(); // move on to the state of evaluating responses.
+}
+Responder.prototype.evaluateResponse = function () {
+	/*** what to do about being partially correct? or correct-ness that is cumulative across widgets? ***/
+	var rtn_val = 0;
+	$.each(this.widgets, function (index, widget) {
+		if (typeof widget.getScore === "function"){ rtn_val += widget.getScore(); }
+	});
+	return rtn_val;
+}
 
 function ResponseWidgetFactory() {}
 
-ResponseWidgetFactory.create = function (response_type) {
+ResponseWidgetFactory.create = function (response_type, responder) {
 	if (!ResponseWidgetFactory.hasOwnProperty(response_type)) {
 		console.log("Cannot find ResponseWidgetFactory." + response_type);
 		if (game){ game.abort(); }
@@ -495,6 +502,7 @@ ResponseWidgetFactory.create = function (response_type) {
 	// we'll have a standard way of presenting 'moves' sent by peers.
 	// Also, cleaning up after Rounds should always just be a matter of removing Cards
 	// that are no longer relevant.
+	widget.responder = responder;
 	widget.card = widget.getCard();
 	return widget;
 }
@@ -514,11 +522,28 @@ ResponseWidgetFactory.FreeResponse = function () {}
 ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
 	var card_spec = {
 		parts: { "form": "form" },
-		content: "<form><input type=\"text\" /></form>",
+		content: "<input type=\"text\" />",
 		container: Game
 	}
-	return new Card(card_spec);
+	var card = new Card(card_spec);
+	var default_deal = card.deal;
+	var widget = this;
+	card.deal = function () {
+		card.elem.find("input[type=text]").on("keypress", function(e) {
+	        if (e.keyCode === 13) {
+				widget.responder.respond();
+			}
+		});
+		default_deal.apply(card);
+	}
+	return card;
 }
+ResponseWidgetFactory.FreeResponse.prototype.getScore = function() {
+	// any response is fine by default in FreeResponse (eg; getting user's name).
+	/*** need to create a ScoredTextResponse, with correctness function passed via YAML. ***/
+	return 1;
+}
+
 
 
 /* 
