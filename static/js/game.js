@@ -150,7 +150,7 @@ Game.prototype.read = function (fieldName /* , defaultValue */ ) {
 	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
 	if (rtn_val === undefined && (typeof Game.DEFAULTS[fieldName] !== "undefined")) { rtn_val = Game.DEFAULTS[fieldName]; }
 	if (rtn_val === undefined) {
-		console.log("Cannot provide a '" + fieldName + "' from Game spec or defaults.");
+		console.log("Alert: Cannot provide a '" + fieldName + "' from Game spec or defaults.");
 	}
 	return rtn_val;
 };
@@ -166,26 +166,28 @@ Game.prototype.allowReplay = function () {
 Game.prototype.newRound = function () {
 	// do reporting here.
 	// only advance upon successfully reporting progress.
-	// if there"s a communications failure, we"ll at least know when it happened.
+	// if there's a communications failure, we'll at least know when it happened.
 	window.reporter.sendReport(function () {
-		// try {
-			if (game.rounds.count() > game.round_nbr) {
-				delete game.current_round;
-				++game.round_nbr;
-				// NOTE: have to use get(), rather than array index ([]),
-				// so we can trigger !evaluate, if need be.
-				game.current_round = new Round(game.rounds.get(game.round_nbr - 1));
-				game.current_round.start();
-			} else {
+		in_production_try(
+			function try_func () {
+				if (game.rounds.count() > game.round_nbr) {
+					delete game.current_round;
+					++game.round_nbr;
+					// NOTE: have to use get(), rather than array index ([]),
+					// so we can trigger !evaluate, if need be.
+					game.current_round = new Round(game.rounds.get(game.round_nbr - 1));
+					game.current_round.start();
+				} else {
+					game.gameFeedback();
+					game.allowReplay();
+				}
+			}, 
+			function catch_func (e) {
+				Error.captureStackTrace(e);
+				console.log(e.stack);
 				game.gameFeedback();
 				game.allowReplay();
-			}
-		// } catch (e) {
-		// 	Error.captureStackTrace(e);
-		// 	console.log(e.stack);
-		// 	game.gameFeedback();
-		// 	game.allowReplay();
-		// }
+			})
 	});
 };
 
@@ -244,7 +246,7 @@ function Round(round_spec) {
 		 
 	// *** DEBUGGING ***
 	this.onchangestate = function (name, from, to) {
-		console.log(name + ": " + from + " to " + to);
+		console.log(name + ": change state from " + from + " to " + to);
 	};
 	
 	// INTIALIZING THE ROUND.
@@ -264,7 +266,7 @@ Round.prototype.read = function (fieldName /* , defaultValue */ ) {
 	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
 	if (rtn_val === undefined && (typeof Round.DEFAULTS[fieldName] !== "undefined")) { rtn_val = Round.DEFAULTS[fieldName]; }
 	if (rtn_val === undefined) {
-		console.log("Cannot provide a '" + fieldName + "' from Round spec or defaults.");
+		console.log("Alert: Cannot provide a '" + fieldName + "' from Round spec or defaults.");
 	}
 	return rtn_val;
 };

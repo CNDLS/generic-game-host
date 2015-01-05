@@ -73,21 +73,12 @@ YAML.prototype.get = function (key) {
 	}
 };
 
-// YAML.prototype.evaluate = function (value, context, args) {
-// 	if (context && context.hasOwnProperty(value) && (typeof context[value] === "function")) {
-// 		// pass any remaining params to the function.
-// 		return context[value].apply(args);
-// 	} else {
-// 		return value;
-// 	}
-// };
-
 YAML.prototype.shift = function () {
 	return Array.prototype.shift.call(this);
 };
 
 
-// don"t show custom functions when the object is listed.
+// don't show custom functions when the object is listed.
 Object.defineProperty(YAML.prototype, "get", {
 	enumerable: false
 });

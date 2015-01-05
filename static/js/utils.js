@@ -22,6 +22,29 @@ function playmp3(name) {
     });
 }
 
+/***** establish a 'development' environment mode for differences in error reporting. *****/
+function in_production_try(try_func, catch_func, context) {
+	if (!window.hasOwnProperty("environment") 
+		|| !typeof window.environment === "object"
+		|| !window.environment.hasOwnProperty("mode") ) {
+		window.environment = { mode: "production" }
+	}
+	context = context || window;
+	switch (window.environment.mode) {
+		case "production":
+			try {
+				try_func.call(context);
+			} catch(e) {
+				catch_func.call(context, e);
+			}
+			break;
+			
+		case "development":
+			try_func.call(context); // allow failure to interrupt execution.
+			break;
+	}
+}
+
 // our tokens are of the form ":<token_name>".
 String.prototype.insert_values = function () {
 	var tokens = this.match(/(?:\:)\w+/g);
