@@ -238,6 +238,7 @@ function Round(round_spec) {
 		{ name: "wait",			from: "GivePrompt",								to: "WaitForPlayer" },
 		{ name: "respond",		from: "WaitForPlayer",							to: "EvaluateResponse" },
 		{ name: "pass",			from: "WaitForPlayer",							to: "UserPasses" },
+		{ name: "defer",		from: "WaitForPlayer",							to: "end" },
 		{ name: "correct",		from: "EvaluateResponse",						to: "CorrectResponse" },
 		{ name: "incorrect",	from: "EvaluateResponse",						to: "IncorrectResponse" },
 		{ name: "timeout",		from: "WaitForPlayer",							to: "IncorrectResponse" },
@@ -253,7 +254,11 @@ function Round(round_spec) {
 	this.read("SetUp");
 
 	// create a StateMachine to track what user can do in various situations.
-	$.extend(this, StateMachine.create({ events: this.events }));
+	$.extend(this, StateMachine.create({ events: this.events, 
+										 error: function () { 
+											 Array.prototype.unshift.call(arguments, "State Error:")
+											 console.log(Array.prototype.slice.call(arguments)); 
+										 } }));
 }
 
 Round.prototype.read = function (fieldName /* , defaultValue */ ) {
@@ -301,11 +306,14 @@ Round.prototype.onWaitForPlayer = function () {
 		response_types = [response_types];
 	}
 	this.responder = new Responder(response_types, this);
-	if (this.responder && typeof this.responder["deal"] === "function") {
+	if (this.responder 
+		&& typeof this.responder["deal"] === "function"
+		&& this.responder.widgets.length ) {
 		this.responder.deal();
 		return StateMachine.ASYNC;
 	} else {
-		return false;
+		// return false;
+		this.defer();
 	}
 };
 
@@ -470,6 +478,7 @@ function Responder(response_types, round) {
 	this.widgets = $.map(response_types, function(response_type) {
 		return ResponseWidgetFactory.create([response_type || Responder.DEFAULTS.Type], responder);
 	});
+	console.log(this.widgets)
 }
 Responder.prototype.deal = function () {
 	$.each(this.widgets, function (index, widget) {
@@ -494,8 +503,8 @@ function ResponseWidgetFactory() {}
 
 ResponseWidgetFactory.create = function (response_type, responder) {
 	if (!ResponseWidgetFactory.hasOwnProperty(response_type)) {
-		console.log("Cannot find ResponseWidgetFactory." + response_type);
-		if (game){ game.abort(); }
+		console.log("Warning: Cannot find ResponseWidgetFactory." + response_type);
+		return;
 	}
 	var widget = new ResponseWidgetFactory[response_type]();
 	// we're going to always use Cards as our way of making 'moves' in a game,
@@ -512,13 +521,13 @@ ResponseWidgetFactory.create = function (response_type, responder) {
 /* Each response widget type should provide a getContents() function that accepts no arguments,
  * and that returns a spec for creating a Card.
  */
-ResponseWidgetFactory.MultipleChoice = function () {}
-ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
-	/* set up a Card with a form with radio buttons */
-}
-
-ResponseWidgetFactory.MultipleAnswer = function () {}
-ResponseWidgetFactory.MultipleAnswer.prototype.getCard = function() {}
+// ResponseWidgetFactory.MultipleChoice = function () {}
+// ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
+// 	/* set up a Card with a form with radio buttons */
+// }
+//
+// ResponseWidgetFactory.MultipleAnswer = function () {}
+// ResponseWidgetFactory.MultipleAnswer.prototype.getCard = function() {}
 
 ResponseWidgetFactory.FreeResponse = function () {}
 ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
@@ -537,6 +546,8 @@ ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
 			}
 		});
 		default_deal.apply(card);
+		console.log('hey')
+		card.elem.find("input[type=text]").focus();
 	}
 	return card;
 }
@@ -566,7 +577,10 @@ CountdownClock.prototype.start = function (max_time) {
 CountdownClock.prototype.tick = function () {
 	var current_time = this.clock_face.val() - 1;
 	this.clock_face.val(current_time);
-	if (current_time === 0) { game.timeoutRound(); }
+	if (current_time === 0) { 
+		this.stop();
+		game.timeoutRound(); 
+	}
 };
 
 CountdownClock.prototype.stop = function () {
