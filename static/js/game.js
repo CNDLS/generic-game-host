@@ -214,7 +214,8 @@ function Round(round_spec) {
 		Points: 1,
 		Threshold: 1,
 		Resources: {},
-		MaxTime: 2,
+		Answers: [],
+		MaxTime: 5,
 		Prompt: {
 			title: function (round) { "Round :nbr".insert_values(round.nbr); },
 			content: prompt,
@@ -228,6 +229,7 @@ function Round(round_spec) {
 	this.pointValue = this.read("Points") || Round.DEFAULTS.Points;
 	this.threshold_score = this.read("Threshold") || Round.DEFAULTS.Threshold;
 	this.resources = this.read("Resources") || Round.DEFAULTS.Resources;
+	this.answers = this.read("Answers") || Round.DEFAULTS.Answers;
 	this.max_time = this.read("MaxTime") || Round.DEFAULTS.MaxTime;
 	this.played_round = {}; // to store data of what happened in the round.
 
@@ -238,7 +240,7 @@ function Round(round_spec) {
 		{ name: "wait",			from: "GivePrompt",								to: "WaitForPlayer" },
 		{ name: "respond",		from: "WaitForPlayer",							to: "EvaluateResponse" },
 		{ name: "pass",			from: "WaitForPlayer",							to: "UserPasses" },
-		{ name: "defer",		from: "WaitForPlayer",							to: "end" },
+		{ name: "abort",		from: "WaitForPlayer",							to: "end" },
 		{ name: "correct",		from: "EvaluateResponse",						to: "CorrectResponse" },
 		{ name: "incorrect",	from: "EvaluateResponse",						to: "IncorrectResponse" },
 		{ name: "timeout",		from: "WaitForPlayer",							to: "IncorrectResponse" },
@@ -299,7 +301,9 @@ Round.prototype.onGivePrompt = function () {
 };
 
 Round.prototype.onWaitForPlayer = function () {
-	game.clock.start(this.max_time);
+	if (this.max_time !== "none"){
+		game.clock.start(this.max_time);
+	}
 	// trigger response, based on the ResponseTypes.
 	var response_types = this.read("ResponseTypes");
 	if (typeof response_types === "string") {
@@ -312,11 +316,10 @@ Round.prototype.onWaitForPlayer = function () {
 		this.responder.deal();
 		return StateMachine.ASYNC;
 	} else {
-		// return false;
-		this.defer();
+		// exit this round;
+		this.abort();
 	}
 };
-
 // doing a little more cleanup now, before we issue the ruling.
 Round.prototype.onbeforeevaluate = function () {
 	game.clock.stop();
@@ -327,7 +330,7 @@ Round.prototype.onbeforepass = function () {
 	game.clock.stop();
 };
 
-Round.prototype.onEvaluateResponse = function () {
+Round.prototype.onEvaluateResponse = function (eventname, from, to, answer) {
 	/*** maybe pass something in from the YAML..? ***/
 	/*** maybe return ASYNC, if we want to let responder widgets animate..? ***/
 	this.score = this.responder.evaluateResponse();
@@ -478,7 +481,6 @@ function Responder(response_types, round) {
 	this.widgets = $.map(response_types, function(response_type) {
 		return ResponseWidgetFactory.create([response_type || Responder.DEFAULTS.Type], responder);
 	});
-	console.log(this.widgets)
 }
 Responder.prototype.deal = function () {
 	$.each(this.widgets, function (index, widget) {
@@ -487,8 +489,8 @@ Responder.prototype.deal = function () {
 		}
 	});
 }
-Responder.prototype.respond = function () {
-	this.round.respond(); // move on to the state of evaluating responses.
+Responder.prototype.respond = function (answer) {
+	this.round.respond(answer); // move on to the state of evaluating responses.
 }
 Responder.prototype.evaluateResponse = function () {
 	/*** what to do about being partially correct? or correct-ness that is cumulative across widgets? ***/
@@ -506,28 +508,86 @@ ResponseWidgetFactory.create = function (response_type, responder) {
 		console.log("Warning: Cannot find ResponseWidgetFactory." + response_type);
 		return;
 	}
-	var widget = new ResponseWidgetFactory[response_type]();
 	// we're going to always use Cards as our way of making 'moves' in a game,
 	// whether initiated by the game or, eventually, by users.
 	// Then, when we get to synchronous peer-to-peer games,
 	// we'll have a standard way of presenting 'moves' sent by peers.
 	// Also, cleaning up after Rounds should always just be a matter of removing Cards
 	// that are no longer relevant.
-	widget.responder = responder;
-	widget.card = widget.getCard();
+	var widget;
+	in_production_try(
+		function () {
+			// create widget and attach my responder. ask widget to create a Card.
+			widget = new ResponseWidgetFactory[response_type](responder);
+			// ensure that responder gets set.
+			if (!widget.hasOwnProperty("responder")) {
+				widget["responder"] = responder; 
+			}
+			// ensure that answers get set.
+			try {
+				widget.answers = responder.round.answers;
+			} catch (e) {
+				widget.answers = [];
+			}
+			widget.card = widget.getCard();
+		},
+		function (e) {
+			Error.captureStackTrace(e);
+			console.log(e.stack);
+		}
+	);
 	return widget;
 }
 
 /* Each response widget type should provide a getContents() function that accepts no arguments,
  * and that returns a spec for creating a Card.
  */
-// ResponseWidgetFactory.MultipleChoice = function () {}
-// ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
-// 	/* set up a Card with a form with radio buttons */
-// }
-//
+ResponseWidgetFactory.MultipleChoice = function (responder) {
+	this.round = responder.round;
+	this.score = 0;
+}
+ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
+	// set up a Card with a form with radio buttons
+	var widget = this;
+	this.radio_btns = {};
+	var group_name = "radio_group_" + this.round.nbr;
+	$.each(this.answers, function (i, answer) {
+		var btn_id = "radio_btn_" + widget.round.nbr + "_" + (i + 1);
+		widget.radio_btns[btn_id] = 
+			{ html: ("<input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"" + answer.text + "\">"
+						+ "<label for=\"" + btn_id + "\">" + answer.text + "</label></input>"),
+			  correct: answer["correct"] || false
+			}
+	});
+	var content = $.map(this.radio_btns, function (btn, btn_id /* , ?? */) {
+		return btn.html;
+	}).join("\n");
+	var card_spec = {
+		parts: { "form": "form" },
+		content: content,
+		container: Game
+	}
+	var card = new Card(card_spec);
+	var default_deal = card.deal;
+	card.deal = function () {
+		card.elem.find("input[type=radio]").on("click", function(e) {
+			var clicked_radio_btn = widget.radio_btns[e.target.id];
+			widget.score = clicked_radio_btn.correct;
+			widget.responder.respond(e.target.value);
+		});
+		default_deal.apply(card);
+	}
+	return card;
+}
+ResponseWidgetFactory.MultipleChoice.prototype.getScore = function() {
+	// points associated with the clicked radio button, if its response marked "correct:true" in the YAML.
+	return this.score;
+}
+
 // ResponseWidgetFactory.MultipleAnswer = function () {}
-// ResponseWidgetFactory.MultipleAnswer.prototype.getCard = function() {}
+// ResponseWidgetFactory.MultipleAnswer.prototype.getCard = function() {
+	/* set up a Card with a form with check boxes */
+// }
 
 ResponseWidgetFactory.FreeResponse = function () {}
 ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
@@ -542,11 +602,10 @@ ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
 	card.deal = function () {
 		card.elem.find("input[type=text]").on("keypress", function(e) {
 	        if (e.keyCode === 13) {
-				widget.responder.respond();
+				widget.responder.respond(this);
 			}
 		});
 		default_deal.apply(card);
-		console.log('hey')
 		card.elem.find("input[type=text]").focus();
 	}
 	return card;

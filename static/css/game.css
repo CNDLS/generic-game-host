@@ -314,6 +314,10 @@ table#detail td {
   color: #3366aa;
 }
 
+.card {
+    padding: 0.5em;
+}
+
 .card .back {
   display: none;
 }
