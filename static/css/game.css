@@ -121,7 +121,7 @@ label.form-label {
   padding-right: 0.25em;
 }
 
-textarea#clock, textarea#points {
+textarea#clock, textarea#scoreboard {
   font-family: 'Rationale', sans-serif;
   font-size: 2em;
   padding-top:10px;
@@ -130,17 +130,12 @@ textarea#clock, textarea#points {
   height: 40px;
   resize: none; 
   color: #fff;
-  background-color: #ee4e00;
 }
-
-textarea#witness {
-	font-family: 'Rationale', sans-serif;
-	font-size: 2em;
-	width: 24em;
-	height: 40px;
-	resize: none; 
-	color: #fff;
-	background-color: transparent;
+textarea#clock {
+    background-color: #ee4e00;
+}
+textarea#scoreboard {
+    background-color: #4eee00;
 }
 
 

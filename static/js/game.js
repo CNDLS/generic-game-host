@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 var game;
+var environment = { mode: "development" }
 
 
 // script to start things off by getting the appropriate YAML file & parsing it.
@@ -58,6 +59,7 @@ function Game(game_spec) {
 	Game.DEFAULTS = {
 		Title: "Generic Game",
 		Clock: new CountdownClock(),
+		ScoreBoard: new ScoreBoard(),
 		Rounds: [],
 		Utilities: {},
 		Intro: "Welcome to the game!",
@@ -75,7 +77,7 @@ function Game(game_spec) {
 	this.title = $("#title").html(this.read("Title"));
 	this.rounds = this.read("Rounds"); // the rounds of the game.
 	this.clock = this.read("Clock");
-	this.points_display = $("#points");
+	this.scoreboard = this.read("ScoreBoard");
 	
 	this.winning_score = this.read("WinningScore");
 
@@ -83,6 +85,7 @@ function Game(game_spec) {
 	window.reporter.addData({ event: "start of game" });
 	
 	// start the game.
+	/* later, build in a concept of returning to a saved game. */
 	this.setup();
 }
 
@@ -97,8 +100,10 @@ Game.prototype.setup = function () {
 		container: "#cards",
 		okClick: this.newRound.bind(this)
 	};
-	
-	this.cumulative_score = 0;
+
+	this.clock.init(this);
+	this.current_score = 0; 
+	this.scoreboard.init(this);
 										
 	// collect any global_resources that may become available to the user throughout the game.
 	// attach global_resources to the game, so we can optionally edit them in a setup_function.
@@ -114,21 +119,18 @@ Game.prototype.timeoutRound = function () {
 };
 
 Game.prototype.addPoints = function (points) {
-	this.cumulative_score += points;
-	this.points_display.val(this.cumulative_score);
-	var addPointsMessage = this.read("AddPoints") || ":points";
-	addPointsMessage = addPointsMessage.insert_values(points);
-	this.sendMessage(addPointsMessage);
+	this.current_score += points;
+	this.scoreboard.add(points);
 };
 
 Game.prototype.gameFeedback = function () {
 	var gameFeedbackMessage;
-	if (this.cumulative_score >= this.winning_score) {
+	if (this.current_score >= this.winning_score) {
 		gameFeedbackMessage = this.read("WonGameFeedback");
 	} else {
 		gameFeedbackMessage = this.read("LostGameFeedback");
 	}
-	gameFeedbackMessage = gameFeedbackMessage.insert_values(this.cumulative_score);
+	gameFeedbackMessage = gameFeedbackMessage.insert_values(this.current_score);
 	var feedback_card = {
 		title: "Summary",
 		content: gameFeedbackMessage,
@@ -338,22 +340,19 @@ Round.prototype.onEvaluateResponse = function (eventname, from, to, answer) {
 };
 
 Round.prototype.onleaveEvaluateResponse = function (eventname /*, from, to */) {
-	// var score_card = {
-	// 	content: prompt,
-	// 	klass: "score_card",
-	// 	container: "#cards"
-	// };
-	// // deliver the score_card. we will require a click-through on this card.
-	// score_card = new Card(score_card);
-	// score_card.deal();
+	/* put in some feedback in addition to scoreboard. 
+	   will have to think about what to allow, here.
+	   this will probably be a place where we'll have to be especially flexible.
+	   might be good to involve Dedra and/or Yianna in this discussion. */
 };
 
 Round.prototype.onCorrectResponse = function () {
-	game.addPoints(this.pointValue);
+	game.addPoints(this.score);
 	this.advance();
 };
 
 Round.prototype.onIncorrectResponse = function () {
+	game.addPoints(this.score);
 	this.advance();
 };
 
@@ -621,18 +620,19 @@ ResponseWidgetFactory.FreeResponse.prototype.getScore = function() {
 /* 
  * CountdownClock
  * This is a default clock -- it just puts numbers into a field, counting down from max_time for the Round.
- * Custom clocks need to expose start(), stop(), and a tick() function, which should return the current time.
+ * Custom clocks need to expose init(game), start(), stop(), and a tick() function, which should return the current time.
  */
 function CountdownClock() {
 	this.clock_face = $("textarea#clock");
 }
-
+CountdownClock.prototype.init = function (game) {
+	this.game = game;
+};
 CountdownClock.prototype.start = function (max_time) {
 	clearInterval(this.clock);
 	this.clock = setInterval(this.tick.bind(this), 1000);
 	this.clock_face.val(max_time);
 };
-
 CountdownClock.prototype.tick = function () {
 	var current_time = this.clock_face.val() - 1;
 	this.clock_face.val(current_time);
@@ -641,20 +641,59 @@ CountdownClock.prototype.tick = function () {
 		game.timeoutRound(); 
 	}
 };
-
 CountdownClock.prototype.stop = function () {
 	clearInterval(this.clock);
 };
 
 
 
+/* 
+ * ScoreBoard
+ * This is a default scoreboard -- it displays the current score in a field.
+ * Custom scoreboards need to expose init(game), add(), subtract(), and a reset() functions.
+ */
+function ScoreBoard() {
+	this.display = $("textarea#scoreboard");
+}
+ScoreBoard.prototype.init = function (game) {
+	this.game = game;
+	this.points = game.current_score;
+	this.refresh();
+};
+ScoreBoard.prototype.add = function (points) {
+	this.points += points;
+	this.refresh();
+	return this.points;
+};
+ScoreBoard.prototype.subtract = function () {
+	this.points -= points;
+	this.refresh();
+	return this.points;
+};
+ScoreBoard.prototype.reset = function () {
+	this.points = 0;
+	this.refresh();
+	return this.points;
+};
+ScoreBoard.prototype.refresh = function () {
+	// fold in any special message, then display.
+	var addPointsMessage = this.game.read("AddPoints") || ":points";
+	addPointsMessage = addPointsMessage.insert_values(this.points);
+	this.display.val(addPointsMessage);
+};
+
+
+
 // This is what gets it all started. It gets called once we've retrieved & parsed a valid game YAML file.
 function BuildGame(parsed_game_data) {
-	try {
-		game = new Game(parsed_game_data);
-	} catch (err) {
-		alert("Warning: cannot build game. " + err);
-		Error.captureStackTrace(err);
-		console.log(err.stack);
-	}
+	in_production_try(
+		function () {
+			game = new Game(parsed_game_data);
+		},
+		function (e) {
+			alert("Warning: cannot build game. " + e);
+			Error.captureStackTrace(e);
+			console.log(e.stack);
+		}
+	);
 }
