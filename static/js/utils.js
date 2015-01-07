@@ -23,7 +23,7 @@ function playmp3(name) {
 }
 
 /***** establish a 'development' environment mode for differences in error reporting. *****/
-function in_production_try(try_func, catch_func, context) {
+function in_production_try(context, try_func, catch_func) {
 	if (!window.hasOwnProperty("environment") 
 		|| !typeof window.environment === "object"
 		|| !window.environment.hasOwnProperty("mode") ) {
@@ -35,7 +35,9 @@ function in_production_try(try_func, catch_func, context) {
 			try {
 				try_func.call(context);
 			} catch(e) {
-				catch_func.call(context, e);
+				Error.captureStackTrace(e);
+				console.log(e.stack);
+				if (catch_func) catch_func.call(context, e);
 			}
 			break;
 			

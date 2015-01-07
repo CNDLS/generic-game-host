@@ -170,8 +170,8 @@ Game.prototype.newRound = function () {
 	// only advance upon successfully reporting progress.
 	// if there's a communications failure, we'll at least know when it happened.
 	window.reporter.sendReport(function () {
-		in_production_try(
-			function try_func () {
+		in_production_try(this,
+			function () {
 				if (game.rounds.count() > game.round_nbr) {
 					delete game.current_round;
 					++game.round_nbr;
@@ -185,8 +185,6 @@ Game.prototype.newRound = function () {
 				}
 			}, 
 			function catch_func (e) {
-				Error.captureStackTrace(e);
-				console.log(e.stack);
 				game.gameFeedback();
 				game.allowReplay();
 			})
@@ -237,8 +235,8 @@ function Round(round_spec) {
 
 	
 	this.events = [
-		{ name: "start",		from: "none",									to: "PresentRound" },
-		{ name: "prompt",		from: "PresentRound",							to: "GivePrompt" },
+		{ name: "start",		from: "none",									to: "SetupRound" },
+		{ name: "prompt",		from: "SetupRound",								to: "GivePrompt" },
 		{ name: "wait",			from: "GivePrompt",								to: "WaitForPlayer" },
 		{ name: "respond",		from: "WaitForPlayer",							to: "EvaluateResponse" },
 		{ name: "pass",			from: "WaitForPlayer",							to: "UserPasses" },
@@ -287,9 +285,9 @@ Round.prototype.onstart = function (/* eventname, from, to */) {
 	this.prompt();
 };
 
-Round.prototype.onPresentRound = function () {
+Round.prototype.onSetupRound = function () {
 	// do any presentation that sets up the round for the player(s).
-	var presentation = this.read("Present");
+	var presentation = this.read("Setup");
 	return presentation ? StateMachine.ASYNC : false;
 };
 
@@ -322,7 +320,7 @@ Round.prototype.onWaitForPlayer = function () {
 		this.abort();
 	}
 };
-// doing a little more cleanup now, before we issue the ruling.
+// doing a little more cleanup now, before we issue feedback.
 Round.prototype.onbeforeevaluate = function () {
 	game.clock.stop();
 };
@@ -344,6 +342,7 @@ Round.prototype.onleaveEvaluateResponse = function (eventname /*, from, to */) {
 	   will have to think about what to allow, here.
 	   this will probably be a place where we'll have to be especially flexible.
 	   might be good to involve Dedra and/or Yianna in this discussion. */
+	this.responder = new Responder(response_types, this);
 };
 
 Round.prototype.onCorrectResponse = function () {
@@ -362,11 +361,23 @@ Round.prototype.onbeforetimeout = function () {
 };
 
 Round.prototype.onbeforeadvance = function () {
-	try {
-		// write out the user data.
-		window.reporter.addData(this.played_round);
-	} catch (e) { console.log(e); }
+	game.clock.stop();
+	// do any 'tear down' of the round. do also for ending/interrupting game?
+	var tear_down = this.read("Teardown") || this.defaultTeardown;
+	tear_down.call(this);
+
+	// write out the user data.
+	in_production_try(this,
+		function () {
+			window.reporter.addData(this.played_round);
+		}
+	);
 };
+
+Round.prototype.defaultTeardown = function () {
+	/* What should the default teardown actions be? Reset the clock? Remove Responder widgets? */
+	game.clock.reset();
+}
 
 Round.prototype.onend = function () {
 	defer(game.newRound, game);
@@ -514,7 +525,7 @@ ResponseWidgetFactory.create = function (response_type, responder) {
 	// Also, cleaning up after Rounds should always just be a matter of removing Cards
 	// that are no longer relevant.
 	var widget;
-	in_production_try(
+	in_production_try(this,
 		function () {
 			// create widget and attach my responder. ask widget to create a Card.
 			widget = new ResponseWidgetFactory[response_type](responder);
@@ -529,10 +540,6 @@ ResponseWidgetFactory.create = function (response_type, responder) {
 				widget.answers = [];
 			}
 			widget.card = widget.getCard();
-		},
-		function (e) {
-			Error.captureStackTrace(e);
-			console.log(e.stack);
 		}
 	);
 	return widget;
@@ -618,9 +625,47 @@ ResponseWidgetFactory.FreeResponse.prototype.getScore = function() {
 
 
 /* 
+ * Feedback
+ * Default Feedback is just to deal a card with some text or HTML on it.
+ * Similar method for getting Responses from the user: option for multiple widgets.
+ * Should really focus on allowing many feeback types & also allowing logic for custom feedback.
+ * Feedback objects just need a constructor and a give() method.
+ */
+function Feedback(feedback_types, responder) {
+	Feedback.DEFAULTS = {
+		Type: "Simple"
+	}
+	this.responder = responder;
+	var feedback = this;
+	this.widgets = $.map(feedback_types, function(feedback_type) {
+		return FeedbackWidgetFactory.create([feedback_type || Feedback.DEFAULTS.Type], feedback);
+	});
+}
+Feedback.prototype.give = function (answer) {
+	// all widgets get the giveFeedback() command simulatenously, but a widget's giveFeedback()
+	// might just enable it or put it into 'play' in some way (like an additional reward, barrier, or character).
+	$.each(this.widgets, function (widget) {
+		widget.giveFeedback();
+	})
+}
+
+FeedbackWidgetFactory = {};
+
+FeedbackWidgetFactory.Simple = function () {}
+FeedbackWidgetFactory.Simple.prototype.getCard = function() {
+	var card_spec = {
+		content: "",
+		container: Game
+	}
+	var card = new Card(card_spec);
+	return card;
+}
+
+
+/* 
  * CountdownClock
  * This is a default clock -- it just puts numbers into a field, counting down from max_time for the Round.
- * Custom clocks need to expose init(game), start(), stop(), and a tick() function, which should return the current time.
+ * Custom clocks need to expose init(game), start(max_time), stop(), and a tick() function, which should return the current time.
  */
 function CountdownClock() {
 	this.clock_face = $("textarea#clock");
@@ -640,17 +685,30 @@ CountdownClock.prototype.tick = function () {
 		this.stop();
 		game.timeoutRound(); 
 	}
+	return current_time;
 };
 CountdownClock.prototype.stop = function () {
 	clearInterval(this.clock);
 };
 
 
+/* 
+ * NullClock
+ * If you don't want a clock, this will just fulfill the Clock commands without doing anything.
+ * We may also decide at some point that we want some of these functions to actually do something.
+ */
+function NullClock() {}
+NullClock.prototype.init = function (game) {}
+NullClock.prototype.start = function (max_time) {}
+NullClock.prototype.tick = function () { return undefined; }
+NullClock.prototype.stop = function () {}
+
+
 
 /* 
  * ScoreBoard
  * This is a default scoreboard -- it displays the current score in a field.
- * Custom scoreboards need to expose init(game), add(), subtract(), and a reset() functions.
+ * Custom scoreboards need to expose init(game), add(points), subtract(points), and a reset() functions.
  */
 function ScoreBoard() {
 	this.display = $("textarea#scoreboard");
@@ -665,7 +723,7 @@ ScoreBoard.prototype.add = function (points) {
 	this.refresh();
 	return this.points;
 };
-ScoreBoard.prototype.subtract = function () {
+ScoreBoard.prototype.subtract = function (points) {
 	this.points -= points;
 	this.refresh();
 	return this.points;
@@ -683,17 +741,30 @@ ScoreBoard.prototype.refresh = function () {
 };
 
 
+/* 
+ * NullScoreBoard
+ * If you don't want a scoreboard, this will just fulfill the ScoreBoard commands without doing anything.
+ * We may also decide at some point that we want some of these functions to actually do something.
+ */
+function NullScoreBoard() {}
+NullScoreBoard.prototype.init = function (game) {}
+NullScoreBoard.prototype.add = function (points) {}
+NullScoreBoard.prototype.subtract = function (points) {}
+NullScoreBoard.prototype.reset = function () {}
+NullScoreBoard.prototype.refresh = function () {}
 
+
+
+
+/*** Initializing the Game ***/
 // This is what gets it all started. It gets called once we've retrieved & parsed a valid game YAML file.
 function BuildGame(parsed_game_data) {
-	in_production_try(
+	in_production_try(this,
 		function () {
 			game = new Game(parsed_game_data);
 		},
-		function (e) {
+		function catch_func (e) {
 			alert("Warning: cannot build game. " + e);
-			Error.captureStackTrace(e);
-			console.log(e.stack);
 		}
 	);
 }
