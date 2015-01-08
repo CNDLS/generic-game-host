@@ -330,19 +330,14 @@ Round.prototype.onbeforepass = function () {
 	game.clock.stop();
 };
 
-Round.prototype.onEvaluateResponse = function (eventname, from, to, answer) {
-	/*** maybe pass something in from the YAML..? ***/
-	/*** maybe return ASYNC, if we want to let responder widgets animate..? ***/
+Round.prototype.onEvaluateResponse = function (eventname, from, to, feedback) {
+	// answer object originates from the YAML. It is given a score value by the Responder & its Widgets.
+	/*** return ASYNC if we want to let responder widgets animate. How to specify that? ***/
 	this.score = this.responder.evaluateResponse();
 	(this.score >= this.threshold_score) ? this.correct() : this.incorrect();
-};
-
-Round.prototype.onleaveEvaluateResponse = function (eventname /*, from, to */) {
-	/* put in some feedback in addition to scoreboard. 
-	   will have to think about what to allow, here.
-	   this will probably be a place where we'll have to be especially flexible.
-	   might be good to involve Dedra and/or Yianna in this discussion. */
-	this.responder = new Responder(response_types, this);
+	// provide feedback. This is triggered by the Round, so we can control the game state that it happens within.
+	// if the feedback requires animation, give() must return StateMachine.ASYNC.
+	return feedback.give();
 };
 
 Round.prototype.onCorrectResponse = function () {
@@ -500,7 +495,17 @@ Responder.prototype.deal = function () {
 	});
 }
 Responder.prototype.respond = function (answer) {
-	this.round.respond(answer); // move on to the state of evaluating responses.
+	var feedback_spec = answer["feedback"] || [];
+	if (typeof feedback_spec === "string") {
+		feedback_spec = [{ content: feedback_spec }];
+	} else if (feedback_spec.constructor !== Array) {
+		feedback_spec = [feedback_spec];
+	}
+	var feedback_types = $.map(feedback_spec, function () {
+		return this["feedback_type"] || Feedback.DEFAULTS.Type;
+	});
+	var feedback = new Feedback(feedback_types, this, answer);
+	this.round.respond(feedback); // move on to the state of evaluating responses.
 }
 Responder.prototype.evaluateResponse = function () {
 	/*** what to do about being partially correct? or correct-ness that is cumulative across widgets? ***/
@@ -547,6 +552,7 @@ ResponseWidgetFactory.create = function (response_type, responder) {
 
 /* Each response widget type should provide a getContents() function that accepts no arguments,
  * and that returns a spec for creating a Card.
+ * Each response widget should return an Answer object. This comes from the YAML spec for this Round.
  */
 ResponseWidgetFactory.MultipleChoice = function (responder) {
 	this.round = responder.round;
@@ -557,12 +563,13 @@ ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
 	var widget = this;
 	this.radio_btns = {};
 	var group_name = "radio_group_" + this.round.nbr;
-	$.each(this.answers, function (i, answer) {
+	$.each(this.answers, function (i, answer_spec) {
+		var answer = new Answer(answer_spec);
 		var btn_id = "radio_btn_" + widget.round.nbr + "_" + (i + 1);
 		widget.radio_btns[btn_id] = 
-			{ html: ("<input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"" + answer.text + "\">"
-						+ "<label for=\"" + btn_id + "\">" + answer.text + "</label></input>"),
-			  correct: answer["correct"] || false
+			{ html: ("<input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"
+						+ "<label for=\"" + btn_id + "\">" + answer.content + "</label></input>"),
+			  answer: answer
 			}
 	});
 	var content = $.map(this.radio_btns, function (btn, btn_id /* , ?? */) {
@@ -578,8 +585,12 @@ ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
 	card.deal = function () {
 		card.elem.find("input[type=radio]").on("click", function(e) {
 			var clicked_radio_btn = widget.radio_btns[e.target.id];
-			widget.score = clicked_radio_btn.correct;
-			widget.responder.respond(e.target.value);
+			var correct = clicked_radio_btn.answer.correct || false;
+			var value = clicked_radio_btn.answer.value || 1;
+			var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
+			widget.score += correct ? value : neg_value;
+			var answer = new Answer(clicked_radio_btn.answer);
+			widget.responder.respond(answer);
 		});
 		default_deal.apply(card);
 	}
@@ -608,7 +619,8 @@ ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
 	card.deal = function () {
 		card.elem.find("input[type=text]").on("keypress", function(e) {
 	        if (e.keyCode === 13) {
-				widget.responder.respond(this);
+				var answer = new Answer(e.target.value);
+				widget.responder.respond(answer);
 			}
 		});
 		default_deal.apply(card);
@@ -625,36 +637,81 @@ ResponseWidgetFactory.FreeResponse.prototype.getScore = function() {
 
 
 /* 
+ * Answer
+ * Answers are how the user's actions are communicated to the program. 
+ * Answers should provide ??
+ */
+function Answer(spec) {
+	if (typeof spec === "string") {
+		spec = { content: spec };
+	}
+	$.extend(this, spec);
+}
+
+
+
+/* 
  * Feedback
  * Default Feedback is just to deal a card with some text or HTML on it.
  * Similar method for getting Responses from the user: option for multiple widgets.
  * Should really focus on allowing many feeback types & also allowing logic for custom feedback.
  * Feedback objects just need a constructor and a give() method.
  */
-function Feedback(feedback_types, responder) {
+function Feedback(feedback_types, responder, answer) {
 	Feedback.DEFAULTS = {
 		Type: "Simple"
 	}
 	this.responder = responder;
-	var feedback = this;
+	this.answer = answer;
+	var _this = this;
 	this.widgets = $.map(feedback_types, function(feedback_type) {
-		return FeedbackWidgetFactory.create([feedback_type || Feedback.DEFAULTS.Type], feedback);
+		return FeedbackWidgetFactory.create([feedback_type || Feedback.DEFAULTS.Type], _this);
 	});
 }
-Feedback.prototype.give = function (answer) {
+Feedback.prototype.give = function () {
 	// all widgets get the giveFeedback() command simulatenously, but a widget's giveFeedback()
 	// might just enable it or put it into 'play' in some way (like an additional reward, barrier, or character).
-	$.each(this.widgets, function (widget) {
-		widget.giveFeedback();
+	var _this = this;
+	$.each(this.widgets, function (i, widget) {
+		widget.giveFeedback(_this.answer);
 	})
 }
 
 FeedbackWidgetFactory = {};
 
+FeedbackWidgetFactory.create = function (feedback_type, feedback_obj) {
+	if (!FeedbackWidgetFactory.hasOwnProperty(feedback_type)) {
+		console.log("Warning: Cannot find FeedbackWidgetFactory." + feedback_type);
+		return;
+	}
+	// as with ResponseWidgets, we use Cards to convey messages.
+	// again, someday these could come from synchronous communication between users.
+	var widget;
+	in_production_try(this,
+		function () {
+			// create widget and attach my feedback_obj. ask widget to create a Card.
+			widget = new FeedbackWidgetFactory[feedback_type](feedback_obj);
+			// ensure that responder gets set.
+			if (!widget.hasOwnProperty("feedback_obj")) {
+				widget["feedback_obj"] = feedback_obj; 
+			}
+		}
+	);
+	return widget;
+}
+
 FeedbackWidgetFactory.Simple = function () {}
-FeedbackWidgetFactory.Simple.prototype.getCard = function() {
+FeedbackWidgetFactory.Simple.prototype.giveFeedback = function(answer) {
+	var feedback_card = this.getCard(answer.feedback)
+	feedback_card.deal();
+	return feedback_card;
+}
+FeedbackWidgetFactory.Simple.prototype.getCard = function(feedback_spec) {
+	if (typeof feedback_spec === "string") {
+		feedback_spec = { content: feedback_spec };
+	}
 	var card_spec = {
-		content: "",
+		content: feedback_spec.content,
 		container: Game
 	}
 	var card = new Card(card_spec);
@@ -690,6 +747,10 @@ CountdownClock.prototype.tick = function () {
 CountdownClock.prototype.stop = function () {
 	clearInterval(this.clock);
 };
+CountdownClock.prototype.reset = function () {
+	this.stop();
+	this.clock_face.val(null);
+}
 
 
 /* 
