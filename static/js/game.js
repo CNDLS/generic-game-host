@@ -91,15 +91,17 @@ function Game(game_spec) {
 
 Game.prototype.setup = function () {
 	// introduce any explanatory note. place them on onscreen "cards," styled for each game.
-	var intro_prompt = this.read("Intro");
+	var intro_spec = this.read("Intro");
+	if (typeof intro_spec === "string"){
+		intro_spec = { content: intro_spec };
+	}
 	// attach spec for an intro card to the game, so we can optionally edit it in a setup_function.
-	this.intro_card = {
+	$.extend(intro_spec, {
 		title: "Introduction",
-		content: intro_prompt,
 		klass: "intro",
 		container: "#cards",
 		okClick: this.newRound.bind(this)
-	};
+	});
 
 	this.clock.init(this);
 	this.current_score = 0; 
@@ -110,7 +112,7 @@ Game.prototype.setup = function () {
 	this.global_resources = this.read("Resources");
 	
 	// deliver the intro card. we will require a click-through on this card.
-	this.intro_card = new Card(this.intro_card);
+	this.intro_card = new Card(intro_spec);
 	this.intro_card.deal();
 };
 
@@ -397,7 +399,7 @@ function Card(spec) {
 	Card.DEFAULTS = {
 		template: $("#card_template").html(),
 		timeout: null,
-		parts: { "label": "H2" },
+		parts: { "H2.label": "H2" },
 		container: Game
 	};
 	
@@ -413,6 +415,7 @@ function Card(spec) {
 	// get all the elements in the template.
 	this.elements = {};
 	this.card_front.find("*").each(function () {
+		debugger;
 		if (this instanceof HTMLElement) {
 			var classnames = $(this).attr("class") || false;
 			var selector = this.nodeName + ((classnames) ? "." + classnames.split(" ").join(".") : "");
