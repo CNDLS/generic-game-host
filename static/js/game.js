@@ -98,7 +98,7 @@ Game.prototype.setup = function () {
 	// attach spec for an intro card to the game, so we can optionally edit it in a setup_function.
 	$.extend(intro_spec, {
 		title: "Introduction",
-		klass: "intro",
+		css_class: "intro",
 		container: "#cards",
 		okClick: this.newRound.bind(this)
 	});
@@ -112,7 +112,7 @@ Game.prototype.setup = function () {
 	this.global_resources = this.read("Resources");
 	
 	// deliver the intro card. we will require a click-through on this card.
-	this.intro_card = new Card(intro_spec);
+	this.intro_card = Game.Card.create(intro_spec);
 	this.intro_card.deal();
 };
 
@@ -136,10 +136,10 @@ Game.prototype.gameFeedback = function () {
 	var feedback_card = {
 		title: "Summary",
 		content: gameFeedbackMessage,
-		klass: "ruling",
+		css_class: "ruling",
 		container: "#cards"
 	};
-	feedback_card = new Card(feedback_card);
+	feedback_card = Game.Card.create(feedback_card);
 	feedback_card.deal();
 	this.sendMessage(gameFeedbackMessage);
 };
@@ -221,7 +221,7 @@ function Round(round_spec) {
 		Prompt: {
 			title: function (round) { "Round :nbr".insert_values(round.nbr); },
 			content: prompt,
-			klass: "round_prompt",
+			css_class: "round_prompt",
 			container: "#cards"
 		},
 		WonRoundFeedback: "<h3>Good Round!</h3>",
@@ -296,7 +296,7 @@ Round.prototype.onSetupRound = function () {
 Round.prototype.onGivePrompt = function () {
 	var prompt = this.read("Prompt");
 	// deliver the prompt card.
-	prompt = new Card(prompt);
+	prompt = Game.Card.create(prompt);
 	prompt.deal();
 	
 	this.wait();
@@ -387,58 +387,35 @@ Round.prototype.onend = function () {
  * Use a template in the html page to generate "cards," any (potentially animated) messages to the player.
  * Card prototype specifies a generic 'deal' function, but that can be overridden by 'deal' function passed in a card spec.
  */
-function Card(spec) {
-	var _this = this;
-	
+Game.Card = function(spec) {
 	if (typeof spec === "string") {
 		spec = { content: spec };
 	} else if (typeof spec === "number") {
 		spec = { content: spec.toString() };
 	}
 	
-	Card.DEFAULTS = {
+	Game.Card.DEFAULTS = {
 		template: $("#card_template").html(),
 		timeout: null,
-		parts: { "H2.label": "H2" },
+		content: {},
 		container: Game
 	};
 	
-	// spec can contain template, title, klass, container, and deal <function>.
+	// spec can contain template, klass, css_class, container, and deal <function>.
 	// spec *must* contain content.
+	// card_holder is a temporary structure. the card gets pulled out of it when 'dealt.'
 	var card_holder = $(document.createElement("div"));
-	card_holder.html(spec.card_template || Card.DEFAULTS.template);
-	this.card_front = card_holder.find(".front") || card_holder;
-
-	this.parts = $.extend(spec.parts || {}, Card.DEFAULTS.parts);
-	this.container = spec.container || Card.DEFAULTS.container;
 	
-	// get all the elements in the template.
-	this.elements = {};
-	this.card_front.find("*").each(function () {
-		debugger;
-		if (this instanceof HTMLElement) {
-			var classnames = $(this).attr("class") || false;
-			var selector = this.nodeName + ((classnames) ? "." + classnames.split(" ").join(".") : "");
-			if (_this.parts[selector]) {
-				_this.elements[_this.parts[selector]] = this;
-			} else {
-				$(this).remove(); // pull out from the card template any HTML elements that aren't used in this card.
-			}
-		}
-	});
-	
-	if (spec.klass || false) { card_holder.find("div.card").addClass(spec.klass); }
-	
-	$.each(this.parts, function (key, value) {
-		if (spec.hasOwnProperty(key)) {
-			_this.card_front.find(value).html(spec[key] || "");
-		}
-	});
-	
-	
-	if (spec.content && (spec.content !== "")) {
-		this.card_front.append(spec.content);
+	card_holder.html(spec.card_template || Game.Card.DEFAULTS.template);
+	this.element = card_holder.find(":first-child");
+	// apply any general css_class in the spec to the first child of the card_holder.
+	if (spec['css_class']) {
+		this.element.addClass(spec.css_class);
 	}
+	this.card_front = card_holder.find(".front") || card;
+	this.content = $.extend(spec.content || {}, Game.Card.DEFAULTS.content);
+	this.container = spec.container || Game.Card.DEFAULTS.container;
+	
 	if ((spec.okClick || false) && (typeof spec.okClick === "function")) {
 		this.addOKButton(spec.okClick);
 	} else if (spec.timeout || false) {
@@ -448,27 +425,45 @@ function Card(spec) {
 		}
 		// else, just leave the card up indefinitely.
 	}
-	
-	// the card holder is just temporary. put the card within it into the container.
-	this.elem = card_holder.children().first();
 }
 
-Card.prototype.addOKButton = function (onclick_handler) {
+Game.Card.prototype.populate = function () {
+	for (var key in this.content) {
+		var value = this.content[key];
+		// 
+		var key_spec = key.split(".");
+		var tag_name = key_spec.shift(); // first item is tag name.
+		var child_element = this.card_front.append($(tag_name));
+		if (key_spec.length) {
+			child_element.addClass(key_spec.join(" "));
+		}
+		child_element.html(value || "");
+	}
+}
+
+Game.Card.prototype.addOKButton = function (onclick_handler) {
 	// once the user clicks to continue, we can move onto the game.
 	// for now, we"re going to stick to the notion that all intros require a click to continue.
 	var card = this;
 	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
-		card.elem.remove();
+		card.element.remove();
 		setTimeout(function () { onclick_handler.call(); }, 500); // pause before triggering animations?
 	});
 	ok_button.appendTo(this.card_front);
 };
 
-Card.prototype.deal = function () {
+Game.Card.prototype.deal = function () {
 	if (this.container === Game){
 		this.container = window.game.container;
 	}
-	$(this.container).append(this.elem);
+	$(this.container).append(this.element);
+}
+
+Game.Card.create = function (spec) {
+	var card_class = spec["klass"] || "Card";
+	var card = new Game[card_class](spec);
+	card.populate(spec);
+	return card;
 }
 
 
@@ -583,7 +578,7 @@ ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
 		content: content,
 		container: Game
 	}
-	var card = new Card(card_spec);
+	var card = Game.Card.create(card_spec);
 	var default_deal = card.deal;
 	card.deal = function () {
 		card.elem.find("input[type=radio]").on("click", function(e) {
@@ -616,7 +611,7 @@ ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
 		content: "<input type=\"text\" />",
 		container: Game
 	}
-	var card = new Card(card_spec);
+	var card = Game.Card.create(card_spec);
 	var default_deal = card.deal;
 	var widget = this;
 	card.deal = function () {
@@ -717,7 +712,7 @@ FeedbackWidgetFactory.Simple.prototype.getCard = function(feedback_spec) {
 		content: feedback_spec.content,
 		container: Game
 	}
-	var card = new Card(card_spec);
+	var card = Game.Card.create(card_spec);
 	return card;
 }
 
