@@ -88,6 +88,9 @@ Object.defineProperty(YAML.prototype, "readOrEvaluate", {
 Object.defineProperty(YAML.prototype, "shift", {
 	enumerable: false
 });
+Object.defineProperty(YAML.prototype, "count", {
+	enumerable: false
+});
 
 // be compatible with objects and arrays.
 Object.defineProperty(YAML.prototype, "length", {

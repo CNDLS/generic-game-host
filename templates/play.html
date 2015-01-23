@@ -1,10 +1,6 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 
-{% block comment %}
-	THE GAME_CONTENT.HTML TEMPLATE CAN BE UNIQUE TO EACH GAME. THIS ALLOWS UNIQUE MARKUP, GLOABAL VARIABLES, AND UTILITY SCRIPTS.
-{% endblock %}
-
 {% block css %}
   {% if game_css %}
     <link href="{{ MEDIA_URL }}uploads/custom_css/{{ game_css }}" media="screen, print" rel="stylesheet" type="text/css" />
@@ -34,15 +30,6 @@
     </div><!-- end of #game -->
   
   </div><!-- end of #content -->
-
-
-  <!-- this is a template to describe how to lay out a card. classes will distinguish between types of cards. -->
-  <script id="card_template" type="text/template">
-    <div class="card">
-      <div class="front"><h2 class="label"></h2></div>
-      <div class="back">&nbsp;</div>
-    </div>
-  </script>
 {% endblock %}
 
 {% block js %}

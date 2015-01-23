@@ -261,7 +261,7 @@ function Round(round_spec) {
 	$.extend(this, StateMachine.create({ events: this.events, 
 										 error: function () { 
 											 Array.prototype.unshift.call(arguments, "State Error:")
-											 console.log(Array.prototype.slice.call(arguments)); 
+											 console.error(Array.prototype.slice.call(arguments)); 
 										 } }));
 }
 
@@ -384,40 +384,69 @@ Round.prototype.onend = function () {
 
 /* 
  * Cards
- * Use a template in the html page to generate "cards," any (potentially animated) messages to the player.
- * Card prototype specifies a generic 'deal' function, but that can be overridden by 'deal' function passed in a card spec.
+ * Cards represent interactions with the player. They are represented by some DOM element(s).
+ * The generic Card prototype specifies a generic 'deal' function, 
+ * but that can be overridden by 'deal' function passed in a card spec.
+ * Alternately, other Card prototypes can be defined on the Game object,
+ * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
 Game.Card = function(spec) {
+	debugger;
 	if (typeof spec === "string") {
-		spec = { content: spec };
+		// if it resolves to HTML, use that as the content. else, make a div for it.
+		try {
+			var test_html = $(spec);
+			if (test_html.length) {
+				spec = { content: test_html };
+			}
+		} catch (e) {
+			spec = { content: { div: spec } };
+		}
 	} else if (typeof spec === "number") {
-		spec = { content: spec.toString() };
+		spec = { content: { div: spec.toString() } };
 	}
 	
 	Game.Card.DEFAULTS = {
-		template: $("#card_template").html(),
 		timeout: null,
-		content: {},
-		container: Game
+		container: $("#cards")
 	};
 	
 	// spec can contain template, klass, css_class, container, and deal <function>.
 	// spec *must* contain content.
-	// card_holder is a temporary structure. the card gets pulled out of it when 'dealt.'
-	var card_holder = $(document.createElement("div"));
-	
-	card_holder.html(spec.card_template || Game.Card.DEFAULTS.template);
-	this.element = card_holder.find(":first-child");
+	// card_scaffold is a temporary structure. the card gets pulled out of it when 'dealt.'
+	var card_scaffold = $(document.createElement("div"));
+	this.element = $(document.createElement("div")).addClass("card");
+	card_scaffold.append(this.element);
 	// apply any general css_class in the spec to the first child of the card_holder.
 	if (spec['css_class']) {
 		this.element.addClass(spec.css_class);
 	}
-	this.card_front = card_holder.find(".front") || card;
-	this.content = $.extend(spec.content || {}, Game.Card.DEFAULTS.content);
+	this.card_front = $(document.createElement("div")).addClass("front");
+	this.element.append(this.card_front);
 	this.container = spec.container || Game.Card.DEFAULTS.container;
+}
+
+Game.Card.prototype.populate = function (spec) {
+	if (spec.content instanceof jQuery) {
+		this.card_front.append(spec.content);
+	} else if (typeof spec.content === "object"){
+		for (var key in spec.content) {
+			var value = spec.content[key] || "";
+			// 
+			var key_spec = key.split(".");
+			var tag_name = key_spec.shift(); // first item is tag name.
+			var child_element = $(document.createElement(tag_name));
+			this.card_front.append(child_element);
+			if (key_spec.length) {
+				child_element.addClass(key_spec.join(" "));
+			}
+			child_element.html(value);
+		}
+	}
 	
+	// how to proceed from this card onward. Is it 'modal'? 
 	if ((spec.okClick || false) && (typeof spec.okClick === "function")) {
-		this.addOKButton(spec.okClick);
+		this.addOKButton(spec);
 	} else if (spec.timeout || false) {
 		// hold on the card for some predetermined time.
 		if ((game.current_round.transition) && (typeof game.current_round.transition === "function")) {
@@ -427,24 +456,11 @@ Game.Card = function(spec) {
 	}
 }
 
-Game.Card.prototype.populate = function () {
-	for (var key in this.content) {
-		var value = this.content[key];
-		// 
-		var key_spec = key.split(".");
-		var tag_name = key_spec.shift(); // first item is tag name.
-		var child_element = this.card_front.append($(tag_name));
-		if (key_spec.length) {
-			child_element.addClass(key_spec.join(" "));
-		}
-		child_element.html(value || "");
-	}
-}
-
-Game.Card.prototype.addOKButton = function (onclick_handler) {
+Game.Card.prototype.addOKButton = function (spec) {
 	// once the user clicks to continue, we can move onto the game.
 	// for now, we"re going to stick to the notion that all intros require a click to continue.
 	var card = this;
+	var onclick_handler = spec.okClick
 	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
 		card.element.remove();
 		setTimeout(function () { onclick_handler.call(); }, 500); // pause before triggering animations?
@@ -487,7 +503,9 @@ function Responder(response_types, round) {
 }
 Responder.prototype.deal = function () {
 	$.each(this.widgets, function (index, widget) {
-		if ( widget.hasOwnProperty("card") && (widget.card instanceof Card) ) {
+		if ( widget.hasOwnProperty("card") 
+			&& (widget.card.hasOwnProperty("deal"))
+			&& (typeof widget.card.deal === "function") ) {
 			widget.card.deal();
 		}
 	});
@@ -581,7 +599,7 @@ ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
 	var card = Game.Card.create(card_spec);
 	var default_deal = card.deal;
 	card.deal = function () {
-		card.elem.find("input[type=radio]").on("click", function(e) {
+		card.element.find("input[type=radio]").on("click", function(e) {
 			var clicked_radio_btn = widget.radio_btns[e.target.id];
 			var correct = clicked_radio_btn.answer.correct || false;
 			var value = clicked_radio_btn.answer.value || 1;
@@ -615,14 +633,14 @@ ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
 	var default_deal = card.deal;
 	var widget = this;
 	card.deal = function () {
-		card.elem.find("input[type=text]").on("keypress", function(e) {
+		card.element.find("input[type=text]").on("keypress", function(e) {
 	        if (e.keyCode === 13) {
 				var answer = new Answer(e.target.value);
 				widget.responder.respond(answer);
 			}
 		});
 		default_deal.apply(card);
-		card.elem.find("input[type=text]").focus();
+		card.element.find("input[type=text]").focus();
 	}
 	return card;
 }
