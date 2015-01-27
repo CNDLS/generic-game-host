@@ -391,7 +391,6 @@ Round.prototype.onend = function () {
  * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
 Game.Card = function(spec) {
-	debugger;
 	if (typeof spec === "string") {
 		// if it resolves to HTML, use that as the content. else, make a div for it.
 		try {
@@ -405,6 +404,7 @@ Game.Card = function(spec) {
 	} else if (typeof spec === "number") {
 		spec = { content: { div: spec.toString() } };
 	}
+	this.spec = spec;
 	
 	Game.Card.DEFAULTS = {
 		timeout: null,
@@ -426,7 +426,9 @@ Game.Card = function(spec) {
 	this.container = spec.container || Game.Card.DEFAULTS.container;
 }
 
-Game.Card.prototype.populate = function (spec) {
+Game.Card.prototype.populate = function () {
+	var spec = this.spec;
+	
 	if (spec.content instanceof jQuery) {
 		this.card_front.append(spec.content);
 	} else if (typeof spec.content === "object"){
@@ -478,7 +480,7 @@ Game.Card.prototype.deal = function () {
 Game.Card.create = function (spec) {
 	var card_class = spec["klass"] || "Card";
 	var card = new Game[card_class](spec);
-	card.populate(spec);
+	card.populate();
 	return card;
 }
 
