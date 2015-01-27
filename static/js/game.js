@@ -627,8 +627,7 @@ ResponseWidgetFactory.MultipleChoice.prototype.getScore = function() {
 ResponseWidgetFactory.FreeResponse = function () {}
 ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
 	var card_spec = {
-		parts: { "form": "form" },
-		content: "<input type=\"text\" />",
+		content: { "form": "<input type=\"text\" />" },
 		container: Game
 	}
 	var card = Game.Card.create(card_spec);
