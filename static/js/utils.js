@@ -34,7 +34,7 @@ function in_production_try(context, try_func, catch_func) {
 		case "production":
 			try {
 				try_func.call(context);
-			} catch(e) {
+			} catch (e) {
 				Error.captureStackTrace(e);
 				console.log(e.stack);
 				if (catch_func) catch_func.call(context, e);
@@ -42,7 +42,11 @@ function in_production_try(context, try_func, catch_func) {
 			break;
 			
 		case "development":
-			try_func.call(context); // allow failure to interrupt execution.
+			try {
+				try_func.call(context);
+			} catch (e) {
+				debugger; // allow failure to interrupt execution & drop into debugger.
+			}
 			break;
 	}
 }
@@ -59,7 +63,7 @@ String.prototype.insert_values = function () {
 			str = str.replace(new RegExp(this), args.shift());
 		}
 	});
-	return str;
+	return str.toString();
 };
 
 // WAY too simple past_tense function, but it will do for now.

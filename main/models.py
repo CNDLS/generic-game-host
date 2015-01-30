@@ -74,7 +74,7 @@ class Game(models.Model):
 
 
 class Round(models.Model):
-	case = models.ForeignKey(Game)
+	game = models.ForeignKey(Game)
 	nbr = models.IntegerField()
 	correct_answer = models.CharField(max_length=32)
 	points = models.IntegerField()
@@ -88,7 +88,7 @@ class Struct:
 class GameReport(models.Model):
 	payload = models.TextField(blank=True,null=True)
 	student = models.ForeignKey(User, unique=False)
-	case = models.ForeignKey(Game, unique=False)
+	game = models.ForeignKey(Game, unique=False)
 	created_on = models.DateTimeField(auto_now_add=True)
 
 	def _decode_payload(self):

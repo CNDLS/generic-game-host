@@ -82,12 +82,51 @@ function Game(game_spec) {
 	this.winning_score = this.read("WinningScore");
 
 	// record the time the game was started.
-	window.reporter.addData({ event: "start of game" });
+	Game.report({ event: "start of game" });
 	
 	// start the game.
 	/* later, build in a concept of returning to a saved game. */
 	this.setup();
 }
+
+
+/*
+ * 'static' functions on the Game object that collect data & triggers writing out data to the server.
+ * encapsulate it, so we can swap backends more easily.
+ *
+ */
+Game.record = function (data) {
+	// write out the user data.
+	in_production_try(this,
+		function () {
+			window.reporter.addData(data);
+		}
+	);
+}
+
+Game.report = function () {
+	window.reporter.sendReport(function () {
+		in_production_try(this,
+			function () {
+				if (game.rounds.count() > game.round_nbr) {
+					// delete game.current_round;
+					++game.round_nbr;
+					// NOTE: have to use get(), rather than array index ([]),
+					// so we can trigger !evaluate, if need be.
+					game.current_round = new Round(game.rounds.get(game.round_nbr - 1));
+					game.current_round.start();
+				} else {
+					game.gameFeedback();
+					game.allowReplay();
+				}
+			}, 
+			function catch_func (e) {
+				game.gameFeedback();
+				game.allowReplay();
+			})
+	});
+}
+
 
 Game.prototype.setup = function () {
 	// introduce any explanatory note. place them on onscreen "cards," styled for each game.
@@ -97,7 +136,6 @@ Game.prototype.setup = function () {
 	}
 	// attach spec for an intro card to the game, so we can optionally edit it in a setup_function.
 	$.extend(intro_spec, {
-		title: "Introduction",
 		css_class: "intro",
 		container: "#cards",
 		okClick: this.newRound.bind(this)
@@ -171,26 +209,7 @@ Game.prototype.newRound = function () {
 	// do reporting here.
 	// only advance upon successfully reporting progress.
 	// if there's a communications failure, we'll at least know when it happened.
-	window.reporter.sendReport(function () {
-		in_production_try(this,
-			function () {
-				if (game.rounds.count() > game.round_nbr) {
-					delete game.current_round;
-					++game.round_nbr;
-					// NOTE: have to use get(), rather than array index ([]),
-					// so we can trigger !evaluate, if need be.
-					game.current_round = new Round(game.rounds.get(game.round_nbr - 1));
-					game.current_round.start();
-				} else {
-					game.gameFeedback();
-					game.allowReplay();
-				}
-			}, 
-			function catch_func (e) {
-				game.gameFeedback();
-				game.allowReplay();
-			})
-	});
+	Game.report();
 };
 
 Game.prototype.abort = function() {
@@ -283,7 +302,7 @@ Round.prototype.read = function (fieldName /* , defaultValue */ ) {
 Round.prototype.onstart = function (/* eventname, from, to */) {
 	game.sendMessage("Starting Round " + this.nbr);
 	// record the start time of the round.
-	window.reporter.addData({ round_nbr: this.nbr, event: "start of round" });
+	Game.report({ round_nbr: this.nbr, event: "start of round" });
 	this.prompt();
 };
 
@@ -296,8 +315,10 @@ Round.prototype.onSetupRound = function () {
 Round.prototype.onGivePrompt = function () {
 	var prompt = this.read("Prompt");
 	// deliver the prompt card.
-	prompt = Game.Card.create(prompt);
-	prompt.deal();
+	var prompt_card = Game.Card.create(prompt);
+	prompt_card.deal();
+	// record when prompt was given.
+	Game.record({ event: "prompt given", prompt: prompt });
 	
 	this.wait();
 };
@@ -315,8 +336,7 @@ Round.prototype.onWaitForPlayer = function () {
 	if (this.responder 
 		&& typeof this.responder["deal"] === "function"
 		&& this.responder.widgets.length ) {
-		this.responder.deal();
-		return StateMachine.ASYNC;
+		return this.responder.deal();
 	} else {
 		// exit this round;
 		this.abort();
@@ -337,6 +357,8 @@ Round.prototype.onEvaluateResponse = function (eventname, from, to, feedback) {
 	/*** return ASYNC if we want to let responder widgets animate. How to specify that? ***/
 	this.score = this.responder.evaluateResponse();
 	(this.score >= this.threshold_score) ? this.correct() : this.incorrect();
+	// record user response.
+	Game.record({ event: "user answers", answer: feedback.answer });
 	// provide feedback. This is triggered by the Round, so we can control the game state that it happens within.
 	// if the feedback requires animation, give() must return StateMachine.ASYNC.
 	return feedback.give();
@@ -362,13 +384,6 @@ Round.prototype.onbeforeadvance = function () {
 	// do any 'tear down' of the round. do also for ending/interrupting game?
 	var tear_down = this.read("Teardown") || this.defaultTeardown;
 	tear_down.call(this);
-
-	// write out the user data.
-	in_production_try(this,
-		function () {
-			window.reporter.addData(this.played_round);
-		}
-	);
 };
 
 Round.prototype.defaultTeardown = function () {
@@ -399,10 +414,10 @@ Game.Card = function(spec) {
 				spec = { content: test_html };
 			}
 		} catch (e) {
-			spec = { content: { div: spec } };
+			spec = { content: { "div": spec } };
 		}
 	} else if (typeof spec === "number") {
-		spec = { content: { div: spec.toString() } };
+		spec = { content: { "div": spec.toString() } };
 	}
 	this.spec = spec;
 	
@@ -428,23 +443,37 @@ Game.Card = function(spec) {
 
 Game.Card.prototype.populate = function () {
 	var spec = this.spec;
-	
-	if (spec.content instanceof jQuery) {
-		this.card_front.append(spec.content);
-	} else if (typeof spec.content === "object"){
-		for (var key in spec.content) {
-			var value = spec.content[key] || "";
-			// 
-			var key_spec = key.split(".");
-			var tag_name = key_spec.shift(); // first item is tag name.
-			var child_element = $(document.createElement(tag_name));
-			this.card_front.append(child_element);
-			if (key_spec.length) {
-				child_element.addClass(key_spec.join(" "));
+	in_production_try(this,
+		function () {
+			if (spec.content instanceof jQuery) {
+				this.card_front.append(spec.content);
+			} else if (typeof spec.content === "object"){
+				for (var key in spec.content) {
+					var value = spec.content[key] || "";
+					// 
+					var key_spec = key.split(".");
+					var tag_name = key_spec.shift(); // first item is tag name.
+					var child_element;
+					in_production_try(this,
+						function () {
+							child_element = $(document.createElement(tag_name));
+						},
+						function () {
+							child_element = $(document.createElement("div"));
+						}
+					);
+					this.card_front.append(child_element);
+					if (key_spec.length) {
+						child_element.addClass(key_spec.join(" "));
+					}
+					child_element.html(value);
+				}
 			}
-			child_element.html(value);
+		},
+		function () {
+			spec = { content: { "div":"card spec fail." } };
 		}
-	}
+	);
 	
 	// how to proceed from this card onward. Is it 'modal'? 
 	if ((spec.okClick || false) && (typeof spec.okClick === "function")) {
@@ -725,7 +754,7 @@ FeedbackWidgetFactory.Simple.prototype.giveFeedback = function(answer) {
 }
 FeedbackWidgetFactory.Simple.prototype.getCard = function(feedback_spec) {
 	if (typeof feedback_spec === "string") {
-		feedback_spec = { content: feedback_spec };
+		feedback_spec = { content: { "div":feedback_spec } };
 	}
 	var card_spec = {
 		content: feedback_spec.content,
