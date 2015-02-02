@@ -82,11 +82,11 @@ function Game(game_spec) {
 	this.winning_score = this.read("WinningScore");
 
 	// record the time the game was started.
-	Game.report({ event: "start of game" });
+	Game.record({ event: "start of game" });
 	
 	// start the game.
 	/* later, build in a concept of returning to a saved game. */
-	this.setup();
+	defer(this.setup, this);
 }
 
 
@@ -109,7 +109,6 @@ Game.report = function () {
 		in_production_try(this,
 			function () {
 				if (game.rounds.count() > game.round_nbr) {
-					// delete game.current_round;
 					++game.round_nbr;
 					// NOTE: have to use get(), rather than array index ([]),
 					// so we can trigger !evaluate, if need be.
@@ -137,7 +136,6 @@ Game.prototype.setup = function () {
 	// attach spec for an intro card to the game, so we can optionally edit it in a setup_function.
 	$.extend(intro_spec, {
 		css_class: "intro",
-		container: "#cards",
 		okClick: this.newRound.bind(this)
 	});
 
@@ -171,14 +169,13 @@ Game.prototype.gameFeedback = function () {
 		gameFeedbackMessage = this.read("LostGameFeedback");
 	}
 	gameFeedbackMessage = gameFeedbackMessage.insert_values(this.current_score);
-	var feedback_card = {
-		title: "Summary",
+	var feedback_spec = {
 		content: gameFeedbackMessage,
-		css_class: "ruling",
-		container: "#cards"
+		css_class: "game_summary"
 	};
-	feedback_card = Game.Card.create(feedback_card);
+	var feedback_card = Game.Card.create(feedback_spec);
 	feedback_card.deal();
+	// add to the msg stream as well.
 	this.sendMessage(gameFeedbackMessage);
 };
 
@@ -214,7 +211,7 @@ Game.prototype.newRound = function () {
 
 Game.prototype.abort = function() {
 	// this is our way of cleaning up following a fatal error.
-	delete this;
+	// nothing to do here in a generic way, but maybe we'll want the option of a game tearDown()?
 }
 
 
@@ -240,8 +237,7 @@ function Round(round_spec) {
 		Prompt: {
 			title: function (round) { "Round :nbr".insert_values(round.nbr); },
 			content: prompt,
-			css_class: "round_prompt",
-			container: "#cards"
+			css_class: "round_prompt"
 		},
 		WonRoundFeedback: "<h3>Good Round!</h3>",
 		LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
@@ -302,8 +298,8 @@ Round.prototype.read = function (fieldName /* , defaultValue */ ) {
 Round.prototype.onstart = function (/* eventname, from, to */) {
 	game.sendMessage("Starting Round " + this.nbr);
 	// record the start time of the round.
-	Game.report({ round_nbr: this.nbr, event: "start of round" });
-	this.prompt();
+	Game.record({ round_nbr: this.nbr, event: "start of round" });
+	defer(this.prompt, this);
 };
 
 Round.prototype.onSetupRound = function () {
@@ -319,8 +315,7 @@ Round.prototype.onGivePrompt = function () {
 	prompt_card.deal();
 	// record when prompt was given.
 	Game.record({ event: "prompt given", prompt: prompt });
-	
-	this.wait();
+	defer(this.wait, this);
 };
 
 Round.prototype.onWaitForPlayer = function () {
@@ -336,7 +331,8 @@ Round.prototype.onWaitForPlayer = function () {
 	if (this.responder 
 		&& typeof this.responder["deal"] === "function"
 		&& this.responder.widgets.length ) {
-		return this.responder.deal();
+		this.responder.deal();
+		return StateMachine.ASYNC;
 	} else {
 		// exit this round;
 		this.abort();
@@ -366,12 +362,12 @@ Round.prototype.onEvaluateResponse = function (eventname, from, to, feedback) {
 
 Round.prototype.onCorrectResponse = function () {
 	game.addPoints(this.score);
-	this.advance();
+	defer(this.advance, this);
 };
 
 Round.prototype.onIncorrectResponse = function () {
 	game.addPoints(this.score);
-	this.advance();
+	defer(this.advance, this);
 };
 
 Round.prototype.onbeforetimeout = function () {
@@ -407,15 +403,7 @@ Round.prototype.onend = function () {
  */
 Game.Card = function(spec) {
 	if (typeof spec === "string") {
-		// if it resolves to HTML, use that as the content. else, make a div for it.
-		try {
-			var test_html = $(spec);
-			if (test_html.length) {
-				spec = { content: test_html };
-			}
-		} catch (e) {
-			spec = { content: { "div": spec } };
-		}
+		spec = { content: { "div": spec } };
 	} else if (typeof spec === "number") {
 		spec = { content: { "div": spec.toString() } };
 	}
@@ -443,9 +431,10 @@ Game.Card = function(spec) {
 
 Game.Card.prototype.populate = function () {
 	var spec = this.spec;
+	// each card population is wrapped in a try.
 	in_production_try(this,
 		function () {
-			if (spec.content instanceof jQuery) {
+			if (typeof spec.content === "string" && spec.content.is_valid_html()) {
 				this.card_front.append(spec.content);
 			} else if (typeof spec.content === "object"){
 				for (var key in spec.content) {
@@ -622,12 +611,7 @@ ResponseWidgetFactory.MultipleChoice.prototype.getCard = function() {
 	var content = $.map(this.radio_btns, function (btn, btn_id /* , ?? */) {
 		return btn.html;
 	}).join("\n");
-	var card_spec = {
-		parts: { "form": "form" },
-		content: content,
-		container: Game
-	}
-	var card = Game.Card.create(card_spec);
+	var card = Game.Card.create(content);
 	var default_deal = card.deal;
 	card.deal = function () {
 		card.element.find("input[type=radio]").on("click", function(e) {
@@ -656,8 +640,7 @@ ResponseWidgetFactory.MultipleChoice.prototype.getScore = function() {
 ResponseWidgetFactory.FreeResponse = function () {}
 ResponseWidgetFactory.FreeResponse.prototype.getCard = function() {
 	var card_spec = {
-		content: { "form": "<input type=\"text\" />" },
-		container: Game
+		content: { "form": "<input type=\"text\" />" }
 	}
 	var card = Game.Card.create(card_spec);
 	var default_deal = card.deal;
@@ -757,8 +740,7 @@ FeedbackWidgetFactory.Simple.prototype.getCard = function(feedback_spec) {
 		feedback_spec = { content: { "div":feedback_spec } };
 	}
 	var card_spec = {
-		content: feedback_spec.content,
-		container: Game
+		content: feedback_spec.content
 	}
 	var card = Game.Card.create(card_spec);
 	return card;

@@ -75,3 +75,11 @@ String.prototype.past_tense = function () {
 		return this + "ed";
 	}
 };
+
+// test string to see if it contains html tags & is formatted correctly.
+/*** requires jQuery ***/
+String.prototype.is_valid_html = function () {
+	var test_div = $('<div/>');
+	test_div.html(this);
+	return ((test_div.html() == this) && test_div.children().length) ? true : false;
+}
