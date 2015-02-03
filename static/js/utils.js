@@ -6,12 +6,6 @@
  *** Utilities.
  */
 
-// put an action off until the current calling chain has completed.
-function defer(f, context) {
-	setTimeout(f.bind(context));
-}
-
-
 function playmp3(name) {
     var audioElement = document.createElement("audio");
     audioElement.setAttribute("src", media_url + "game/sounds/" + name + ".mp3");
@@ -50,6 +44,18 @@ function in_production_try(context, try_func, catch_func) {
 			break;
 	}
 }
+
+// put an action off until the current calling chain has completed.
+function defer(f, context /* , args */) {
+	var args = Array.prototype.slice.call(arguments, 2);
+	// try to trap errors in this before they cause a potential page reload.
+	in_production_try(context, function () {
+		setTimeout(function () {
+			f.apply(context, args);
+		});
+	})
+}
+
 
 // our tokens are of the form ":<token_name>".
 String.prototype.insert_values = function () {

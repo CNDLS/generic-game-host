@@ -104,25 +104,9 @@ Game.record = function (data) {
 	);
 }
 
-Game.report = function () {
+Game.report = function (report_round, catch_func) {
 	window.reporter.sendReport(function () {
-		in_production_try(this,
-			function () {
-				if (game.rounds.count() > game.round_nbr) {
-					++game.round_nbr;
-					// NOTE: have to use get(), rather than array index ([]),
-					// so we can trigger !evaluate, if need be.
-					game.current_round = new Round(game.rounds.get(game.round_nbr - 1));
-					game.current_round.start();
-				} else {
-					game.gameFeedback();
-					game.allowReplay();
-				}
-			}, 
-			function catch_func (e) {
-				game.gameFeedback();
-				game.allowReplay();
-			})
+		in_production_try(this, report_round, catch_func);
 	});
 }
 
@@ -189,7 +173,7 @@ Game.prototype.read = function (fieldName /* , defaultValue */ ) {
 	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
 	if (rtn_val === undefined && (typeof Game.DEFAULTS[fieldName] !== "undefined")) { rtn_val = Game.DEFAULTS[fieldName]; }
 	if (rtn_val === undefined) {
-		console.log("Alert: Cannot provide a '" + fieldName + "' from Game spec or defaults.");
+		console.log("Cannot provide a '" + fieldName + "' from Game spec or defaults.");
 	}
 	return rtn_val;
 };
@@ -206,7 +190,24 @@ Game.prototype.newRound = function () {
 	// do reporting here.
 	// only advance upon successfully reporting progress.
 	// if there's a communications failure, we'll at least know when it happened.
-	Game.report();
+	Game.report(
+		function report_round() {
+			if (game.rounds.count() > game.round_nbr) {
+				++game.round_nbr;
+				// NOTE: have to use get(), rather than array index ([]),
+				// so we can trigger !evaluate, if need be.
+				game.current_round = new Round(game.rounds.get(game.round_nbr - 1));
+				defer(game.current_round.start, game.current_round);
+			} else {
+				game.gameFeedback();
+				game.allowReplay();
+			}
+		}, 
+		function catch_func (e) {
+			game.gameFeedback();
+			game.allowReplay();
+		}
+	);
 };
 
 Game.prototype.abort = function() {
@@ -541,7 +542,9 @@ Responder.prototype.respond = function (answer) {
 		return this["feedback_type"] || Feedback.DEFAULTS.Type;
 	});
 	var feedback = new Feedback(feedback_types, this, answer);
-	this.round.respond(feedback); // move on to the state of evaluating responses.
+	// move on immediately to the state of evaluating responses. 
+	// don't defer(), as one of multiple widgets could've triggered this, and we need to get out of this state, pronto.
+	this.round.respond(feedback);
 }
 Responder.prototype.evaluateResponse = function () {
 	/*** what to do about being partially correct? or correct-ness that is cumulative across widgets? ***/
@@ -701,9 +704,11 @@ Feedback.prototype.give = function () {
 	// all widgets get the giveFeedback() command simulatenously, but a widget's giveFeedback()
 	// might just enable it or put it into 'play' in some way (like an additional reward, barrier, or character).
 	var _this = this;
+	var rtn_val = false;
 	$.each(this.widgets, function (i, widget) {
-		widget.giveFeedback(_this.answer);
-	})
+		rtn_val = rtn_val || widget.giveFeedback(_this.answer);
+	});
+	return rtn_val;
 }
 
 FeedbackWidgetFactory = {};
@@ -737,7 +742,7 @@ FeedbackWidgetFactory.Simple.prototype.giveFeedback = function(answer) {
 }
 FeedbackWidgetFactory.Simple.prototype.getCard = function(feedback_spec) {
 	if (typeof feedback_spec === "string") {
-		feedback_spec = { content: { "div":feedback_spec } };
+		feedback_spec = { content: { "div": feedback_spec } };
 	}
 	var card_spec = {
 		content: feedback_spec.content

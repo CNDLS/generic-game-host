@@ -14,6 +14,12 @@ from django.core.servers.basehttp import FileWrapper
 
 from django.contrib.auth.decorators import login_required
 
+# import the logging library
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
 
 def index(request):
     return render_to_response('index.html', context_instance=RequestContext(request))
@@ -63,11 +69,12 @@ def write_results(request, game_id):
 	if not request.is_ajax():
 		raise Http404
 	else:
+		logger.debug(request)
 		current_user = User.objects.get(pk=request.user.id)
 		game = Game.objects.get(pk=game_id)
 		game_report = GameReport(payload=request.body, student=current_user, game=game)
 		game_report.save()
-		return HttpResponse("{}", status=200, content_type='application/json')
+		return StreamingHttpResponse(json.dumps({ 'game_report_id': game_report.id }), content_type='application/json')
 
 
 def custom_404(request):
