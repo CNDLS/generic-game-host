@@ -33,11 +33,53 @@
 {% endblock %}
 
 {% block js %}
+		<!-- 
+		<script type="text/javascript" src="{{ STATIC_URL }}js/module.js" >
+			/*
+	 		 * eventually, we will use module.js for its require() function,
+			 * to help us load our js files into one long file.	
+			 * but for now, figuring out require just makes my brain hurt
+			 * very, very much.
+			 */
+		</script>
+		-->
 		<script type="text/javascript" src="{{ STATIC_URL }}js/state-machine.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/js-yaml.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/utils.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/game.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/rounds.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/interactions.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/game_utils.js" ></script>
-		<script type="text/javascript" src="{{ STATIC_URL }}js/js-yaml.js" ></script>
 		<script type="text/javascript" id="reader" src="{{ STATIC_URL }}js/yaml-reader.js"  read-from="{{ AJAX_PREFIX }}/read/{{ game.id }}/"></script>
 		<script type="text/javascript" id="reporter" src="{{ STATIC_URL }}js/reporting.js"  report-to="{{ AJAX_PREFIX }}/write/{{ game.id }}/" csrftoken="{{ csrf_token }}"></script>
+		<script type="text/javascript">
+
+			// 'bootstrapping' script. reads URL of YAML file from a <SCRIPT> tag attribute & uses it to create a Game object.
+			//  by default, we just put the game into a variable on the window scope. some implementations might want something different: multiple games, maybe?
+			var game;
+			$(function () {
+				var read_url = $("script#reader").attr("read-from");
+				var report_url = $("script#reporter").attr("report-to");
+				var csrftoken = $("script#reporter").attr("csrftoken");
+				// get the YAML from our URL.
+				$.ajax({
+					url: read_url,
+					type: "GET",
+					success: function (data /* , textStatus, XMLHttpRequest */) {
+						// try to parse the game data.
+						in_production_try(this,
+							function () {
+								// try to make a game from the parsed game data.
+								game = new Game(new YAML(jsyaml.safeLoad(data, { schema: GAME_SCHEMA })));
+								game.reporter.setURL(report_url, csrftoken);
+							}
+						);
+					},
+					error: function (XMLHttpRequest, textStatus, errorThrown) {
+						console.error(XMLHttpRequest, textStatus, errorThrown);
+					}
+				});
+			});
+		</script>
+
 {% endblock %}
