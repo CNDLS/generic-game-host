@@ -23,7 +23,7 @@ function Game(game_spec) {
 	
 	this.current_round = undefined;
 	this.round_nbr = 0;
-	this.container = $("#game");
+	this.element = $("#game");
 	this.title = $("#title").html(this.read("Title"));
 	this.rounds = this.read("Rounds"); // the rounds of the game.
 	this.internal_clock = this.read("InternalClock"); // alt InternalClock eg; main GodotEngine scene.
@@ -135,17 +135,16 @@ Game.prototype.read = function (fieldName /* , defaultValue */ ) {
 	var defaultValue = arguments[1] || undefined;
 	var rtn_val = this.spec.get(fieldName);
 	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
+	var defaults = this.constructor.DEFAULTS || {};
 	if (rtn_val === undefined && (typeof Game.DEFAULTS[fieldName] !== "undefined")) {
-		// defaults that are functions are defined as members of the Game function.
-		var game_default = Game.DEFAULTS[fieldName];
-		if (Game.hasOwnProperty(game_default)) {
-			rtn_val = Game[game_default];
-		} else {
-			rtn_val = game_default;
-		}
+		rtn_val = Game.DEFAULTS[fieldName];
 	}
 	if (rtn_val === undefined) {
 		console.log("Cannot provide a '" + fieldName + "' from Game spec or defaults.");
+	}
+	// if rtn_val is the name of something that is defined on the Game, Game.Round, etc. object, use that.
+	if (this.constructor.hasOwnProperty(rtn_val)) {
+		rtn_val = this.constructor[rtn_val];
 	}
 	// if rtn_val is a function, instantiate it, passing in the Game object.
 	if (typeof rtn_val === "function") { rtn_val = new rtn_val(this); }
@@ -211,23 +210,24 @@ Game.InternalClock.prototype.clearQueue = function () {
 }
 
 Game.InternalClock.prototype.addToQueue = function (f) {
+	if (this.queue === undefined) { this.clearQueue(); }
 	if (typeof f === "function") { this.queue.push(f); }
 }
 
 Game.InternalClock.prototype.tick = function () {
 	// hold the clock between rounds -- no state machine exists at that point!
 	if (!this.game.current_round) return;
-	var state = this.game.current();
-	$.each(this.queue, function (i) {
-		if (typeof this === "function") { 
-			this.call();
+	var state = this.game.current_round.current;
+	$.each(this.queue, function (i, fn) {
+		if (typeof fn == "function") { 
+			fn.call();
 		} else {
 			// remove non-functions from the queue.
 			this.queue.splice(i, 1);
 		}
 		// if any queue item causes a change of state,
 		// flush the rest of the queue (so we don't process multiple state change req's).
-		if (this.game.current_round.current() !== state) {
+		if (this.game.current_round.current !== state) {
 			this.clearQueue();
 		}
 	});
@@ -236,8 +236,36 @@ Game.InternalClock.prototype.tick = function () {
 
 
 /* 
+ * Game.ProcessingClock
+ * This type of InternalClock is just a modification of Game.InternalClock,
+ * which relies on the processing.draw function for its ticks. (60x per second, so ~16.6 ticks, instead of our default 5).
+ * we have to pass the processing object to the start() call..?
+ */
+Game.ProcessingClock = function (game) { this.game = game; }
+$.extend(Game.ProcessingClock.prototype, Game.InternalClock.prototype);
+
+Game.ProcessingClock.prototype.start = function () {
+	this.clearQueue();
+	
+	var tick_proc = Game.InternalClock.prototype.tick.bind(this);
+	var ticker = function (processing) { 
+		processing.draw = function () { tick_proc.call(); }
+	}
+	// create a canvas element in the Game for Processing to operate within.
+	var game_canvas;
+	try {
+		game_canvas = $('<canvas/>', { 'class':'game-canvas' }).width(game.element.width()).height(game.element.height()).get(0);
+		this.processing = new Processing(game_canvas, ticker);
+	} catch (e) {
+		console.warn("Could not link tick function to Processing::draw(). Default clock will be used.");
+	}
+}
+
+
+
+/* 
  * Game.CountdownClock
- * This is a default onscreen clock -- it just puts numbers into a field, counting down from max_time for the Round.
+ * This is a default onscreen (External) clock -- it just puts numbers into a field, counting down from max_time for the Round.
  * Custom clocks need to expose start(max_time), stop(), and a tick() function, which should return the current time.
  */
 Game.CountdownClock = function (game) {

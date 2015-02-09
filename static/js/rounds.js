@@ -13,6 +13,8 @@ Game.Round = function (round_spec) {
 	this.nbr = game.round_nbr;
 	this.spec = round_spec;
 	
+	this.read = Game.prototype.read.bind(this);
+	
 	this.pointValue = this.read("Points");
 	this.threshold_score = this.read("Threshold");
 	this.resources = this.read("Resources");
@@ -38,11 +40,12 @@ Game.Round = function (round_spec) {
 	this.read("SetUp");
 
 	// create a StateMachine to track what user can do in various situations.
-	$.extend(this, StateMachine.create({ events: this.events, 
-										 error: function () { 
+	$.extend(this, StateMachine.create({ events: this.events,
+										 error: function () {
 											 Array.prototype.unshift.call(arguments, "State Error:")
-											 console.error(Array.prototype.slice.call(arguments)); 
-										 } }));
+											 console.error(Array.prototype.slice.call(arguments));
+										 }
+									 	}));
 }
 
 Game.Round.DEFAULTS = {
@@ -60,51 +63,45 @@ Game.Round.DEFAULTS = {
 	LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
 };
 
-Game.Round.prototype.read = function (fieldName /* , defaultValue */ ) {
-	if (!this.hasOwnProperty("spec")) { 
-		console.log("Warning: Round spec not defined.");
-		return undefined;
-	}
-	var defaultValue = arguments[1] || undefined;
-	var rtn_val = this.spec.get(fieldName);
-	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
-	if (rtn_val === undefined && (typeof Game.Round.DEFAULTS[fieldName] !== "undefined")) { 
-		// defaults that are functions are defined as members of the Game function.
-		var round_default = Game.DEFAULTS[fieldName];
-		if (Game.hasOwnProperty(round_default)) {
-			rtn_val = Game[round_default];
-		} else {
-			rtn_val = round_default;
-		}
-	}
-	
-	if (rtn_val === undefined) {
-		console.log("Alert: Cannot provide a '" + fieldName + "' from Round spec or defaults.");
-	}
-	return rtn_val;
-};
+// Game.Round.prototype.read = function (fieldName /* , defaultValue */ ) {
+// 	if (!this.hasOwnProperty("spec")) {
+// 		console.log("Warning: Round spec not defined.");
+// 		return undefined;
+// 	}
+// 	var defaultValue = arguments[1] || undefined;
+// 	var rtn_val = this.spec.get(fieldName);
+// 	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
+// 	if (rtn_val === undefined && (typeof Game.Round.DEFAULTS[fieldName] !== "undefined")) {
+// 		rtn_val = Game.Round.DEFAULTS[fieldName];
+// 	}
+//
+// 	if (rtn_val === undefined) {
+// 		console.log("Alert: Cannot provide a '" + fieldName + "' from Round spec or defaults.");
+// 	}
+// 	// if rtn_val is the name of something that is defined on the Game object, use that.
+// 	if (Game.hasOwnProperty(rtn_val)) {
+// 		rtn_val = Game[rtn_val];
+// 	}
+// 	return rtn_val;
+// };
 
 Game.Round.prototype.onstart = function (/* eventname, from, to */) {
 	game.sendMessage("Starting Round " + this.nbr);
 	// record the start time of the round.
-	Game.record({ round_nbr: this.nbr, event: "start of round" });
-	defer(this.prompt, this);
-};
-
-Game.Round.prototype.onSetupRound = function () {
+	game.record({ round_nbr: this.nbr, event: "start of round" });
 	// do any presentation that sets up the round for the player(s).
 	var presentation = this.read("Setup");
 	return presentation ? StateMachine.ASYNC : false;
 };
 
 Game.Round.prototype.onGivePrompt = function () {
+	debugger;
 	var prompt = this.read("Prompt");
 	// deliver the prompt card.
 	var prompt_card = Game.Card.create(prompt);
-	prompt_card.deal();
 	// record when prompt was given.
-	Game.record({ event: "prompt given", prompt: prompt });
-	defer(this.wait, this);
+	game.record({ event: "prompt given", prompt: prompt });
+	prompt_card.deal(this.wait);
 };
 
 Game.Round.prototype.onWaitForPlayer = function () {
@@ -143,7 +140,7 @@ Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, feedbac
 	this.score = this.responder.evaluateResponse();
 	feedback.score = this.score;
 	// record user response.
-	Game.record({ event: "user answers", answer: feedback.answer, score: feedback.score });
+	game.record({ event: "user answers", answer: feedback.answer, score: feedback.score });
 	(this.score >= this.threshold_score) ? this.correct(feedback) : this.incorrect(feedback);
 };
 
