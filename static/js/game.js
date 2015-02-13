@@ -18,7 +18,7 @@ var environment = { mode: "development" };
  * Details of that could differ between implementations, so we leave all of that to the host app.
  * Look for a bootstrapping script in the page that hosts this file.
  */
-function Game(game_spec) {
+function Game(game_spec, report_url, csrftoken) {
 	this.spec = game_spec;
 	
 	this.current_round = undefined;
@@ -27,8 +27,9 @@ function Game(game_spec) {
 	this.title = $("#title").html(this.read("Title"));
 	this.rounds = this.read("Rounds"); // the rounds of the game.
 	this.internal_clock = this.read("InternalClock"); // alt InternalClock eg; main GodotEngine scene.
-	this.external_clock = this.read("ExternalClock");
+	this.display_clock = this.read("DisplayClock"); // eg; a countdown clock.
 	this.scoreboard = this.read("ScoreBoard");
+	this.dealer = this.read("Dealer"); // generic Dealer just for Intro or other notifications from the Game.
 	this.reporter = this.read("Reporter");
 	this.winning_score = this.read("WinningScore");
 	this.current_score = 0;
@@ -37,6 +38,9 @@ function Game(game_spec) {
 	// later, build in a concept of returning to a saved game, and restoring the
 	// current state of these resources.
 	this.global_resources = this.read("Resources");
+	
+	// set up the reporter with the url & csrf token passed in from play.html
+	this.reporter.setURL(report_url, csrftoken);
 
 	// record the time the game was started.
 	this.record({ event: "start of game" });
@@ -52,9 +56,10 @@ function Game(game_spec) {
 Game.DEFAULTS = {
 	Title: "Generic Game",
 	InternalClock: "InternalClock",
-	ExternalClock: "NullClock",
+	DisplayClock: "NullClock",
 	ScoreBoard: "ScoreBoard",
 	Reporter: "Reporter",
+	Dealer: "Dealer",
 	Rounds: [],
 	Utilities: {},
 	Intro: "Welcome to the game!",
@@ -64,40 +69,34 @@ Game.DEFAULTS = {
 	LostGameFeedback: "<h3>That didn't work out so well; you lost. Better luck next time!</h3>"
 };
 
-
 Game.prototype.defer = function (f, context) {
 	f = f.bind(context || this.current_round || this);
 	this.internal_clock.addToQueue(f);
 }
-
 
 Game.prototype.record = function (data) {
 	// write out the user data.
 	this.reporter.addData(data);
 }
 
-Game.prototype.report = function (report_round, catch_func) {
-	this.reporter.sendReport(function () {
-		in_production_try(this, report_round, catch_func);
+Game.prototype.report = function (create_round, catch_func) {
+	this.reporter.sendReport().then(function () {
+		in_production_try(this, create_round, catch_func);
 	});
 }
 
-
 Game.prototype.introduce = function () {
-	// introduce any explanatory note. place them on onscreen "cards," styled for each game.
+	// introduce any explanatory note.
 	var intro_spec = this.read("Intro");
 	if (typeof intro_spec === "string"){
 		intro_spec = { content: intro_spec };
 	}
-	// attach spec for an intro card to the game, so we can optionally edit it in a setup_function.
-	$.extend(intro_spec, {
-		css_class: "intro",
-		okClick: this.newRound.bind(this)
-	});
+	// by default, use Game.Card.Modal to define the card.
+	intro_spec = $.extend({ klass: "Modal" }, intro_spec);
 	
-	// deliver the intro card. we will require a click-through on this card.
-	this.intro_card = Game.Card.create(intro_spec);
-	this.intro_card.deal();
+	// deliver just the intro card. we will require a click-through on this card.
+	var intro_card = this.dealer.dealOneCard(intro_spec);
+	$.when( intro_card.dfd ).then(this.newRound.bind(this));
 };
 
 Game.prototype.timeoutRound = function () {
@@ -165,13 +164,13 @@ Game.prototype.newRound = function () {
 	// if there's a communications failure, we'll at least know when it happened.
 	var game = this;
 	this.report(
-		function report_round() {
+		function create_round() {
 			if (game.rounds.count() > game.round_nbr) {
 				++game.round_nbr;
 				// NOTE: have to use get(), rather than array index ([]),
 				// so we can trigger !evaluate, if need be.
 				game.current_round = new Game.Round(game.rounds.get(game.round_nbr - 1));
-				defer(game.current_round.start, game.current_round);
+				game.defer(game.current_round.start, game.current_round);
 			} else {
 				game.gameFeedback();
 				game.allowReplay();
@@ -188,176 +187,3 @@ Game.prototype.abort = function() {
 	// this is our way of cleaning up following a fatal error.
 	// nothing to do here in a generic way, but maybe we'll want the option of a game tearDown()?
 }
-
-
-/* 
- * Game.InternalClock
- * The InternalClock is responsible for collecting defer()'ed commands in a queue. Once a state transition happens,
- * the InternalClock will flush its queue. This prevents the possibility of a second state change being triggered 
- * before the first one can complete. (State changes should always happen outside of the current calling chain).
- */
-Game.InternalClock = function (game) {
-	this.game = game;
-}
-
-Game.InternalClock.prototype.start = function () {
-	this.clearQueue();
-	setTimeout(this.tick.bind(this), 5);
-}
-
-Game.InternalClock.prototype.clearQueue = function () {
-	this.queue = [];
-}
-
-Game.InternalClock.prototype.addToQueue = function (f) {
-	if (this.queue === undefined) { this.clearQueue(); }
-	if (typeof f === "function") { this.queue.push(f); }
-}
-
-Game.InternalClock.prototype.tick = function () {
-	// hold the clock between rounds -- no state machine exists at that point!
-	if (!this.game.current_round) return;
-	var state = this.game.current_round.current;
-	$.each(this.queue, function (i, fn) {
-		if (typeof fn == "function") { 
-			fn.call();
-		} else {
-			// remove non-functions from the queue.
-			this.queue.splice(i, 1);
-		}
-		// if any queue item causes a change of state,
-		// flush the rest of the queue (so we don't process multiple state change req's).
-		if (this.game.current_round.current !== state) {
-			this.clearQueue();
-		}
-	});
-	this.clearQueue();
-}
-
-
-/* 
- * Game.ProcessingClock
- * This type of InternalClock is just a modification of Game.InternalClock,
- * which relies on the processing.draw function for its ticks. (60x per second, so ~16.6 ticks, instead of our default 5).
- * we have to pass the processing object to the start() call..?
- */
-Game.ProcessingClock = function (game) { this.game = game; }
-$.extend(Game.ProcessingClock.prototype, Game.InternalClock.prototype);
-
-Game.ProcessingClock.prototype.start = function () {
-	this.clearQueue();
-	
-	var tick_proc = Game.InternalClock.prototype.tick.bind(this);
-	var ticker = function (processing) { 
-		processing.draw = function () { tick_proc.call(); }
-	}
-	// create a canvas element in the Game for Processing to operate within.
-	var game_canvas;
-	try {
-		game_canvas = $('<canvas/>', { 'class':'game-canvas' }).width(game.element.width()).height(game.element.height()).get(0);
-		this.processing = new Processing(game_canvas, ticker);
-	} catch (e) {
-		console.warn("Could not link tick function to Processing::draw(). Default clock will be used.");
-	}
-}
-
-
-
-/* 
- * Game.CountdownClock
- * This is a default onscreen (External) clock -- it just puts numbers into a field, counting down from max_time for the Round.
- * Custom clocks need to expose start(max_time), stop(), and a tick() function, which should return the current time.
- */
-Game.CountdownClock = function (game) {
-	this.game = game;
-	this.clock_face = $("textarea#clock");
-};
-
-Game.CountdownClock.prototype.start = function (max_time) {
-	clearInterval(this.clock);
-	this.clock = setInterval(this.tick.bind(this), 1000);
-	this.clock_face.val(max_time);
-};
-
-Game.CountdownClock.prototype.tick = function () {
-	var current_time = this.clock_face.val() - 1;
-	this.clock_face.val(current_time);
-	if (current_time === 0) { 
-		this.stop();
-		game.timeoutRound(); 
-	}
-	return current_time;
-};
-
-Game.CountdownClock.prototype.stop = function () {
-	clearInterval(this.clock);
-};
-
-Game.CountdownClock.prototype.reset = function () {
-	this.stop();
-	this.clock_face.val(null);
-};
-
-
-/* 
- * Game.NullClock
- * If you don't want an onscreen clock, this will just fulfill the Clock commands without doing anything.
- * We may also decide at some point that we want some of these functions to actually do something.
- */
-Game.NullClock = function () {};
-Game.NullClock.prototype.init = function (game) {};
-Game.NullClock.prototype.start = function (max_time) {};
-Game.NullClock.prototype.tick = function () { return undefined; };
-Game.NullClock.prototype.stop = function () {};
-
-
-
-/* 
- * Game.ScoreBoard
- * This is a default scoreboard -- it displays the current score in a field.
- * Custom scoreboards need to expose init(game), add(points), subtract(points), and a reset() functions.
- */
-Game.ScoreBoard = function (game) {
-	this.display = $("textarea#scoreboard");
-	this.game = game;
-	this.points = game.current_score;
-	this.refresh();
-};
-
-Game.ScoreBoard.prototype.add = function (points) {
-	this.points += points;
-	this.refresh();
-	return this.points;
-};
-
-Game.ScoreBoard.prototype.subtract = function (points) {
-	this.points -= points;
-	this.refresh();
-	return this.points;
-};
-
-Game.ScoreBoard.prototype.reset = function () {
-	this.points = 0;
-	this.refresh();
-	return this.points;
-};
-
-Game.ScoreBoard.prototype.refresh = function () {
-	// fold in any special message, then display.
-	var addPointsMessage = this.game.read("AddPoints") || ":points";
-	addPointsMessage = addPointsMessage.insert_values(this.points);
-	this.display.val(addPointsMessage);
-};
-
-
-/* 
- * Game.NullScoreBoard
- * If you don't want a scoreboard, this will just fulfill the ScoreBoard commands without doing anything.
- * We may also decide at some point that we want some of these functions to actually do something.
- */
-Game.NullScoreBoard = function () {};
-Game.NullScoreBoard.prototype.init = function (game) {};
-Game.NullScoreBoard.prototype.add = function (points) {};
-Game.NullScoreBoard.prototype.subtract = function (points) {};
-Game.NullScoreBoard.prototype.reset = function () {};
-Game.NullScoreBoard.prototype.refresh = function () {};

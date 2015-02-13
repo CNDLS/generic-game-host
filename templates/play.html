@@ -46,13 +46,19 @@
 		<script type="text/javascript" src="{{ STATIC_URL }}js/state-machine.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/js-yaml.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/utils.js" ></script>
-		<script type="text/javascript" src="{{ STATIC_URL }}js/processing.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/game.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/rounds.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/cards.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/internal_clock.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/displays.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/game_utils.js" ></script>
 		<script type="text/javascript" id="reader" src="{{ STATIC_URL }}js/yaml-reader.js"  read-from="{{ AJAX_PREFIX }}/read/{{ game.id }}/"></script>
-		<script type="text/javascript" id="reporter" src="{{ STATIC_URL }}js/reporting.js"  report-to="{{ AJAX_PREFIX }}/write/{{ game.id }}/" csrftoken="{{ csrf_token }}"></script>
+		<script type="text/javascript" id="reporter" src="{{ STATIC_URL }}js/reporter.js"  report-to="{{ AJAX_PREFIX }}/write/{{ game.id }}/" csrftoken="{{ csrf_token }}"></script>
+			
+		<!-- custom scripts. to be loaded for certain game types. -->
+		<script type="text/javascript" src="{{ STATIC_URL }}js/processing.js" ></script>
+
 		<script type="text/javascript">
 
 			// 'bootstrapping' script. reads URL of YAML file from a <SCRIPT> tag attribute & uses it to create a Game object.
@@ -71,8 +77,8 @@
 						in_production_try(this,
 							function () {
 								// try to make a game from the parsed game data.
-								game = new Game(new YAML(jsyaml.safeLoad(data, { schema: GAME_SCHEMA })));
-								game.reporter.setURL(report_url, csrftoken);
+								var parsed_yaml = new YAML( jsyaml.safeLoad(data, { schema: GAME_SCHEMA }) );
+								game = new Game(parsed_yaml, report_url, csrftoken);
 							}
 						);
 					},

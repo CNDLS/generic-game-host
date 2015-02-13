@@ -89,18 +89,6 @@ Game.Card.prototype.populate = function () {
 	}
 }
 
-Game.Card.prototype.addOKButton = function (spec) {
-	// once the user clicks to continue, we can move onto the game.
-	// for now, we"re going to stick to the notion that all intros require a click to continue.
-	var card = this;
-	var onclick_handler = spec.okClick
-	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
-		card.element.remove();
-		setTimeout(function () { onclick_handler.call(); }, 500); // pause before triggering animations?
-	});
-	ok_button.appendTo(this.card_front);
-};
-
 Game.Card.prototype.deal = function () {
 	if (this.container === Game){
 		this.container = window.game.container;
@@ -110,7 +98,42 @@ Game.Card.prototype.deal = function () {
 
 Game.Card.create = function (spec) {
 	var card_class = spec["klass"] || "Card";
-	var card = new Game[card_class](spec);
+	var card;
+	if (card_class === "Card"){
+		card = new Game.Card(spec);
+	} else {
+		card = new Game.Card[card_class](spec);
+	}
+	// put stuff on/into the card (some cards might not put anything into the DOM).
 	card.populate();
 	return card;
 }
+
+
+/* 
+ * Game.Card.Modal
+ * Cards which 'stop the action' & require a user response.
+ */
+Game.Card.Modal = function (spec) {
+	// create a card in the normal way.
+	Util.extend_properties(this, new Game.Card(spec));
+	this.dfd = $.Deferred();
+}
+$.extend(Game.Card.Modal.prototype, Game.Card.prototype);
+
+Game.Card.Modal.prototype.populate = function () {
+	Game.Card.prototype.populate.apply(this);
+	this.addOKButton();
+}
+
+Game.Card.Modal.prototype.addOKButton = function () {
+	// once the user clicks to continue, we can move onto the game.
+	// for now, we"re going to stick to the notion that all intros require a click to continue.
+	var card = this;
+	var onclick_handler = this.spec['okClick'] || $.noop;
+	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
+		card.element.remove();
+		card.dfd.resolve();
+	});
+	ok_button.appendTo(this.card_front);
+};

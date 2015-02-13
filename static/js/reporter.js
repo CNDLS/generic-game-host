@@ -34,16 +34,15 @@ Game.Reporter.prototype.addData = function (addl_data) {
 	this.user_data.push(addl_data);
 };
 
-Game.Reporter.prototype.sendReport = function (on_success) {
+Game.Reporter.prototype.sendReport = function () {
 	// some defaults. always add a reference to the session.
 	this.user_data.unshift({ session: this.sessionID });
-
 	var reporter = this;
 	var headers = {};
 	if (this.csrftoken !== undefined) {
 		headers["X-CSRFToken"] = this.csrftoken;
 	}
-	$.ajax({
+	return $.ajax({
 		url: this.report_url,
 		type: "POST",
 		dataType: "json",
@@ -53,9 +52,6 @@ Game.Reporter.prototype.sendReport = function (on_success) {
 			// only nuke the user_data once we're sure it has been recieved. 
 			// this way, if we see multiple copies of the session object, we know some connection attempts have failed.
 			reporter.user_data = [];
-			if (typeof on_success === "function") {
-				on_success.call();
-			}
 		},
 		error: function (xhr, error_name, error) {
 			console.error(xhr, error_name, error.stack);

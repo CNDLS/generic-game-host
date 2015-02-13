@@ -63,28 +63,6 @@ Game.Round.DEFAULTS = {
 	LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
 };
 
-// Game.Round.prototype.read = function (fieldName /* , defaultValue */ ) {
-// 	if (!this.hasOwnProperty("spec")) {
-// 		console.log("Warning: Round spec not defined.");
-// 		return undefined;
-// 	}
-// 	var defaultValue = arguments[1] || undefined;
-// 	var rtn_val = this.spec.get(fieldName);
-// 	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
-// 	if (rtn_val === undefined && (typeof Game.Round.DEFAULTS[fieldName] !== "undefined")) {
-// 		rtn_val = Game.Round.DEFAULTS[fieldName];
-// 	}
-//
-// 	if (rtn_val === undefined) {
-// 		console.log("Alert: Cannot provide a '" + fieldName + "' from Round spec or defaults.");
-// 	}
-// 	// if rtn_val is the name of something that is defined on the Game object, use that.
-// 	if (Game.hasOwnProperty(rtn_val)) {
-// 		rtn_val = Game[rtn_val];
-// 	}
-// 	return rtn_val;
-// };
-
 Game.Round.prototype.onstart = function (/* eventname, from, to */) {
 	game.sendMessage("Starting Round " + this.nbr);
 	// record the start time of the round.
@@ -95,13 +73,13 @@ Game.Round.prototype.onstart = function (/* eventname, from, to */) {
 };
 
 Game.Round.prototype.onGivePrompt = function () {
-	debugger;
-	var prompt = this.read("Prompt");
-	// deliver the prompt card.
-	var prompt_card = Game.Card.create(prompt);
-	// record when prompt was given.
-	game.record({ event: "prompt given", prompt: prompt });
-	prompt_card.deal(this.wait);
+	this.prompter = new Game.Prompter(this);
+	// var prompt = this.read("Prompt");
+	// // deliver the prompt card.
+	// var prompt_card = Game.Card.create(prompt);
+	// // record when prompt was given.
+	// game.record({ event: "prompt given", prompt: prompt });
+	// prompt_card.deal(this.wait);
 };
 
 Game.Round.prototype.onWaitForPlayer = function () {
@@ -147,13 +125,13 @@ Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, feedbac
 Game.Round.prototype.onCorrectResponse = function (eventname, from, to, feedback) {
 	feedback.give();
 	game.addPoints(this.score);
-	defer(this.advance, this);
+	this.game.defer(this.advance, this);
 };
 
 Game.Round.prototype.onIncorrectResponse = function (eventname, from, to, feedback) {
 	feedback.give();
 	game.addPoints(this.score);
-	defer(this.advance, this);
+	this.game.defer(this.advance, this);
 };
 
 Game.Round.prototype.onbeforetimeout = function () {
@@ -174,5 +152,5 @@ Game.Round.prototype.defaultTeardown = function () {
 }
 
 Game.Round.prototype.onend = function () {
-	defer(game.newRound, game);
+	this.game.defer(game.newRound, game);
 };

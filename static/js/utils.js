@@ -46,17 +46,6 @@ function in_production_try(context, try_func, catch_func) {
 	}
 }
 
-// put an action off until the current calling chain has completed.
-function defer(f, context /* , args */) {
-	var args = Array.prototype.slice.call(arguments, 2);
-	// try to trap errors in this before they cause a potential page reload.
-	in_production_try(context, function () {
-		setTimeout(function () {
-			f.apply(context, args);
-		});
-	})
-}
-
 
 // our tokens are of the form ":<token_name>".
 String.prototype.insert_values = function () {
@@ -89,4 +78,14 @@ String.prototype.is_valid_html = function () {
 	var test_div = $('<div/>');
 	test_div.html(this);
 	return ((test_div.html() == this) && test_div.children().length) ? true : false;
+}
+
+Util = {
+	extend_properties: function(child, parent) {
+		for (m in parent) {
+			if (typeof parent[m] !== "function") {
+				child[m] = parent[m];
+			}
+		}
+	}
 }
