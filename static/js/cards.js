@@ -98,7 +98,7 @@ Game.Card.prototype.deal = function () {
 
 // what I tell the Reporter about myself.
 Game.Card.prototype.report = function () {
-	return this.spec.content || "undefined";
+	return JSON.stringify(this.spec.content) || "undefined";
 }
 
 Game.Card.create = function (spec) {

@@ -16,7 +16,7 @@ Game.InternalClock = function (game) {
 
 Game.InternalClock.prototype.start = function () {
 	this.clearQueue();
-	setInterval(this.tick.bind(this), 5);
+	setInterval(this.tick.bind(this), 10);
 }
 
 Game.InternalClock.prototype.clearQueue = function () {

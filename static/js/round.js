@@ -81,9 +81,10 @@ Game.Round.prototype.setup = function () {
 
 Game.Round.prototype.onGivePrompt = function () {
 	this.prompter = new Game.Prompter(this);
-	this.prompter.init();
 	var _this = this;
 	this.prompter.dealCards(function () {
+		// force a page redraw (webkit issue).
+		_this.game.element.get(0).style.webkitTransform = 'scale(1)';
 		_this.game.record({ event: "prompt given", prompt: _this.prompter.report() });
 		_this.game.defer(_this.wait.bind(_this));
 	});

@@ -88,18 +88,13 @@ Game.Dealer.prototype.report = function () {
  */
 Game.Prompter = function (round) {
 	Util.extend_properties(this, new Game.Dealer(round));
-	this.round = this.context;
-}
-$.extend(Game.Prompter.prototype, Game.Dealer.prototype);
 
-// Only load up cards once this Prompter has been extended,
-// so we can use Dealer.addCard().
-Game.Prompter.prototype.init = function () {
 	// deliver the prompt card(s) from the current Round spec.
-	var prompts = this.round.read("Prompt");
+	var prompts = round.read("Prompt");
 	if (prompts.constructor !== Array){ prompts = [prompts]; }
 	var _this = this;
 	$.each(prompts, function (i, prompt) {
 		_this.addCard(prompt);
 	});
 }
+$.extend(Game.Prompter.prototype, Game.Dealer.prototype);
