@@ -96,6 +96,11 @@ Game.Card.prototype.deal = function () {
 	$(this.container).append(this.element);
 }
 
+// what I tell the Reporter about myself.
+Game.Card.prototype.report = function () {
+	return this.spec.content || "undefined";
+}
+
 Game.Card.create = function (spec) {
 	var card_class = spec["klass"] || "Card";
 	var card;

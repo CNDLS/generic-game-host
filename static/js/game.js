@@ -47,6 +47,7 @@ function Game(game_spec, report_url, csrftoken) {
 	
 	// start the game. 
 	// later, we will omit this step if user is returning to a saved game.
+	this.internal_clock.start();
 	this.introduce();
 }
 
@@ -69,8 +70,7 @@ Game.DEFAULTS = {
 	LostGameFeedback: "<h3>That didn't work out so well; you lost. Better luck next time!</h3>"
 };
 
-Game.prototype.defer = function (f, context) {
-	f = f.bind(context || this.current_round || this);
+Game.prototype.defer = function (f) {
 	this.internal_clock.addToQueue(f);
 }
 
@@ -169,8 +169,8 @@ Game.prototype.newRound = function () {
 				++game.round_nbr;
 				// NOTE: have to use get(), rather than array index ([]),
 				// so we can trigger !evaluate, if need be.
-				game.current_round = new Game.Round(game.rounds.get(game.round_nbr - 1));
-				game.defer(game.current_round.start, game.current_round);
+				game.current_round = new Game.Round(game, game.rounds.get(game.round_nbr - 1));
+				// game.defer(game.current_round.start, game.current_round);
 			} else {
 				game.gameFeedback();
 				game.allowReplay();

@@ -16,7 +16,7 @@ Game.InternalClock = function (game) {
 
 Game.InternalClock.prototype.start = function () {
 	this.clearQueue();
-	setTimeout(this.tick.bind(this), 5);
+	setInterval(this.tick.bind(this), 5);
 }
 
 Game.InternalClock.prototype.clearQueue = function () {
@@ -29,20 +29,19 @@ Game.InternalClock.prototype.addToQueue = function (f) {
 }
 
 Game.InternalClock.prototype.tick = function () {
-	// hold the clock between rounds -- no state machine exists at that point!
-	if (!this.game.current_round) return;
-	var state = this.game.current_round.current;
+	var state = (this.game.current_round) ? this.game.current_round.current : undefined;
+	var _this = this;
 	$.each(this.queue, function (i, fn) {
-		if (typeof fn == "function") { 
+		if (typeof fn === "function") { 
 			fn.call();
 		} else {
 			// remove non-functions from the queue.
-			this.queue.splice(i, 1);
+			_this.queue.splice(i, 1);
 		}
 		// if any queue item causes a change of state,
 		// flush the rest of the queue (so we don't process multiple state change req's).
-		if (this.game.current_round.current !== state) {
-			this.clearQueue();
+		if ( _this.game.current_round && (_this.game.current_round.current !== state) ) {
+			_this.clearQueue();
 		}
 	});
 	this.clearQueue();

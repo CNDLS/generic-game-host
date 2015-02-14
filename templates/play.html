@@ -47,7 +47,7 @@
 		<script type="text/javascript" src="{{ STATIC_URL }}js/js-yaml.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/utils.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/game.js" ></script>
-		<script type="text/javascript" src="{{ STATIC_URL }}js/rounds.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/round.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/cards.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/internal_clock.js" ></script>
@@ -78,7 +78,7 @@
 							function () {
 								// try to make a game from the parsed game data.
 								var parsed_yaml = new YAML( jsyaml.safeLoad(data, { schema: GAME_SCHEMA }) );
-								game = new Game(parsed_yaml, report_url, csrftoken);
+								new Game(parsed_yaml, report_url, csrftoken);
 							}
 						);
 					},

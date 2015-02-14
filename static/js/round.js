@@ -4,13 +4,14 @@ Game = Game || function () {};
 /* 
  * Rounds of the Game.
  */
-Game.Round = function (round_spec) {
+Game.Round = function (game, round_spec) {
 	if (round_spec === undefined) {
 		console.log("no round_spec provided");
 		return;
 	}
 	
-	this.nbr = game.round_nbr;
+	this.game = game;
+	this.nbr = this.game.round_nbr;
 	this.spec = round_spec;
 	
 	this.read = Game.prototype.read.bind(this);
@@ -35,9 +36,6 @@ Game.Round = function (round_spec) {
 	this.onchangestate = function (name, from, to) {
 		console.log(name + ": change state from " + from + " to " + to);
 	};
-	
-	// INTIALIZING THE ROUND.
-	this.read("SetUp");
 
 	// create a StateMachine to track what user can do in various situations.
 	$.extend(this, StateMachine.create({ events: this.events,
@@ -46,6 +44,9 @@ Game.Round = function (round_spec) {
 											 console.error(Array.prototype.slice.call(arguments));
 										 }
 									 	}));
+	
+	// PERFORM ANY SETUP FOR THE ROUND.
+	this.setup();
 }
 
 Game.Round.DEFAULTS = {
@@ -63,23 +64,29 @@ Game.Round.DEFAULTS = {
 	LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
 };
 
-Game.Round.prototype.onstart = function (/* eventname, from, to */) {
-	game.sendMessage("Starting Round " + this.nbr);
+Game.Round.prototype.setup = function () {
+	this.game.sendMessage("Starting Round " + this.nbr);
 	// record the start time of the round.
-	game.record({ round_nbr: this.nbr, event: "start of round" });
+	this.game.record({ round_nbr: this.nbr, event: "start of round" });
 	// do any presentation that sets up the round for the player(s).
-	var presentation = this.read("Setup");
-	return presentation ? StateMachine.ASYNC : false;
+	var setup = this.read("Setup");
+	if (typeof setup === "function") {
+		// do setup(), which returns a dfd promise.
+		setup.apply(this).then(this.start.bind(this));
+		return StateMachine.ASYNC; // setup presentation is responsible for issuing this.prompt();
+	} else {
+		this.game.defer(this.start.bind(this));
+	}
 };
 
 Game.Round.prototype.onGivePrompt = function () {
 	this.prompter = new Game.Prompter(this);
-	// var prompt = this.read("Prompt");
-	// // deliver the prompt card.
-	// var prompt_card = Game.Card.create(prompt);
-	// // record when prompt was given.
-	// game.record({ event: "prompt given", prompt: prompt });
-	// prompt_card.deal(this.wait);
+	this.prompter.init();
+	var _this = this;
+	this.prompter.dealCards(function () {
+		_this.game.record({ event: "prompt given", prompt: _this.prompter.report() });
+		_this.game.defer(_this.wait.bind(_this));
+	});
 };
 
 Game.Round.prototype.onWaitForPlayer = function () {
