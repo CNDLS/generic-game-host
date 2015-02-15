@@ -83,12 +83,17 @@ Game.Round.prototype.onGivePrompt = function () {
 	this.prompter = new Game.Prompter(this);
 	var _this = this;
 	this.prompter.dealCards(function () {
-		// force a page redraw (webkit issue). 
-		_this.game.element.get(0).style.webkitTransform = 'scale(1)';
-		_this.game.record({ event: "prompt given", prompt: _this.prompter.report() });
-		_this.game.defer(_this.wait.bind(_this));
+		_this.leavePrompt();
 	});
+	return StateMachine.ASYNC;
 };
+
+Game.Round.prototype.leavePrompt = function () {
+	// force a page redraw (webkit issue). 
+	this.game.element.get(0).style.webkitTransform = 'scale(1)';
+	this.game.record({ event: "prompt given", prompt: this.prompter.report() });
+	this.game.defer(this.wait.bind(this));
+}
 
 Game.Round.prototype.onWaitForPlayer = function () {
 	if (this.max_time !== "none"){
@@ -99,11 +104,11 @@ Game.Round.prototype.onWaitForPlayer = function () {
 	if (typeof response_types === "string") {
 		response_types = [response_types];
 	}
-	this.responder = new Responder(response_types, this);
-	if (this.responder 
-		&& typeof this.responder["deal"] === "function"
-		&& this.responder.widgets.length ) {
-		this.responder.deal();
+	this.listener = new Listener(response_types, this);
+	if (this.listener 
+		&& typeof this.listener["deal"] === "function"
+		&& this.listener.widgets.length ) {
+		this.listener.deal();
 		return StateMachine.ASYNC;
 	} else {
 		// exit this round;
@@ -123,7 +128,7 @@ Game.Round.prototype.onbeforepass = function () {
 Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, feedback) {
 	// answer object originates from the YAML. It is given a score value by the Responder & its Widgets.
 	/*** return ASYNC if we want to let responder widgets animate. How to specify that? ***/
-	this.score = this.responder.evaluateResponse();
+	this.score = this.listener.evaluateResponse();
 	feedback.score = this.score;
 	// record user response.
 	game.record({ event: "user answers", answer: feedback.answer, score: feedback.score });

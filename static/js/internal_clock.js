@@ -25,26 +25,25 @@ Game.InternalClock.prototype.clearQueue = function () {
 
 Game.InternalClock.prototype.addToQueue = function (f) {
 	if (this.queue === undefined) { this.clearQueue(); }
-	if (typeof f === "function") { this.queue.push(f); }
+	if (typeof f === "function") {
+		// if it is a native browser error, it's not our code,
+		// and most likely an error. output it to the console,
+		// but don't add it to the queue.
+		var fname = f.__proto__.name || "Unknown";
+		if ( (f.toString().indexOf('[native code]') > -1) && (fname.indexOf('Error') > -1) ) {
+			console.log("Can't add native browser error to the InternalClock queue:", fname);
+		} else {
+			this.queue.push(f);
+		} 
+	}
 }
 
 Game.InternalClock.prototype.tick = function () {
 	var state = (this.game.current_round) ? this.game.current_round.current : undefined;
-	var _this = this;
-	$.each(this.queue, function (i, fn) {
-		if (typeof fn === "function") { 
-			fn.call();
-		} else {
-			// remove non-functions from the queue.
-			_this.queue.splice(i, 1);
-		}
-		// if any queue item causes a change of state,
-		// flush the rest of the queue (so we don't process multiple state change req's).
-		if ( _this.game.current_round && (_this.game.current_round.current !== state) ) {
-			_this.clearQueue();
-		}
-	});
-	this.clearQueue();
+	while (this.queue.length) {
+		fn = this.queue.shift();
+		if (typeof fn === "function") {  fn.call(); }
+	}
 }
 
 
