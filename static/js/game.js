@@ -135,8 +135,8 @@ Game.prototype.read = function (fieldName /* , defaultValue */ ) {
 	var rtn_val = this.spec.get(fieldName);
 	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
 	var defaults = this.constructor.DEFAULTS || {};
-	if (rtn_val === undefined && (typeof Game.DEFAULTS[fieldName] !== "undefined")) {
-		rtn_val = Game.DEFAULTS[fieldName];
+	if (rtn_val === undefined && (typeof defaults[fieldName] !== "undefined")) {
+		rtn_val = defaults[fieldName];
 	}
 	if (rtn_val === undefined) {
 		console.log("Cannot provide a '" + fieldName + "' from Game spec or defaults.");

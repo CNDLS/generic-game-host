@@ -23,11 +23,16 @@ Game.Round = function (game, round_spec) {
 	this.max_time = this.read("MaxTime");
 	this.played_round = {}; // to store data of what happened in the round.
 
+	// the three managers which will guide the round through its states.
+	this.prompter = this.read("Prompter");
+	this.listener = this.read("Listener");
+	this.responder = this.read("Responder");
 	
+	// the available states, and the events that transition between them.
 	this.events = [
-		{ name: "start",		from: "none",									to: "GivePrompt" },
-		{ name: "wait",			from: "GivePrompt",								to: "WaitForPlayer" },
-		{ name: "evaluate",		from: "WaitForPlayer",							to: "EvaluateResponse" },
+		{ name: "prompt",		from: "none",									to: "GivePrompt" },
+		{ name: "listen",		from: "GivePrompt",								to: "ListenForPlayer" },
+		{ name: "evaluate",		from: "ListenForPlayer",						to: "EvaluateResponse" },
 		{ name: "advance",		from: "EvaluateResponse",						to: "end" },
 		{ name: "abort",		from: StateMachine.WILDCARD,					to: "end" }
 	];
@@ -41,7 +46,11 @@ Game.Round = function (game, round_spec) {
 	$.extend(this, StateMachine.create({ events: this.events,
 										 error: function () {
 											 Array.prototype.unshift.call(arguments, "State Error:")
-											 console.error(Array.prototype.slice.call(arguments));
+											 console.log(Array.prototype.slice.call(arguments));
+											 // try to recover the calling stack of the original error.
+											 try {
+												 console.error(arguments[7].stack);
+											 } catch (e) {}
 										 }
 									 	}));
 	
@@ -60,6 +69,9 @@ Game.Round.DEFAULTS = {
 		content: prompt,
 		css_class: "round_prompt"
 	},
+	Prompter: "Prompter",
+	Listener: "Listener",
+	Responder: "Responder",
 	WonRoundFeedback: "<h3>Good Round!</h3>",
 	LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
 };
@@ -72,49 +84,50 @@ Game.Round.prototype.setup = function () {
 	var setup = this.read("Setup");
 	if (typeof setup === "function") {
 		// do setup(), which returns a dfd promise.
-		setup.apply(this).then(this.start.bind(this));
+		setup.apply(this).then(this.prompt.bind(this));
 		return StateMachine.ASYNC; // setup presentation is responsible for issuing this.prompt();
 	} else {
-		this.game.defer(this.start.bind(this));
+		this.game.defer(this.prompt.bind(this));
 	}
 };
 
 Game.Round.prototype.onGivePrompt = function () {
-	this.prompter = new Game.Prompter(this);
-	var _this = this;
-	this.prompter.dealCards(function () {
-		_this.leavePrompt();
-	});
-	return StateMachine.ASYNC;
+	if (typeof this.prompter === "string") {
+		this.prompter = new Game[this.prompter](this);
+	}
+	if (this.prompter instanceof Game.Prompter) {
+		var endPrompting = this.endPrompting.bind(this);
+		this.prompter.dealCards(endPrompting);
+		return StateMachine.ASYNC;
+	} // if prompter fails, this will just transition us into the next state.
 };
 
-Game.Round.prototype.leavePrompt = function () {
-	// force a page redraw (webkit issue). 
-	this.game.element.get(0).style.webkitTransform = 'scale(1)';
+Game.Round.prototype.endPrompting = function () {
+	this.game.element.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
 	this.game.record({ event: "prompt given", prompt: this.prompter.report() });
-	this.game.defer(this.wait.bind(this));
+	this.game.defer(this.listen.bind(this));
 }
 
-Game.Round.prototype.onWaitForPlayer = function () {
+Game.Round.prototype.onListenForPlayer = function () {
 	if (this.max_time !== "none"){
 		game.clock.start(this.max_time);
 	}
-	// trigger response, based on the ResponseTypes.
-	var response_types = this.read("ResponseTypes");
-	if (typeof response_types === "string") {
-		response_types = [response_types];
+	if (typeof this.listener === "string") {
+		this.listener = new Game[this.listener](this);
 	}
-	this.listener = new Listener(response_types, this);
-	if (this.listener 
-		&& typeof this.listener["deal"] === "function"
-		&& this.listener.widgets.length ) {
-		this.listener.deal();
+	if (this.listener instanceof Game.Listener) {
+		var endListening = this.endListening.bind(this);
+		this.listener.dealCards(endListening);
 		return StateMachine.ASYNC;
-	} else {
-		// exit this round;
-		this.abort();
-	}
+	} // if listener fails, this will just transition us into the next state.
 };
+
+Game.Round.prototype.endListening = function () {
+	this.game.element.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
+	this.game.record({ event: "response given", prompt: this.listener.report() });
+	// this.game.defer(this.evaluate.bind(this));
+}
+
 // doing a little more cleanup now, before we issue feedback.
 Game.Round.prototype.onbeforeevaluate = function () {
 	game.clock.stop();
