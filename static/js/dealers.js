@@ -13,6 +13,8 @@
 Game.Dealer = function (context) {
 	this.context = context; // game or round.
 	this.cards = [];
+	
+	Game.Dealer.NO_DEAL = [];
 }
 // default action for dealing cards is just to put them onscreen,
 // and then resolve the promise right away.
@@ -29,6 +31,12 @@ Game.Dealer.prototype.dealCards = function (successFn) {
 		( card.deal(dfd) ) ? $.noop() : dfd.resolve();
 		return dfd.promise();
 	});
+	
+	// if no cards are dealt, get a promise from the InternalClock.
+	if (deal_promises == Game.Dealer.NO_DEAL) {
+		deal_promises.push(this.game.internal_clock.getPromise());
+	}
+	
 	// weird construction lets us put our array of promises into params of $.when().
 	$.when.apply($, deal_promises).then(successFn || $.noop);
 }
@@ -101,8 +109,8 @@ $.extend(Game.Prompter.prototype, Game.Dealer.prototype);
 
 
 /* 
- * Listeners
- * each response_type creates a different drives the loading of some kind of widget. Lots of customization will probably happen here,
+ * Listener
+ * Each response_type creates a different drives the loading of some kind of widget. Lots of customization will probably happen here,
  * so expect this to get refactored over time.
  * Basic response widget types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
  * Other types can be defined in a game_utils.js file for a particular instance. 
@@ -125,77 +133,42 @@ Game.Listener = function(round) {
 }
 $.extend(Game.Listener.prototype, Game.Dealer.prototype);
 
-
+Game.ListenerCard = {}
 Game.ListenerCardFactory = {
 	create: function (response_type) {
 		var card_type = response_type + "Card";
-		if (!Game.Card.hasOwnProperty(card_type)) {
+		if (!Game.ListenerCard.hasOwnProperty(card_type)) {
 			console.log("Warning: Cannot find Card type:" + card_type);
 		} else {
-			var listener_card = new Game.Card[card_type]();
+			var listener_card = new Game.ListenerCard[card_type]();
 			listener_card.populate();
 			return listener_card;
 		}
 	}
 }
 
-/* Each ListenerCardFactory type should create one or more Cards,
- * which will be used for capturing input form the user(s).
- * Upon receiving user input, the card(s) notify the Listener that dealt them.
- * The Listener should then notify the Round with one of the Answer objects 
- * created from the YAML spec for this Round.
- */
-Game.ListenerCardFactory.MultipleChoice = {
-	 makeCards: function() {
-		// create a single Card containing a form with radio buttons
-		var radio_btns = {};
-		var group_name = "radio_group_" + this.round.nbr;
-		$.each(this.answers, function (i, answer_spec) {
-			var answer = new Answer(answer_spec);
-			var btn_id = "radio_btn_" + widget.round.nbr + "_" + (i + 1);
-			widget.radio_btns[btn_id] = 
-				{ html: ("<input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"
-							+ "<label for=\"" + btn_id + "\">" + answer.content + "</label></input>"),
-				  answer: answer
-				}
-		});
-		var content = $.map(this.radio_btns, function (btn, btn_id /* , ?? */) {
-			return btn.html;
-		}).join("\n");
-		var card = Game.Card.create(content);
-		var default_deal = card.deal;
-		card.deal = function () {
-			card.element.find("input[type=radio]").on("click", function(e) {
-				var clicked_radio_btn = widget.radio_btns[e.target.id];
-				var correct = clicked_radio_btn.answer.correct || false;
-				var value = clicked_radio_btn.answer.value || 1;
-				var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
-				widget.score += correct ? value : neg_value;
-				var answer = new Answer(clicked_radio_btn.answer);
-				widget.responder.respond(answer);
-			});
-			default_deal.apply(card);
-		}
-		return card;
-	}
-}
 
-Game.Card.FreeResponseCard = function () {
+/* Each ListenerCard will capture input form the user(s).
+ * Upon receiving user input, the card resolves the Listener's Deferred,
+ * passing one of the Answer objects created from the YAML spec for this Round.
+ */
+Game.ListenerCard.FreeResponseCard = function () {
 	// create a card from a self-defined spec.
 	var spec = {
 		content: { "form": "<input type=\"text\" />" }
 	}
 	Util.extend_properties(this, new Game.Card(spec));
 }
-$.extend(Game.Card.FreeResponseCard.prototype, Game.Card.prototype);
+$.extend(Game.ListenerCard.FreeResponseCard.prototype, Game.Card.prototype);
 
-Game.Card.FreeResponseCard.prototype.deal = function (dfd) {
+Game.ListenerCard.FreeResponseCard.prototype.deal = function (dfd) {
 	Game.Card.prototype.deal.call(this, dfd);
 	var _this = this;
 	this.element.find("input[type=text]").on("keypress", function(e) {
         if (e.keyCode === 13) {
-			var answer = new Answer(e.target.value);
-			_this.dfd.resolve(answer);
+			var answer = new Game.Answer(e.target.value);
+			var score = 1; // any response is accepted.
+			_this.dfd.resolve(answer, score);
 		}
 	});
 	this.element.find("input[type=text]").focus();
@@ -204,83 +177,67 @@ Game.Card.FreeResponseCard.prototype.deal = function (dfd) {
 
 
 /* 
- * Answer
  * Answers are how the user's actions are communicated to the program. 
- * Answers should provide ??
+ * They need to have a getContents() function, which describes what the user input.
+ * Answers don't need to provide any other functionality, but are there in case
+ * a ListenerCard wants to do something special with them --
+ * since ListenerCards cause Answers to be created, they can create their
+ * own types.
+ * Answers originate in the YAML spec, and they can specify feedback.
  */
-function Answer(spec) {
+Game.Answer = function (spec) {
 	if (typeof spec === "string") {
 		spec = { content: spec };
 	}
 	$.extend(this, spec);
 }
 
+Game.Answer.prototype.getContents = function () {
+	return this.content;
+}
 
 
 /* 
  * Responder
- * Default Responder is just to deal a card with some text or HTML on it,
- * which represents feedback generate by Listener, when it compares the Prompt & Answer objects.
- *** NEEDS REFACTORING *** 2/17 bg.
+ * The Responder deals card(s) which give feedback to the user, based on their answer & its score.
  */
-function Responder(feedback_types, responder, answer) {
-	// Responder.DEFAULTS = {
-	// 	Type: "Simple"
-	// }
-	// this.responder = responder;
-	// this.answer = answer;
-	// var _this = this;
-	// this.widgets = $.map(feedback_types, function(feedback_type) {
-	// 	return ResponderWidgetFactory.create([feedback_type || Responder.DEFAULTS.Type], _this);
-	// });
+Game.Responder = function (round, answer, score) {
+	Util.extend_properties(this, new Game.Dealer(round));
+	
+	Game.Responder.DEFAULTS = {
+		FeedbackType: "Simple" // just a text/html message in a Card.
+	}
+	
+	// get answer's feedback, if any.
+	var feedback = answer.feedback || [];
+	if (typeof feedback === "string") {
+		feedback = [{
+			content: feedback
+		}];
+	}
+	// assemble cards made by all the feedback into my cards array.
+	// careful, as 'feedback' is a mass noun: they are feedback; it is feedback.
+	this.cards = $.map(feedback, function(feedback) {
+		var feedback_type = feedback.type || Game.Responder.DEFAULTS.FeedbackType
+		return Game.FeedbackCardFactory.create(feedback_type, answer, score);
+	});
 }
-// Responder.prototype.give = function () {
-// 	// all widgets get the giveResponder() command simulatenously, but a widget's giveResponder()
-// 	// might just enable it or put it into 'play' in some way (like an additional reward, barrier, or character).
-// 	var _this = this;
-// 	var rtn_val = false;
-// 	$.each(this.widgets, function (i, widget) {
-// 		rtn_val = rtn_val || widget.giveResponder(_this.answer);
-// 	});
-// 	return rtn_val;
-// }
+$.extend(Game.Responder.prototype, Game.Dealer.prototype);
 
-ResponderWidgetFactory = {};
 
-// ResponderWidgetFactory.create = function (feedback_type, feedback_obj) {
-// 	if (!ResponderWidgetFactory.hasOwnProperty(feedback_type)) {
-// 		console.log("Warning: Cannot find ResponderWidgetFactory." + feedback_type);
-// 		return;
-// 	}
-// 	// as with ListenerWidgets, we use Cards to convey messages.
-// 	// again, someday these could come from synchronous communication between users.
-// 	var widget;
-// 	in_production_try(this,
-// 		function () {
-// 			// create widget and attach my feedback_obj. ask widget to create a Card.
-// 			widget = new ResponderWidgetFactory[feedback_type](feedback_obj);
-// 			// ensure that responder gets set.
-// 			if (!widget.hasOwnProperty("feedback_obj")) {
-// 				widget["feedback_obj"] = feedback_obj;
-// 			}
-// 		}
-// 	);
-// 	return widget;
-// }
-//
-// ResponderWidgetFactory.Simple = function () {}
-// ResponderWidgetFactory.Simple.prototype.giveResponder = function(answer) {
-// 	var feedback_card = this.getCard(answer.feedback)
-// 	feedback_card.deal();
-// 	return feedback_card;
-// }
-// ResponderWidgetFactory.Simple.prototype.getCard = function(feedback_spec) {
-// 	if (typeof feedback_spec === "string") {
-// 		feedback_spec = { content: { "div": feedback_spec } };
-// 	}
-// 	var card_spec = {
-// 		content: feedback_spec.content
-// 	}
-// 	var card = Game.Card.create(card_spec);
-// 	return card;
-// }
+Game.FeedbackCard = {}
+Game.FeedbackCardFactory = {
+	create: function (feedback_type) {
+		var card_type = feedback_type + "Feedback";
+		if (!Game.FeedbackCard.hasOwnProperty(card_type)) {
+			console.log("Warning: Cannot find Card type:" + card_type);
+		} else {
+			var feedback_card = new Game.FeedbackCard[card_type]();
+			feedback_card.populate();
+			return feedback_card;
+		}
+	}
+}
+
+Game.FeedbackCard.SimpleFeedback = function () {
+}

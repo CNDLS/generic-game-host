@@ -40,6 +40,7 @@ Game.Round = function (game, round_spec) {
 	// *** DEBUGGING ***
 	this.onchangestate = function (name, from, to) {
 		console.log(name + ": change state from " + from + " to " + to);
+		this.game.element.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
 	};
 
 	// create a StateMachine to track what user can do in various situations.
@@ -103,7 +104,6 @@ Game.Round.prototype.onGivePrompt = function () {
 };
 
 Game.Round.prototype.endPrompting = function () {
-	this.game.element.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
 	this.game.record({ event: "prompt given", prompt: this.prompter.report() });
 	this.game.defer(this.listen.bind(this));
 }
@@ -122,61 +122,44 @@ Game.Round.prototype.onListenForPlayer = function () {
 	} // if listener fails, this will just transition us into the next state.
 };
 
-Game.Round.prototype.endListening = function (answer) {
-	this.game.element.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
-	this.game.record({ event: "response given", prompt: this.listener.report() });
-	this.game.defer(this.evaluate.bind(this));
+Game.Round.prototype.endListening = function (answer, score) {
+	// record user answer.
+	this.game.record({ event: "user answers", answer: answer.getContents() });
+	var _this = this;
+	this.game.defer(function () {
+		_this.evaluate(answer, score);
+	});
 }
 
-// doing a little more cleanup now, before we issue feedback.
-Game.Round.prototype.onbeforeevaluate = function () {
-	game.clock.stop();
+Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, answer, score) {
+	this.game.addPoints(score);
+	if (typeof this.responder === "string") {
+		this.responder = new Game[this.responder](this, answer, score);
+	}
+	if (this.responder instanceof Game.Responder) {
+		var endResponding = this.endResponding.bind(this);
+		this.responder.dealCards(endResponding);
+		return StateMachine.ASYNC;
+	}
 };
 
-//	user "passes" on their turn.
-Game.Round.prototype.onbeforepass = function () {
-	game.clock.stop();
-};
-
-Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, feedback) {
-	// answer object originates from the YAML. It is given a score value by the Responder & its Widgets.
-	/*** return ASYNC if we want to let responder widgets animate. How to specify that? ***/
-	this.score = this.listener.evaluateResponse();
-	feedback.score = this.score;
-	// record user response.
-	game.record({ event: "user answers", answer: feedback.answer, score: feedback.score });
-	(this.score >= this.threshold_score) ? this.correct(feedback) : this.incorrect(feedback);
-};
-
-Game.Round.prototype.onCorrectResponse = function (eventname, from, to, feedback) {
-	feedback.give();
-	game.addPoints(this.score);
-	this.game.defer(this.advance, this);
-};
-
-Game.Round.prototype.onIncorrectResponse = function (eventname, from, to, feedback) {
-	feedback.give();
-	game.addPoints(this.score);
-	this.game.defer(this.advance, this);
-};
+Game.Round.prototype.endResponding = function () {
+	// record game's response to user.
+	this.game.record({ event: "game responds", response: this.responder.report() });
+	this.game.defer(this.advance.bind(this));
+}
 
 Game.Round.prototype.onbeforetimeout = function () {
-	game.sendMessage("ran out of time.");
-	game.clock.stop();
+	this.game.sendMessage("ran out of time.");
+	this.game.clock.stop();
 };
-
-Game.Round.prototype.onbeforeadvance = function () {
-	game.clock.stop();
-	// do any 'tear down' of the round. do also for ending/interrupting game?
-	var tear_down = this.read("Teardown") || this.defaultTeardown;
-	tear_down.call(this);
-};
-
-Game.Round.prototype.defaultTeardown = function () {
-	/* What should the default teardown actions be? Reset the clock? Remove Responder widgets? */
-	game.clock.reset();
-}
 
 Game.Round.prototype.onend = function () {
-	this.game.defer(game.newRound, game);
+	// do any 'tear down' of the round. do also for ending/interrupting game?
+	// this.game.clock.stop();
+	// this.game.clock.reset();
+	var tear_down = this.read("Teardown") || $.noop;
+	tear_down.call(this);
+	debugger;
+	this.game.defer(this.game.newRound.bind(this.game));
 };

@@ -9,7 +9,18 @@
 
 $.extend(Game, {
 	
-	everyNTimes: function (n, return_value, default_value) {
+	everyNthTime: function (n, return_value, default_value) {
+		this.i = this.i || 0;
+		this.i++;
+		if (this.i === n) {
+			this.i = 0;
+			return return_value;
+		} else {
+			return default_value;
+		}
+	},
+	
+	aboutEveryNTimes: function (n, return_value, default_value) {
 		if (Math.trunc(Math.random() * n) % n === 0) {
 			return return_value;
 		} else {

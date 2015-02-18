@@ -46,6 +46,12 @@ Game.InternalClock.prototype.tick = function () {
 	}
 }
 
+// create a promise that will be fulfilled on the next clock tick.
+Game.InternalClock.prototype.getPromise = function () {
+	var dfd = $.Deferred();
+	this.addToQueue(function () { dfd.resolve(); });
+	return dfd;
+}
 
 /* 
  * Game.ProcessingClock
