@@ -73,23 +73,13 @@ Game.Card.prototype.populate = function () {
 			}
 		},
 		function () {
-			spec = { content: { "div":"card spec fail." } };
+			spec = { content: { "div":"Failure to populate card." } };
 		}
 	);
-	
-	// how to proceed from this card onward. Is it 'modal'? 
-	if ((spec.okClick || false) && (typeof spec.okClick === "function")) {
-		this.addOKButton(spec);
-	} else if (spec.timeout || false) {
-		// hold on the card for some predetermined time.
-		if ((game.current_round.transition) && (typeof game.current_round.transition === "function")) {
-			setTimeout(game.current_round.transition.bind(game), spec.timeout || Card.DEFAULTS.timeout);
-		}
-		// else, just leave the card up indefinitely.
-	}
 }
 
-Game.Card.prototype.deal = function () {
+Game.Card.prototype.deal = function (dfd) {
+	this.dfd = dfd || $.Deferred();
 	if (this.container === Game){
 		this.container = window.game.container;
 	}
@@ -122,13 +112,13 @@ Game.Card.create = function (spec) {
 Game.Card.Modal = function (spec) {
 	// create a card in the normal way.
 	Util.extend_properties(this, new Game.Card(spec));
-	this.dfd = $.Deferred();
 }
 $.extend(Game.Card.Modal.prototype, Game.Card.prototype);
 
-Game.Card.Modal.prototype.populate = function () {
-	Game.Card.prototype.populate.apply(this);
+Game.Card.Modal.prototype.deal = function (dfd) {
+	Game.Card.prototype.deal.call(this, dfd);
 	this.addOKButton();
+	return true;
 }
 
 Game.Card.Modal.prototype.addOKButton = function () {

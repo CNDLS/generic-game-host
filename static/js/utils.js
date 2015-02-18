@@ -27,7 +27,7 @@ function in_production_try(context, try_func, catch_func) {
 	switch (window.environment.mode) {
 		case "production":
 			try {
-				try_func.call(context);
+				return try_func.call(context);
 			} catch (e) {
 				Error.captureStackTrace(e);
 				console.log(e.stack);
@@ -37,7 +37,7 @@ function in_production_try(context, try_func, catch_func) {
 			
 		case "development":
 			try {
-				try_func.call(context);
+				return try_func.call(context);
 			} catch (e) {
 				console.error(e.stack);
 				debugger; // allow failure to interrupt execution & drop into debugger.

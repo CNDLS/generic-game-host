@@ -128,10 +128,13 @@ $.extend(Game.Listener.prototype, Game.Dealer.prototype);
 
 Game.ListenerCardFactory = {
 	create: function (response_type) {
-		if (!Game.ListenerCardFactory.hasOwnProperty(response_type)) {
-			console.log("Warning: Cannot find ListenerCardFactory." + response_type);
+		var card_type = response_type + "Card";
+		if (!Game.Card.hasOwnProperty(card_type)) {
+			console.log("Warning: Cannot find Card type:" + card_type);
 		} else {
-			return Game.ListenerCardFactory[response_type].makeCards();
+			var listener_card = new Game.Card[card_type]();
+			listener_card.populate();
+			return listener_card;
 		}
 	}
 }
@@ -177,28 +180,27 @@ Game.ListenerCardFactory.MultipleChoice = {
 	}
 }
 
-Game.ListenerCardFactory.FreeResponse = {
-	makeCards: function() {
-		var card_spec = {
-			content: { "form": "<input type=\"text\" />" }
-		}
-		var card = Game.Card.create(card_spec);
-		var default_deal = card.deal;
-		var widget = this;
-		card.deal = function () {
-			card.element.find("input[type=text]").on("keypress", function(e) {
-		        if (e.keyCode === 13) {
-					var answer = new Answer(e.target.value);
-					widget.responder.respond(answer);
-				}
-			});
-			default_deal.apply(card);
-			card.element.find("input[type=text]").focus();
-		}
-		return card;
+Game.Card.FreeResponseCard = function () {
+	// create a card from a self-defined spec.
+	var spec = {
+		content: { "form": "<input type=\"text\" />" }
 	}
+	Util.extend_properties(this, new Game.Card(spec));
 }
+$.extend(Game.Card.FreeResponseCard.prototype, Game.Card.prototype);
 
+Game.Card.FreeResponseCard.prototype.deal = function (dfd) {
+	Game.Card.prototype.deal.call(this, dfd);
+	var _this = this;
+	this.element.find("input[type=text]").on("keypress", function(e) {
+        if (e.keyCode === 13) {
+			var answer = new Answer(e.target.value);
+			_this.dfd.resolve(answer);
+		}
+	});
+	this.element.find("input[type=text]").focus();
+	return true;
+}
 
 
 /* 

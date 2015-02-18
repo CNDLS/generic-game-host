@@ -122,10 +122,10 @@ Game.Round.prototype.onListenForPlayer = function () {
 	} // if listener fails, this will just transition us into the next state.
 };
 
-Game.Round.prototype.endListening = function () {
+Game.Round.prototype.endListening = function (answer) {
 	this.game.element.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
 	this.game.record({ event: "response given", prompt: this.listener.report() });
-	// this.game.defer(this.evaluate.bind(this));
+	this.game.defer(this.evaluate.bind(this));
 }
 
 // doing a little more cleanup now, before we issue feedback.
