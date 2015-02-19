@@ -70,8 +70,8 @@ Game.DEFAULTS = {
 	LostGameFeedback: "<h3>That didn't work out so well; you lost. Better luck next time!</h3>"
 };
 
-Game.prototype.defer = function (f) {
-	this.internal_clock.addToQueue(f);
+Game.prototype.nextTick = function () {
+	return this.internal_clock.nextTick();
 }
 
 Game.prototype.record = function (data) {
@@ -170,7 +170,6 @@ Game.prototype.newRound = function () {
 				// NOTE: have to use get(), rather than array index ([]),
 				// so we can trigger !evaluate, if need be.
 				game.current_round = new Game.Round(game, game.rounds.get(game.round_nbr - 1));
-				// game.defer(game.current_round.start, game.current_round);
 			} else {
 				game.gameFeedback();
 				game.allowReplay();
