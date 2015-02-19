@@ -254,7 +254,7 @@ Game.Responder = function (round, answer, score) {
 	// careful, as 'feedback' is a mass noun: they are feedback; it is feedback.
 	this.cards = $.map(feedback, function(feedback) {
 		var feedback_type = feedback.type || Game.Responder.DEFAULTS.FeedbackType
-		return Game.FeedbackCardFactory.create(feedback_type, answer, score);
+		return Game.FeedbackCardFactory.create(feedback_type, round, answer, score);
 	});
 }
 $.extend(Game.Responder.prototype, Game.Dealer.prototype);
@@ -262,17 +262,22 @@ $.extend(Game.Responder.prototype, Game.Dealer.prototype);
 
 Game.FeedbackCard = {}
 Game.FeedbackCardFactory = {
-	create: function (feedback_type) {
+	create: function (feedback_type, round, answer, score) {
 		var card_type = feedback_type + "Feedback";
 		if (!Game.FeedbackCard.hasOwnProperty(card_type)) {
 			console.log("Warning: Cannot find Card type:" + card_type);
 		} else {
-			var feedback_card = new Game.FeedbackCard[card_type]();
+			var feedback_card = new Game.FeedbackCard[card_type](round, answer, score);
 			feedback_card.populate();
 			return feedback_card;
 		}
 	}
 }
 
-Game.FeedbackCard.SimpleFeedback = function () {
+
+Game.FeedbackCard.SimpleFeedback = function (round, answer, score) {
+	if (answer.feedback) {
+		Util.extend_properties(this, new Game.Card(answer.feedback));
+	}
 }
+$.extend(Game.FeedbackCard.SimpleFeedback.prototype, Game.Card.prototype);
