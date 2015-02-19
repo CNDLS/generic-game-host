@@ -48,12 +48,14 @@ Game.Reporter.prototype.sendReport = function () {
 		dataType: "json",
 		data: JSON.stringify(this.user_data),
 		headers: headers,
-		success: function (/* data, textStatus, xhr */) {
+		success: function (data, textStatus, xhr) {
+			debugger;
 			// only nuke the user_data once we're sure it has been recieved. 
 			// this way, if we see multiple copies of the session object, we know some connection attempts have failed.
 			reporter.user_data = [];
 		},
 		error: function (xhr, error_name, error) {
+			debugger;
 			console.error(xhr, error_name, error.stack);
 		}
 	});

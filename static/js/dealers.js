@@ -153,11 +153,8 @@ Game.ListenerCardFactory = {
  * passing one of the Answer objects created from the YAML spec for this Round.
  */
 Game.ListenerCard.FreeResponseCard = function () {
-	// create a card from a self-defined spec.
-	var spec = {
-		content: { "form": "<input type=\"text\" />" }
-	}
-	Util.extend_properties(this, new Game.Card(spec));
+	// create a card with a text input field.
+	Util.extend_properties(this, new Game.Card("<input type=\"text\" />"));
 }
 $.extend(Game.ListenerCard.FreeResponseCard.prototype, Game.Card.prototype);
 

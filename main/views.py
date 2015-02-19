@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import StreamingHttpResponse, HttpResponseRedirect,  Http404, HttpResponse
+from django.http import StreamingHttpResponse, HttpResponseRedirect,  Http404, HttpResponse, JsonResponse
 from django.template import RequestContext, TemplateDoesNotExist
 from django.core import serializers
 from django.core.context_processors import csrf
@@ -74,7 +74,7 @@ def write_results(request, game_id):
 		game = Game.objects.get(pk=game_id)
 		game_report = GameReport(payload=request.body, student=current_user, game=game)
 		game_report.save()
-		return StreamingHttpResponse(json.dumps({ 'game_report_id': game_report.id }), content_type='application/json')
+		return JsonResponse({ 'game_report_id': game_report.id }, safe=False)
 
 
 def custom_404(request):
