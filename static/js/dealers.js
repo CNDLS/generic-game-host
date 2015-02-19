@@ -128,19 +128,19 @@ Game.Listener = function(round) {
 	}
 	// assemble cards made by all the response types into my cards array.
 	this.cards = $.map(response_types, function(response_type) {
-		return Game.ListenerCardFactory.create([response_type || Game.Listener.DEFAULTS.Type]);
+		return Game.ListenerCardFactory.create([response_type || Game.Listener.DEFAULTS.Type], round);
 	});
 }
 $.extend(Game.Listener.prototype, Game.Dealer.prototype);
 
 Game.ListenerCard = {}
 Game.ListenerCardFactory = {
-	create: function (response_type) {
+	create: function (response_type, round) {
 		var card_type = response_type + "Card";
 		if (!Game.ListenerCard.hasOwnProperty(card_type)) {
 			console.log("Warning: Cannot find Card type:" + card_type);
 		} else {
-			var listener_card = new Game.ListenerCard[card_type]();
+			var listener_card = new Game.ListenerCard[card_type](round);
 			listener_card.populate();
 			return listener_card;
 		}
@@ -152,8 +152,9 @@ Game.ListenerCardFactory = {
  * Upon receiving user input, the card resolves the Listener's Deferred,
  * passing one of the Answer objects created from the YAML spec for this Round.
  */
-Game.ListenerCard.FreeResponseCard = function () {
-	// create a card with a text input field.
+
+/* FreeResponseCard just creates a card with a text input field and doesn't care about the answer. */
+Game.ListenerCard.FreeResponseCard = function (round) {
 	Util.extend_properties(this, new Game.Card("<input type=\"text\" />"));
 }
 $.extend(Game.ListenerCard.FreeResponseCard.prototype, Game.Card.prototype);
@@ -169,6 +170,43 @@ Game.ListenerCard.FreeResponseCard.prototype.deal = function (dfd) {
 		}
 	});
 	this.element.find("input[type=text]").focus();
+	return true;
+}
+
+/* MultipleChoiceCard creates a card with a list of radio buttons, labelled with Answers from YAML. */
+Game.ListenerCard.MultipleChoiceCard = function (round) {
+	this.radio_btns = {};
+	var group_name = "radio_group_" + round.nbr;
+	var _this = this;
+	$.each(round.answers, function (i, answer_spec) {
+		var answer = new Game.Answer(answer_spec);
+		var btn_id = "radio_btn_" + round.nbr + "_" + (i + 1);
+		_this.radio_btns[btn_id] =
+			{ html: ("<input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"
+						+ "<label for=\"" + btn_id + "\">" + answer.content + "</label></input>"),
+			  answer: answer
+			}
+	});
+	var radio_btn_html = $.map(this.radio_btns, function (btn, btn_id /* , ?? */) {
+		return btn.html;
+	}).join("\n");
+	Util.extend_properties(this, new Game.Card(radio_btn_html));
+}
+$.extend(Game.ListenerCard.MultipleChoiceCard.prototype, Game.Card.prototype);
+
+
+Game.ListenerCard.MultipleChoiceCard.prototype.deal = function (dfd) {
+	Game.Card.prototype.deal.call(this, dfd);
+	var _this = this;
+	this.element.find("input[type=radio]").on("click", function(e) {
+		var clicked_radio_btn = _this.radio_btns[e.target.id];
+		var correct = clicked_radio_btn.answer.correct || false;
+		var value = clicked_radio_btn.answer.value || 1;
+		var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
+		var answer = new Game.Answer(clicked_radio_btn.answer);
+		var score = correct ? value : neg_value;
+		_this.dfd.resolve(answer, score);
+	});
 	return true;
 }
 

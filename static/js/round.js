@@ -116,7 +116,7 @@ Game.Round.prototype.endPrompting = function () {
 
 Game.Round.prototype.onListenForPlayer = function () {
 	if (this.max_time !== "none"){
-		game.clock.start(this.max_time);
+		// this.game.clock.start(this.max_time);
 	}
 	if (typeof this.listener === "string") {
 		this.listener = new Game[this.listener](this);
