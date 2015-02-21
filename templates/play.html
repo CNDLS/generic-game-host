@@ -78,7 +78,7 @@
 							function () {
 								// try to make a game from the parsed game data.
 								var parsed_yaml = new YAML( jsyaml.safeLoad(data, { schema: GAME_SCHEMA }) );
-								new Game(parsed_yaml, report_url, csrftoken);
+								game = new Game(parsed_yaml, report_url, csrftoken);
 							}
 						);
 					},

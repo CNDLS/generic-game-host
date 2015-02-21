@@ -3,16 +3,16 @@
 // define(function (require) {
 // 	var yaml = require("./js-yaml.js");
 
-function GameFunction(fname, params) {
+function GameFunction (fname, params) {
 	this.fn = Game[fname];
 	this.params = params;
 }
-GameFunction.prototype.evaluate = function(){
+GameFunction.prototype.evaluate = function () {
 	return this.fn.apply(window.game, this.params);
 }
 
 	
-var GameFunctionType = new jsyaml.Type("!evaluate", {
+var GameFunctionType = new jsyaml.Type("!do", {
 	kind: "mapping",
 	instanceOf: GameFunction,
 	resolve: function (data) {
@@ -20,11 +20,53 @@ var GameFunctionType = new jsyaml.Type("!evaluate", {
 	},
 	construct: function (data) {
 		var args = data['pass'] || [];
-		var gf = new GameFunction(data.call, args);
-		return gf;
+		return new GameFunction(data.call, args);
 	}
 });
-var GAME_SCHEMA = jsyaml.Schema.create([ GameFunctionType ]);
+	
+function EncodedLink (data) {
+	this.data = data;
+}
+EncodedLink.prototype.evaluate = function () {
+	var content = this.data.content;
+	delete this.data.content;
+	var href = this.data['href'] || "#";
+	delete this.data.href;
+	var link = "<a href='" + href + "'"
+	for (m in this.data) {
+		link = link + " " + m + "='" + this.data[m] + "'"
+	}
+	link = link + ">" + content + "</a>";
+	return link
+}
+
+var LinkType = new jsyaml.Type("!link", {
+	kind: "mapping",
+	instanceOf: EncodedLink,
+	resolve: function (data) {
+		return data !== null && data.hasOwnProperty("content"); 
+	},
+	construct: function (data) {
+		return new EncodedLink(data);
+	}
+});
+
+	
+var ConcatType = new jsyaml.Type("!concat", {
+	kind: "sequence",
+	construct: function (data) {
+		var str_data = $.collect(data, function (i) {
+			var proto = this.constructor.prototype;
+			return (proto.hasOwnProperty("evaluate")) ? proto.evaluate.apply(this) : this;
+		});
+		return str_data.join("");
+	}
+});
+
+/******************************************************************************/
+var GAME_SCHEMA = jsyaml.Schema.create([ GameFunctionType, ConcatType, LinkType ]);
+/******************************************************************************/
+
 
 /*
  * Wrap parsed results in a YAML object, which we can customize (see get method).
@@ -33,6 +75,7 @@ function YAML(parsed_data) {
 	// crawl through parsed_data & give all objects a custom get() function.
 	// for now, we're assuming they're all vanilla Objects.
 	for (var key in parsed_data) {
+		var constructor = parsed_data[key].constructor;
 		if ((parsed_data[key] instanceof Object) && !(parsed_data[key] instanceof Function)) {
 			parsed_data[key] = new YAML(parsed_data[key]);
 		}

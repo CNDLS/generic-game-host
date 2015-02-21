@@ -1,8 +1,10 @@
 body {
   /*text-align: center;*/
-  background: white;
+  background: #6699cc;
   font-family: helvetica, arial, sans-serif;
   margin: 0 0;
+  height: 100%;  
+  min-height: 100%;
 }
 
 body.browser {
@@ -17,19 +19,17 @@ textarea {
 
 
 #game {
-  width: 1366px;
-  height: 768px;
-/*  height: 840px;*/
-  margin: 0 auto;
-  /*text-align: center;*/
-  border: 1px solid #6699cc;
-/*  background-color: #6699cc;*/
-	background-color: #6699cc;
-  overflow: hidden;
-  -webkit-box-shadow:  0px 0px 15px 5px rgba(0, 0, 0, .5);
-        
-        box-shadow:  0px 0px 15px 5px rgba(0, 0, 0, .5);
+}
 
+pre.butt-ugly {
+    letter-spacing: 0.025em;
+    color: darkviolet;
+    font-style: italic;
+    font-size: 1.1em;
+    background: lightyellow;
+    padding: 1.5em 1em 2em 1em;
+    width: 50em;
+    border: 3px solid darkred;
 }
 
 #login-box {

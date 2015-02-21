@@ -7,7 +7,6 @@
  * (release notes to go here).
  ******************************************************************************/
 
-var game;
 var environment = { mode: "development" };
 
 /* 
@@ -168,7 +167,7 @@ Game.prototype.newRound = function () {
 			if (game.rounds.count() > game.round_nbr) {
 				++game.round_nbr;
 				// NOTE: have to use get(), rather than array index ([]),
-				// so we can trigger !evaluate, if need be.
+				// so we can trigger !do statements, if there are any.
 				game.current_round = new Game.Round(game, game.rounds.get(game.round_nbr - 1));
 			} else {
 				game.gameFeedback();

@@ -1,4 +1,4 @@
-describe("YAML : !evaluate", function () {
+describe("YAML : !do", function () {
 
     // create a YAML object that contains an !evaluate node.
 	//     var test_yaml = new YAML();
