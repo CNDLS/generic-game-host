@@ -375,7 +375,7 @@ table#detail td {
   opacity: 0.3;
 }
 
-.round_prompt.card {
+.prompt.card {
   position: relative;
   left: 50%;
   top: 15%;
@@ -388,7 +388,7 @@ table#detail td {
   border: #BEBDBE solid 2px;
 }
 
-.round_prompt.card:after {
+.prompt.card:after {
   content: '';
   position: absolute;
   border-style: solid;
@@ -401,7 +401,7 @@ table#detail td {
   left: 188px;
 }
 
-.round_prompt.card:before {
+.prompt.card:before {
   content: '';
   position: absolute;
   border-style: solid;
@@ -414,7 +414,7 @@ table#detail td {
   left: 187px;
 }
 
-.round_prompt.card button {
+.prompt.card button {
   position: relative;
   right: 0.25em;
 }

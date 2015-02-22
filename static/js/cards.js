@@ -15,10 +15,22 @@ Game = Game || function () {};
  * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
 Game.Card = function(spec) {
+	switch (typeof spec) {
+		case "string":
+			spec = { content: { "div": spec } };
+			break;
+		
+		case "number":
+			spec = { content: { "div": spec.toString() } };
+			break;
+			
+		case "undefined":
+			throw new Error("Can't create a Card without data.");
+			return;
+	}
 	if (typeof spec === "string") {
 		spec = { content: { "div": spec } };
 	} else if (typeof spec === "number") {
-		spec = { content: { "div": spec.toString() } };
 	}
 	this.spec = spec;
 	
@@ -42,7 +54,11 @@ Game.Card = function(spec) {
 	this.container = spec.container || Game.Card.DEFAULTS.container;
 }
 
-Game.Card.prototype.populate = function () {
+// optionally pass in css_classnames.
+Game.Card.prototype.populate = function (css_classnames) {
+	if (css_classnames) {
+		this.element.addClass(css_classnames);
+	}
 	var spec = this.spec;
 	// each card population is wrapped in a try.
 	in_production_try(this,
@@ -56,14 +72,11 @@ Game.Card.prototype.populate = function () {
 					var key_spec = key.split(".");
 					var tag_name = key_spec.shift(); // first item is tag name.
 					var child_element;
-					in_production_try(this,
-						function () {
-							child_element = $(document.createElement(tag_name));
-						},
-						function () {
-							child_element = $(document.createElement("div"));
-						}
-					);
+					try {
+						child_element = $(document.createElement(tag_name));
+					} catch (e) {
+						child_element = $(document.createElement("div"));
+					};
 					this.card_front.append(child_element);
 					if (key_spec.length) {
 						child_element.addClass(key_spec.join(" "));

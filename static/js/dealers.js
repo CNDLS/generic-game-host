@@ -43,7 +43,7 @@ Game.Dealer.prototype.dealCards = function (successFn) {
 
 Game.Dealer.prototype.addCard = function (card_or_spec) {
 	var card = card_or_spec;
-	if (typeof card_or_spec !== "function"){
+	if ( !(card_or_spec instanceof Game.Card) ){
 		card = Game.Card.create(card_or_spec);
 	}
 	this.cards.push(card);
@@ -90,22 +90,73 @@ Game.Dealer.prototype.report = function () {
 }
 
 
+// card scopes by dealer.
+Game.PromptCard = {};
+Game.ListenerCard = {};
+Game.ResponderCard = {};
+
+// a factory for creating cards for the various dealers.
+Game.CardFactory = {
+	create: function (/* dealer_card_scope_name, card_type, round, ... */) {
+	    if (arguments.length === 0) return;
+	    var args = Array.prototype.slice.call(arguments);
+		var dealer_card_scope_name = args.shift();
+		var dealer_card_scope = Game[dealer_card_scope_name];
+		var card_type = args.shift();
+		return in_production_try(this, function () {
+			if (typeof card_type !== "string") {
+				throw new Error("Invalid Card Type.");
+			}
+			if (!dealer_card_scope.hasOwnProperty(card_type)) {
+				console.error("Cannot find Card type: " + dealer_card_scope_name + "[" + card_type + "]");
+			} else {
+				var card = new dealer_card_scope[card_type](args);
+				// add css classes for dealer_card_scope & card_type.
+				var css_classes = [
+					// PromptCard becomes prompt css class.
+					dealer_card_scope_name.replace("Card", "").underscore(), // eg; SomeDealerCard -> some_dealer
+					card_type.underscore() // eg; MultipleChoiceCard -> multiple_choice_card
+				].join(" ");
+				card.populate(css_classes);
+				return card;
+			}
+		});
+	}
+}
+
+
 /* 
  * Prompter handles setting up a Round.
  * It provides whatever information a Player needs to play the round.
  */
 Game.Prompter = function (round) {
 	Util.extend_properties(this, new Game.Dealer(round));
+	
+	Game.Prompter.DEFAULTS = {
+		Type: "SimplePrompt" // just a text/html message in a Card.
+	}
 
 	// deliver the prompt card(s) from the current Round spec.
 	var prompts = round.read("Prompt");
-	if (prompts.constructor !== Array){ prompts = [prompts]; }
-	var _this = this;
-	$.each(prompts, function (i, prompt) {
-		_this.addCard(prompt);
+	if ( !(prompts instanceof Array) ){ prompts = [prompts]; }
+	this.cards = $.map(prompts, function(prompt) {
+		var prompt_card_type = prompt.prompt_type || Game.Prompter.DEFAULTS.Type;
+		return Game.CardFactory.create("PromptCard", prompt_card_type, prompt);
 	});
+	
+	// var _this = this;
+	// $.each(prompts, function (i, prompt) {
+	// 	_this.addCard(prompt);
+	// });
 }
 $.extend(Game.Prompter.prototype, Game.Dealer.prototype);
+
+
+Game.PromptCard.SimplePrompt = function (args) {
+	var spec = args.shift();
+	Util.extend_properties(this, new Game.Card(spec));
+}
+$.extend(Game.PromptCard.SimplePrompt.prototype, Game.Card.prototype);
 
 
 /* 
@@ -119,7 +170,7 @@ Game.Listener = function(round) {
 	Util.extend_properties(this, new Game.Dealer(round));
 	
 	Game.Listener.DEFAULTS = {
-		Type: "MultipleChoice"
+		Type: "MultipleChoiceCard"
 	}
 	// get response types and insure it is an array.
 	var response_types = round.read("ResponseTypes");
@@ -128,24 +179,11 @@ Game.Listener = function(round) {
 	}
 	// assemble cards made by all the response types into my cards array.
 	this.cards = $.map(response_types, function(response_type) {
-		return Game.ListenerCardFactory.create([response_type || Game.Listener.DEFAULTS.Type], round);
+		var listener_card_type = response_type || Game.Listener.DEFAULTS.Type;
+		return Game.CardFactory.create("ListenerCard", listener_card_type, round);
 	});
 }
 $.extend(Game.Listener.prototype, Game.Dealer.prototype);
-
-Game.ListenerCard = {}
-Game.ListenerCardFactory = {
-	create: function (response_type, round) {
-		var card_type = response_type + "Card";
-		if (!Game.ListenerCard.hasOwnProperty(card_type)) {
-			console.log("Warning: Cannot find Card type:" + card_type);
-		} else {
-			var listener_card = new Game.ListenerCard[card_type](round);
-			listener_card.populate();
-			return listener_card;
-		}
-	}
-}
 
 
 /* Each ListenerCard will capture input form the user(s).
@@ -154,7 +192,8 @@ Game.ListenerCardFactory = {
  */
 
 /* FreeResponseCard just creates a card with a text input field and doesn't care about the answer. */
-Game.ListenerCard.FreeResponseCard = function (round) {
+Game.ListenerCard.FreeResponseCard = function (args) {
+	var round = args.shift();
 	Util.extend_properties(this, new Game.Card("<input type=\"text\" />"));
 }
 $.extend(Game.ListenerCard.FreeResponseCard.prototype, Game.Card.prototype);
@@ -174,7 +213,8 @@ Game.ListenerCard.FreeResponseCard.prototype.deal = function (dfd) {
 }
 
 /* MultipleChoiceCard creates a card with a list of radio buttons, labelled with Answers from YAML. */
-Game.ListenerCard.MultipleChoiceCard = function (round) {
+Game.ListenerCard.MultipleChoiceCard = function (args) {
+	var round = args.shift();
 	this.radio_btns = {};
 	var group_name = "radio_group_" + round.nbr;
 	var _this = this;
@@ -193,7 +233,6 @@ Game.ListenerCard.MultipleChoiceCard = function (round) {
 	Util.extend_properties(this, new Game.Card(radio_btn_html));
 }
 $.extend(Game.ListenerCard.MultipleChoiceCard.prototype, Game.Card.prototype);
-
 
 Game.ListenerCard.MultipleChoiceCard.prototype.deal = function (dfd) {
 	Game.Card.prototype.deal.call(this, dfd);
@@ -254,30 +293,18 @@ Game.Responder = function (round, answer, score) {
 	// careful, as 'feedback' is a mass noun: they are feedback; it is feedback.
 	this.cards = $.map(feedback, function(feedback) {
 		var feedback_type = feedback.type || Game.Responder.DEFAULTS.FeedbackType
-		return Game.FeedbackCardFactory.create(feedback_type, round, answer, score);
+		return Game.CardFactory.create("ResponderCard", feedback_type, round, answer, score);
 	});
 }
 $.extend(Game.Responder.prototype, Game.Dealer.prototype);
 
 
-Game.FeedbackCard = {}
-Game.FeedbackCardFactory = {
-	create: function (feedback_type, round, answer, score) {
-		var card_type = feedback_type + "Feedback";
-		if (!Game.FeedbackCard.hasOwnProperty(card_type)) {
-			console.log("Warning: Cannot find Card type:" + card_type);
-		} else {
-			var feedback_card = new Game.FeedbackCard[card_type](round, answer, score);
-			feedback_card.populate();
-			return feedback_card;
-		}
-	}
-}
-
-
-Game.FeedbackCard.SimpleFeedback = function (round, answer, score) {
+Game.ResponderCard.Simple = function (args) {
+	var round = args.shift();
+	var answer = args.shift();
+	var score = args.shift();
 	if (answer.feedback) {
 		Util.extend_properties(this, new Game.Card(answer.feedback));
 	}
 }
-$.extend(Game.FeedbackCard.SimpleFeedback.prototype, Game.Card.prototype);
+$.extend(Game.ResponderCard.Simple.prototype, Game.Card.prototype);
