@@ -133,7 +133,7 @@ Game.Prompter = function (round) {
 	Util.extend_properties(this, new Game.Dealer(round));
 	
 	Game.Prompter.DEFAULTS = {
-		Type: "SimplePrompt" // just a text/html message in a Card.
+		Type: "Simple" // just a text/html message in a Card.
 	}
 
 	// deliver the prompt card(s) from the current Round spec.
@@ -152,11 +152,11 @@ Game.Prompter = function (round) {
 $.extend(Game.Prompter.prototype, Game.Dealer.prototype);
 
 
-Game.PromptCard.SimplePrompt = function (args) {
+Game.PromptCard.Simple = function (args) {
 	var spec = args.shift();
 	Util.extend_properties(this, new Game.Card(spec));
 }
-$.extend(Game.PromptCard.SimplePrompt.prototype, Game.Card.prototype);
+$.extend(Game.PromptCard.Simple.prototype, Game.Card.prototype);
 
 
 /* 
