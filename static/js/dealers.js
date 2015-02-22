@@ -206,6 +206,7 @@ Game.ListenerCard.FreeResponseCard.prototype.deal = function (dfd) {
 			var answer = new Game.Answer(e.target.value);
 			var score = 1; // any response is accepted.
 			_this.dfd.resolve(answer, score);
+			e.target.blur();
 		}
 	});
 	this.element.find("input[type=text]").focus();
@@ -222,8 +223,8 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 		var answer = new Game.Answer(answer_spec);
 		var btn_id = "radio_btn_" + round.nbr + "_" + (i + 1);
 		_this.radio_btns[btn_id] =
-			{ html: ("<input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"
-						+ "<label for=\"" + btn_id + "\">" + answer.content + "</label></input>"),
+			{ html: ("<li><input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"
+						+ "<label for=\"" + btn_id + "\">" + answer.content + "</label></input></li>"),
 			  answer: answer
 			}
 	});

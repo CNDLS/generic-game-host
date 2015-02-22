@@ -19,6 +19,7 @@ textarea {
 
 
 #game {
+    margin: 24px;
 }
 
 pre.butt-ugly {
@@ -417,6 +418,24 @@ table#detail td {
 .prompt.card button {
   position: relative;
   right: 0.25em;
+}
+
+.listener.card {
+    max-width: 200px;
+    padding: .5em 1em;
+    background: #FFFFFF;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    border: #BEBDBE solid 2px;
+}
+
+.listener.card.multiple_choice_card li {
+    list-style: none;
+    margin: 3px 0;
+}
+.listener.card.multiple_choice_card li label {
+    margin-left: 5px;
 }
 
 .blurb {
