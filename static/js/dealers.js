@@ -110,7 +110,12 @@ Game.CardFactory = {
 			if (!dealer_card_scope.hasOwnProperty(card_type)) {
 				console.error("Cannot find Card type: " + dealer_card_scope_name + "[" + card_type + "]");
 			} else {
-				var card = new dealer_card_scope[card_type](args);
+				var card;
+				try {
+					card = new dealer_card_scope[card_type](args);
+				} catch (e) {
+					card = new Game.Card(e); // report the error through the game UI.
+				}
 				// add css classes for dealer_card_scope & card_type.
 				var css_classes = [
 					// PromptCard becomes prompt css class.

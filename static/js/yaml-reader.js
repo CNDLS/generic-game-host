@@ -29,6 +29,10 @@ function EncodedLink (data) {
 }
 EncodedLink.prototype.evaluate = function () {
 	var content = this.data.content;
+	if ( content instanceof Object
+		&& content.constructor.prototype.hasOwnProperty("evaluate") ) {
+		content = content.evaluate();
+	}
 	delete this.data.content;
 	var href = this.data['href'] || "#";
 	delete this.data.href;

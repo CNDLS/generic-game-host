@@ -26,8 +26,6 @@ function Game(game_spec, report_url, csrftoken) {
 	this.title = $("#title").html(this.read("Title"));
 	this.rounds = this.read("Rounds"); // the rounds of the game.
 	this.internal_clock = this.read("InternalClock"); // alt InternalClock eg; main GodotEngine scene.
-	this.display_clock = this.read("DisplayClock"); // eg; a countdown clock.
-	this.scoreboard = this.read("ScoreBoard");
 	this.dealer = this.read("Dealer"); // generic Dealer just for Intro or other notifications from the Game.
 	this.reporter = this.read("Reporter");
 	this.winning_score = this.read("WinningScore");
@@ -37,6 +35,14 @@ function Game(game_spec, report_url, csrftoken) {
 	// later, build in a concept of returning to a saved game, and restoring the
 	// current state of these resources.
 	this.global_resources = this.read("Resources");
+	
+	// display any widgets that will remain available throughout the game.
+	// eg; a countdown clock, scoreboard, etc.
+	var widget_specs = this.read("Widgets");
+	var game = this;
+	this.widgets = $.each(widget_specs, function (i, widget_type_name){
+		return new Game.Widgets[widget_type_name](game);
+	})
 	
 	// set up the reporter with the url & csrf token passed in from play.html
 	this.reporter.setURL(report_url, csrftoken);
@@ -56,8 +62,7 @@ function Game(game_spec, report_url, csrftoken) {
 Game.DEFAULTS = {
 	Title: "Generic Game",
 	InternalClock: "InternalClock",
-	DisplayClock: "NullClock",
-	ScoreBoard: "ScoreBoard",
+	Widgets: [],
 	Reporter: "Reporter",
 	Dealer: "Dealer",
 	Rounds: [],
@@ -104,7 +109,7 @@ Game.prototype.timeoutRound = function () {
 
 Game.prototype.addPoints = function (points) {
 	this.current_score += points;
-	this.scoreboard.add(points);
+	$.event.trigger("game.addPoints", [points]);
 };
 
 Game.prototype.gameFeedback = function () {
