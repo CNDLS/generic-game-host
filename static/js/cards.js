@@ -14,7 +14,7 @@ Game = Game || function () {};
  * Alternately, other Card prototypes can be defined on the Game object,
  * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
-Game.Card = function(spec) {
+Game.Card = function(spec, container) {
 	switch (typeof spec) {
 		case "string":
 			spec = { content: { "div": spec } };
@@ -51,7 +51,7 @@ Game.Card = function(spec) {
 	}
 	this.card_front = $(document.createElement("div")).addClass("front");
 	this.element.append(this.card_front);
-	this.container = spec.container || Game.Card.DEFAULTS.container;
+	this.container = container || Game.Card.DEFAULTS.container;
 }
 
 // optionally pass in css_classnames.
@@ -89,6 +89,7 @@ Game.Card.prototype.populate = function (css_classnames) {
 			spec = { content: { "div":"Failure to populate card." } };
 		}
 	);
+	return this;
 }
 
 Game.Card.prototype.deal = function (dfd) {

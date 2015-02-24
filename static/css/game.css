@@ -122,6 +122,10 @@ label.form-label {
   padding-right: 0.25em;
 }
 
+#widgets {
+    float: left;
+}
+
 textarea#clock, textarea#scoreboard {
   font-family: 'Rationale', sans-serif;
   font-size: 2em;

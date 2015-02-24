@@ -60,7 +60,8 @@ Game.Widgets.NullClock.prototype.stop = function () {};
  * Custom scoreboards need to expose init(game), add(points), subtract(points), and a reset() functions.
  */
 Game.Widgets.Scoreboard = function (game) {
-	this.display = $("textarea#scoreboard");
+	this.display = $("<textarea id=\"scoreboard\" readonly></textarea>");
+	$("#widgets").append(this.display);
 	this.game = game;
 	this.points = game.current_score;
 	this.refresh();
