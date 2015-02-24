@@ -11,8 +11,13 @@ Game.Widgets = {};
  * Custom clocks need to expose start(max_time), stop(), and a tick() function, which should return the current time.
  */
 Game.Widgets.CountdownClock = function (game) {
+	this.clock_face = $("<textarea id=\"clock\" readonly></textarea>");
+	$("#widgets").append(this.clock_face);
+	
 	this.game = game;
-	this.clock_face = $("textarea#clock");
+	// listen for startClock and stopClock events from the game.
+	$(document).on("game.startClock", this.start.bind(this));
+	$(document).on("game.stopClock", this.stop.bind(this));
 };
 
 Game.Widgets.CountdownClock.prototype.start = function (max_time) {
@@ -62,6 +67,7 @@ Game.Widgets.NullClock.prototype.stop = function () {};
 Game.Widgets.Scoreboard = function (game) {
 	this.display = $("<textarea id=\"scoreboard\" readonly></textarea>");
 	$("#widgets").append(this.display);
+	
 	this.game = game;
 	this.points = game.current_score;
 	this.refresh();

@@ -107,6 +107,7 @@ Game.Round.prototype.onGivePrompt = function () {
 };
 
 Game.Round.prototype.endPrompting = function () {
+	$.event.trigger("game.startClock", this.max_time || undefined);
 	this.game.record({ event: "prompt given", prompt: this.prompter.report() });
 	var _this = this;
 	this.game.nextTick().then(function () {
@@ -129,6 +130,7 @@ Game.Round.prototype.onListenForPlayer = function () {
 };
 
 Game.Round.prototype.endListening = function (answer, score) {
+	$.event.trigger("game.stopClock");
 	// record user answer.
 	this.game.record({ event: "user answers", answer: answer.getContents() });
 	var _this = this;
