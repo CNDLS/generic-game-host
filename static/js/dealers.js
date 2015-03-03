@@ -289,12 +289,16 @@ Game.Responder = function (round, answer, score) {
 	}
 	
 	// get answer's feedback, if any.
-	var feedback = answer.feedback || [];
-	if (typeof feedback === "string") {
-		feedback = [{
-			content: feedback
-		}];
+	var feedback = [];
+	if (typeof answer !== "undefined") {
+		feedback = answer.feedback || [];
+		if (typeof feedback === "string") {
+			feedback = [{
+				content: feedback
+			}];
+		}
 	}
+
 	// assemble cards made by all the feedback into my cards array.
 	// careful, as 'feedback' is a mass noun: they are feedback; it is feedback.
 	this.cards = $.map(feedback, function(feedback) {

@@ -33,6 +33,7 @@ Game.Round = function (game, round_spec) {
 		{ name: "prompt",		from: "none",									to: "GivePrompt" },
 		{ name: "listen",		from: "GivePrompt",								to: "ListenForPlayer" },
 		{ name: "evaluate",		from: "ListenForPlayer",						to: "EvaluateResponse" },
+		{ name: "timeout",		from: "ListenForPlayer",						to: "EvaluateResponse" },
 		{ name: "advance",		from: "EvaluateResponse",						to: "end" },
 		{ name: "abort",		from: StateMachine.WILDCARD,					to: "end" }
 	];
@@ -162,7 +163,7 @@ Game.Round.prototype.endResponding = function () {
 
 Game.Round.prototype.onbeforetimeout = function () {
 	this.game.sendMessage("ran out of time.");
-	this.game.clock.stop();
+	$.event.trigger("game.stopClock");
 };
 
 Game.Round.prototype.onend = function () {

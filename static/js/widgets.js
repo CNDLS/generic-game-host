@@ -20,10 +20,12 @@ Game.Widgets.CountdownClock = function (game) {
 	$(document).on("game.stopClock", this.stop.bind(this));
 };
 
-Game.Widgets.CountdownClock.prototype.start = function (max_time) {
+Game.Widgets.CountdownClock.prototype.start = function (evt, max_time) {
 	clearInterval(this.clock);
-	this.clock = setInterval(this.tick.bind(this), 1000);
-	this.clock_face.val(max_time);
+	if (typeof max_time === "number") {
+		this.clock = setInterval(this.tick.bind(this), 1000);
+		this.clock_face.val(max_time);
+	}
 };
 
 Game.Widgets.CountdownClock.prototype.tick = function () {
@@ -36,7 +38,7 @@ Game.Widgets.CountdownClock.prototype.tick = function () {
 	return current_time;
 };
 
-Game.Widgets.CountdownClock.prototype.stop = function () {
+Game.Widgets.CountdownClock.prototype.stop = function (evt) {
 	clearInterval(this.clock);
 };
 
@@ -77,8 +79,10 @@ Game.Widgets.Scoreboard = function (game) {
 };
 
 Game.Widgets.Scoreboard.prototype.add = function (e, points) {
-	this.points += points;
-	this.refresh();
+	if (typeof points === "number") {
+		this.points += points;
+		this.refresh();
+	}
 	return this.points;
 };
 

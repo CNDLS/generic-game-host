@@ -42,7 +42,8 @@ function Game(game_spec, report_url, csrftoken) {
 	var game = this;
 	this.widgets = $.each(widget_specs, function (i, widget_type_name){
 		return new Game.Widgets[widget_type_name](game);
-	})
+	});
+	console.log(this.widgets)
 	
 	// set up the reporter with the url & csrf token passed in from play.html
 	this.reporter.setURL(report_url, csrftoken);
