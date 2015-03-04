@@ -226,11 +226,12 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 	var _this = this;
 	$.each(round.answers, function (i, answer_spec) {
 		var answer = new Game.Answer(answer_spec);
-		var btn_id = "radio_btn_" + round.nbr + "_" + (i + 1);
+		var btn_id = "radio_btn_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
 		_this.radio_btns[btn_id] =
 			{ html: ("<li><input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"
 						+ "<label for=\"" + btn_id + "\">" + answer.content + "</label></input></li>"),
-			  answer: answer
+			  answer: answer,
+			  btn_id: btn_id
 			}
 	});
 	var radio_btn_html = $.map(this.radio_btns, function (btn, btn_id /* , ?? */) {

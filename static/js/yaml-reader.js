@@ -124,19 +124,38 @@ YAML.prototype.shift = function () {
 	return Array.prototype.shift.call(this);
 };
 
+YAML.prototype.indexOf = function (obj) {
+	var i = -1;
+	for (var m in this) {
+		i++;
+		if (this[m].equals(obj)) {
+			return i;
+		}
+	}
+	return i;
+};
+
+YAML.prototype.equals = function (obj) {
+	if (obj === undefined) {
+		return false;
+	}
+	if (obj['constructor'] && (obj['constructor'] !== this.constructor)) {
+		return false;
+	}
+	// loop through my members; check against m.
+	for (var m in this) {
+		if ((this[m] instanceof YAML) && !this[m].equals(obj[m])) {
+			return false;
+		} else if (this[m] !== obj[m]) {
+			return false;
+		}
+	}
+	return true;
+}
 
 // don't show custom functions when the object is listed.
-Object.defineProperty(YAML.prototype, "get", {
-	enumerable: false
-});
-Object.defineProperty(YAML.prototype, "readOrEvaluate", {
-	enumerable: false
-});
-Object.defineProperty(YAML.prototype, "shift", {
-	enumerable: false
-});
-Object.defineProperty(YAML.prototype, "count", {
-	enumerable: false
+$.each(["get", "shift", "readOrEvaluate", "indexOf", "count", "equals"], function(){
+	Object.defineProperty(YAML.prototype, this, { enumerable: false });
 });
 
 // be compatible with objects and arrays.

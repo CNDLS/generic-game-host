@@ -174,6 +174,7 @@ Game.Round.prototype.onend = function () {
 	tear_down.call(this);
 	var _this = this;
 	this.game.nextTick().then(function () {
-		_this.game.newRound(_this.game);
+		var next_round = _this.read("Next");
+		_this.game.newRound(next_round);
 	});
 };

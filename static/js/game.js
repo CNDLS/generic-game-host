@@ -43,7 +43,6 @@ function Game(game_spec, report_url, csrftoken) {
 	this.widgets = $.each(widget_specs, function (i, widget_type_name){
 		return new Game.Widgets[widget_type_name](game);
 	});
-	console.log(this.widgets)
 	
 	// set up the reporter with the url & csrf token passed in from play.html
 	this.reporter.setURL(report_url, csrftoken);
@@ -163,21 +162,25 @@ Game.prototype.allowReplay = function () {
 	$("#top .replay").show();
 };
 
-Game.prototype.newRound = function () {
+Game.prototype.newRound = function (next_round) {
 	// do reporting here.
 	// only advance upon successfully reporting progress.
 	// if there's a communications failure, we'll at least know when it happened.
 	var game = this;
+	var game_is_over = ((this.round_nbr >= this.rounds.length) && !next_round);
 	this.report(
 		function create_round() {
-			if (game.rounds.count() > game.round_nbr) {
-				++game.round_nbr;
-				// NOTE: have to use get(), rather than array index ([]),
-				// so we can trigger !do statements, if there are any.
-				game.current_round = new Game.Round(game, game.rounds.get(game.round_nbr - 1));
-			} else {
+			if (game_is_over) {
 				game.gameFeedback();
 				game.allowReplay();
+			} else {
+				if (next_round instanceof YAML) {
+					game.current_round = new Game.Round(game, next_round);
+					game.round_nbr = game.rounds.indexOf(next_round) + 1;
+				} else {
+					++game.round_nbr;
+					game.current_round = new Game.Round(game, game.rounds.get(game.round_nbr - 1));
+				}
 			}
 		}, 
 		function catch_func (e) {
