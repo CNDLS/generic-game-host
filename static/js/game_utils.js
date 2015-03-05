@@ -26,5 +26,18 @@ $.extend(Game, {
 		} else {
 			return default_value;
 		}
+	},
+	
+	clearAllCards: function () {
+		// tell all dealers to clear their cards from the game.
+		try {
+			this.prompter.discardAll();
+			this.listener.discardAll();
+			this.responder.discardAll();
+		} catch (e) {
+			console.log(e);
+		}
+		// clear any remaining cards (probably orphaned).
+		this.element.find(".card").remove();
 	}
 });
