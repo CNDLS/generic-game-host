@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import StreamingHttpResponse, HttpResponseRedirect,  Http404, HttpResponse, JsonResponse
+from django.http import StreamingHttpResponse, HttpResponseRedirect,  Http404, HttpResponse #, JsonResponse
 from django.template import RequestContext, TemplateDoesNotExist
 from django.core import serializers
 from django.core.context_processors import csrf
@@ -60,6 +60,7 @@ def play(request, game_id):
     template_vars = { 'game': game,
                       'game_content_template': game_type.template or None,
                       'game_css':  game_type.css or None,
+                      'game_js':  game_type.js or None,
                       'current_user': request.user,
                       'AJAX_PREFIX':AJAX_PREFIX }
     return render_to_response('play.html', template_vars, context_instance=RequestContext(request))
@@ -74,7 +75,8 @@ def write_results(request, game_id):
 		game = Game.objects.get(pk=game_id)
 		game_report = GameReport(payload=request.body, student=current_user, game=game)
 		game_report.save()
-		return JsonResponse({ 'game_report_id': game_report.id }, safe=False)
+        return HttpResponse(request.body, mimetype='application/json')
+        # return JsonResponse({ 'game_report_id': game_report.id }, safe=False)
 
 
 def custom_404(request):

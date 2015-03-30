@@ -3,7 +3,7 @@
 
 {% block css %}
   {% if game_css %}
-    <link href="{{ MEDIA_URL }}uploads/custom_css/{{ game_css }}" media="screen, print" rel="stylesheet" type="text/css" />
+    <link href="{{ MEDIA_URL }}/{{ game_css }}" media="screen, print" rel="stylesheet" type="text/css" />
   {% endif %}
 {% endblock %}
 
@@ -51,12 +51,18 @@
 		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/internal_clock.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/widgets.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/scenes.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/game_utils.js" ></script>
 		<script type="text/javascript" id="reader" src="{{ STATIC_URL }}js/yaml-reader.js"  read-from="{{ AJAX_PREFIX }}/read/{{ game.id }}/"></script>
 		<script type="text/javascript" id="reporter" src="{{ STATIC_URL }}js/reporter.js"  report-to="{{ AJAX_PREFIX }}/write/{{ game.id }}/" csrftoken="{{ csrf_token }}"></script>
 			
-		<!-- custom scripts. to be loaded for certain game types. -->
+		<!-- library scripts. to be loaded for certain game types. -->
 		<script type="text/javascript" src="{{ STATIC_URL }}js/processing.js" ></script>
+        
+        <!-- game-type-specific js. -->
+        {% if game_js %}
+          <script type="text/javascript" src="{{ MEDIA_URL }}/{{ game_js }}" ></script>
+        {% endif %}
 
 		<script type="text/javascript">
 

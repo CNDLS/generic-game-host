@@ -20,6 +20,10 @@ class GameType(models.Model):
 						null = True,
 						blank = True,
 						upload_to = 'uploads/custom_css/')
+	js = models.FileField(
+						null = True,
+						blank = True,
+						upload_to = 'uploads/custom_js/')
 	score_accrues_to_computer = models.BooleanField(default=False)
 		
 	def __unicode__(self):

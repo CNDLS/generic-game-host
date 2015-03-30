@@ -30,6 +30,17 @@ function Game(game_spec, report_url, csrftoken) {
 	this.reporter = this.read("Reporter");
 	this.winning_score = this.read("WinningScore");
 	this.current_score = 0;
+
+	var game = this;
+	
+	// load any HTML to define the Scene(s) in which the game will take place.
+	// we'll rely on css to set initial positions of objects,
+	// and any scene should be referencable by any rendering library we attach to.
+	// A Scene is just another Card.
+	var scene_specs = this.read("Scenes");
+	this.scenes = $.collect(scene_specs, function (i){
+		return Game.SceneFactory.create(this, game);
+	});
 										
 	// load any resources that may be available to the user throughout the game.
 	// later, build in a concept of returning to a saved game, and restoring the
@@ -39,7 +50,6 @@ function Game(game_spec, report_url, csrftoken) {
 	// display any widgets that will remain available throughout the game.
 	// eg; a countdown clock, scoreboard, etc.
 	var widget_specs = this.read("Widgets");
-	var game = this;
 	this.widgets = $.each(widget_specs, function (i, widget_type_name){
 		return new Game.Widgets[widget_type_name](game);
 	});
@@ -62,6 +72,7 @@ function Game(game_spec, report_url, csrftoken) {
 Game.DEFAULTS = {
 	Title: "Generic Game",
 	InternalClock: "InternalClock",
+	Scenes: [],
 	Widgets: [],
 	Reporter: "Reporter",
 	Dealer: "Dealer",

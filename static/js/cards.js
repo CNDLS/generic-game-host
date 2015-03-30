@@ -15,9 +15,30 @@ Game = Game || function () {};
  * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
 Game.Card = function(spec, container) {
+	var html_regexp = /^\w+(#\w+)|(\.\w+)$/gm;
+	
 	switch (typeof spec) {
 		case "string":
-			spec = { content: { "div": spec } };
+			// if the string has no spaces and a # and/or . chars, 
+			// we'll call it an HTML spec.
+			var is_html_spec = spec.match(html_regexp);
+			if (is_html_spec) {
+				spec = { content: { spec: "" } };
+			} else {
+				spec = { content: { "div": spec } };
+			}
+			break;
+			
+		case "object":
+			// if any of the object keys have each have a # and/or . chars,
+			// we'll call it an HTML spec.
+			var keys = Object.keys(spec);
+			var is_html_spec = $.any(keys, function () {
+				return this.toString().match(html_regexp);
+			});
+			if (is_html_spec) {
+				spec = { content: spec };
+			}
 			break;
 		
 		case "number":
