@@ -38,10 +38,11 @@ Game.Round = function (game, round_spec) {
 		{ name: "abort",		from: StateMachine.WILDCARD,					to: "end" }
 	];
 		 
-	// *** DEBUGGING ***
+	// *** MESSAGING AND DEBUGGING ***
 	this.onchangestate = function (name, from, to) {
 		console.log(name + ": change state from " + from + " to " + to);
 		this.game.element.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
+		$.event.trigger("Round." + name, { from: from, to: to });
 	};
 
 	// create a StateMachine to track what user can do in various situations.

@@ -28,7 +28,7 @@ $.extend(Game, {
 		}
 	},
 	
-	clearAllCards: function () {
+	clearCards: function (selector) {
 		// tell all dealers to clear their cards from the game.
 		try {
 			this.prompter.discardAll();
@@ -38,6 +38,6 @@ $.extend(Game, {
 			console.log(e);
 		}
 		// clear any remaining cards (probably orphaned).
-		this.element.find(".card").remove();
+		this.element.find(selector).find(".card").remove();
 	}
 });

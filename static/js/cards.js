@@ -15,110 +15,64 @@ Game = Game || function () {};
  * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
 Game.Card = function(spec, container) {
-	var html_regexp = /^\w+(#\w+)|(\.\w+)$/gm;
-	
-	switch (typeof spec) {
-		case "string":
-			// if the string has no spaces and a # and/or . chars, 
-			// we'll call it an HTML spec.
-			var is_html_spec = spec.match(html_regexp);
-			if (is_html_spec) {
-				spec = { content: { spec: "" } };
-			} else {
-				spec = { content: { "div": spec } };
-			}
-			break;
-			
-		case "object":
-			// if any of the object keys have each have a # and/or . chars,
-			// we'll call it an HTML spec.
-			var keys = Object.keys(spec);
-			var is_html_spec = $.any(keys, function () {
-				return this.toString().match(html_regexp);
-			});
-			if (is_html_spec) {
-				spec = { content: spec };
-			}
-			break;
-		
-		case "number":
-			spec = { content: { "div": spec.toString() } };
-			break;
-			
-		case "undefined":
-			throw new Error("Can't create a Card without data.");
-			return;
+	if (spec === null) {
+		return; // this is when we are creating a Card to be a prototype for another type of object.
 	}
-	if (typeof spec === "string") {
-		spec = { content: { "div": spec } };
-	} else if (typeof spec === "number") {
-	}
-	this.spec = spec;
 	
+	// default values for cards.
 	Game.Card.DEFAULTS = {
 		timeout: null,
 		container: $("#cards")
 	};
+	// some card-related constants.
+	Game.Card.SEND_TO_BACK = -1;
 	
-	// spec can contain template, klass, css_class, container, and deal <function>.
-	// spec *must* contain content.
-	// card_scaffold is a temporary structure. the card gets pulled out of it when 'dealt.'
-	var card_scaffold = $(document.createElement("div"));
-	this.element = $(document.createElement("div")).addClass("card");
-	card_scaffold.append(this.element);
-	// apply any general css_class in the spec to the first child of the card_holder.
-	if (spec['css_class']) {
-		this.element.addClass(spec.css_class);
-	}
-	this.card_front = $(document.createElement("div")).addClass("front");
-	this.element.append(this.card_front);
+	this.spec = spec;
 	this.container = container || Game.Card.DEFAULTS.container;
-}
-
-// optionally pass in css_classnames.
-Game.Card.prototype.populate = function (css_classnames) {
-	if (css_classnames) {
-		this.element.addClass(css_classnames);
+	
+	// we want to always have a single HTML element to represent each Card.
+	var card_scaffold = $(document.createElement("div"));
+	card_scaffold.render(spec.content || spec);
+	
+	// we want to always have a single HTML element to represent each Card.
+	// so if the spec has generated siblings, we wrap them in a div.
+	var nodes_in_card = card_scaffold.get(0).childNodes;
+	switch (nodes_in_card.length) {
+		case 0:
+			throw new Error("Could not create Card.");
+			break;
+			
+		case 1:
+			// if it is a text node, use card_scaffold as the Card element.
+			// otherwise, use the child node.
+			var node = nodes_in_card[0];
+			this.element = (node.nodeType == 3) ? card_scaffold : $(node);
+			break;
+			
+		default:
+			this.element = card_scaffold;
+			break;
 	}
-	var spec = this.spec;
-	// each card population is wrapped in a try.
-	in_production_try(this,
-		function () {
-			if (typeof spec.content === "string" && spec.content.is_valid_html()) {
-				this.card_front.append(spec.content);
-			} else if (typeof spec.content === "object"){
-				for (var key in spec.content) {
-					var value = spec.content[key] || "";
-					// 
-					var key_spec = key.split(".");
-					var tag_name = key_spec.shift(); // first item is tag name.
-					var child_element;
-					try {
-						child_element = $(document.createElement(tag_name));
-					} catch (e) {
-						child_element = $(document.createElement("div"));
-					};
-					this.card_front.append(child_element);
-					if (key_spec.length) {
-						child_element.addClass(key_spec.join(" "));
-					}
-					child_element.html(value);
-				}
-			}
-		},
-		function () {
-			spec = { content: { "div":"Failure to populate card." } };
-		}
-	);
-	return this;
+	
+	this.element.addClass("card");
 }
 
-Game.Card.prototype.deal = function (dfd) {
+Game.Card.prototype.style = function (css_classes) {
+	this.element.addClass(css_classes);
+	return this; // for daisy-chaining.
+}
+
+
+Game.Card.prototype.deal = function (dfd, position) {
 	this.dfd = dfd || $.Deferred();
 	if (this.container === Game){
 		this.container = window.game.container;
 	}
-	$(this.container).append(this.element);
+	if (position === Game.Card.SEND_TO_BACK) {
+		$(this.container).prepend(this.element);
+	} else {
+		$(this.container).append(this.element);
+	}
 }
 
 // what I tell the Reporter about myself.
@@ -134,8 +88,6 @@ Game.Card.create = function (spec) {
 	} else {
 		card = new Game.Card[card_class](spec);
 	}
-	// put stuff on/into the card (some cards might not put anything into the DOM).
-	card.populate();
 	return card;
 }
 
@@ -149,6 +101,7 @@ Game.Card.Modal = function (spec) {
 	Util.extend_properties(this, new Game.Card(spec));
 }
 $.extend(Game.Card.Modal.prototype, Game.Card.prototype);
+Game.Card.Modal.prototype = new Game.Card(null); 
 
 Game.Card.Modal.prototype.deal = function (dfd) {
 	Game.Card.prototype.deal.call(this, dfd);
@@ -165,5 +118,5 @@ Game.Card.Modal.prototype.addOKButton = function () {
 		card.element.remove();
 		card.dfd.resolve();
 	});
-	ok_button.appendTo(this.card_front);
+	ok_button.appendTo(this.element);
 };

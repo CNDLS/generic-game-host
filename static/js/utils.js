@@ -77,7 +77,7 @@ String.prototype.past_tense = function () {
 String.prototype.is_valid_html = function () {
 	var test_div = $('<div/>');
 	test_div.html(this);
-	return ((test_div.html() == this) && test_div.children().length) ? true : false;
+	return (test_div[0].childNodes.length) ? true : false;
 }
 
 Util = {
@@ -88,4 +88,81 @@ Util = {
 			}
 		}
 	}
+}
+
+
+
+/************************************************************
+ * jQuery plugin for rendering a spec object into HTML.
+ * As we work through the passed-in spec object,
+ * we need to be able to handle strings of the form tag[#id][.class],
+ * fragments of valid HTML, and text content.
+ * We need to traverse members of the object and recurse into 
+ * any members that are objects themselves. Becase we can
+ * recurse, remember that any data type might be passed in as spec
+ * in a given recursion.
+ ************************************************************/
+$.fn.render = function (spec) {
+	// test of whether we can apply a string to our function for creating tags.
+	// string must be of the form tag[#id][.class]
+	// optional conditions are so it will match either or both id and classnames.
+	var tag_id_class_regexp = /^(\w+)?(#\S+)?((?:\.\S+)*)?$/;
+	
+	// function to turn a descriptor into an empty HTML element.
+	// successful matches are of the form: [<whole str>, <tag name>, <id>, <class names separated by .>]
+	function createElement(str) {
+		var matches = tag_id_class_regexp.exec(str);
+		if (matches === null) {
+			return str; // probably a space in the text.
+		} else {
+			var tag_name, el, id, classnames;
+			tag_name = matches[1] || "div"; // so we can do "#id.class" descriptors.
+			el = $(document.createElement(tag_name));
+			if (id = matches[2]) {
+				el.attr("id", id);
+			}
+			if (classnames = matches[3]) {
+				el.addClass(classnames.split(".").join(" "));
+			}
+			return el;
+		}
+	}
+	
+	// processing the spec based on type.
+	switch (typeof spec) {
+		case "string":
+			// is_valid_html will return true for vanilla strings (eg; "some text"), 
+			// which are, in fact, valid HTML.
+			// we have to exclude our tag descriptors, though.
+			if (spec.is_valid_html() && !tag_id_class_regexp.test(spec)) {
+				$(this).html(spec);
+			} else {
+				$(this).append(createElement(spec));
+			}
+			break;
+			
+		case "object":
+			if (spec instanceof Array) {
+				for (var item in spec) {
+					$(this).append(createElement(item));
+				}
+			} else {
+				var keys = Object.keys(spec);
+				var key;
+				for (var i=0; i<keys.length; i++) {
+					key = keys[i];
+					var el = createElement(key);
+					// recurse into complex objects.
+					$(el).render(spec[key]);
+					$(this).append(el);
+				}
+			}
+			break;
+			
+		case "number":
+			$(this).html(spec);
+			break;
+	}
+	
+	return this;
 }

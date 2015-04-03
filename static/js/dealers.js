@@ -41,10 +41,10 @@ Game.Dealer.prototype.dealCards = function (successFn) {
 	$.when.apply($, deal_promises).then(successFn || $.noop);
 }
 
-Game.Dealer.prototype.addCard = function (card_or_spec) {
+Game.Dealer.prototype.addCard = function (card_or_spec, container) {
 	var card = card_or_spec;
 	if ( !(card_or_spec instanceof Game.Card) ){
-		card = Game.Card.create(card_or_spec);
+		card = Game.Card.create(card_or_spec, container);
 	}
 	this.cards.push(card);
 	return card;
@@ -122,7 +122,7 @@ Game.CardFactory = {
 					dealer_card_scope_name.replace("Card", "").underscore(), // eg; SomeDealerCard -> some_dealer
 					card_type.underscore() // eg; MultipleChoiceCard -> multiple_choice_card
 				].join(" ");
-				card.populate(css_classes);
+				card.style(css_classes);
 				return card;
 			}
 		});
@@ -199,7 +199,7 @@ $.extend(Game.Listener.prototype, Game.Dealer.prototype);
 /* FreeResponseCard just creates a card with a text input field and doesn't care about the answer. */
 Game.ListenerCard.FreeResponseCard = function (args) {
 	var round = args.shift();
-	Util.extend_properties(this, new Game.Card("<input type=\"text\" />"));
+	Util.extend_properties(this, new Game.Card({ div:"<input type=\"text\" />" }));
 }
 $.extend(Game.ListenerCard.FreeResponseCard.prototype, Game.Card.prototype);
 

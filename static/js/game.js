@@ -39,7 +39,9 @@ function Game(game_spec, report_url, csrftoken) {
 	// A Scene is just another Card.
 	var scene_specs = this.read("Scenes");
 	this.scenes = $.collect(scene_specs, function (i){
-		return Game.SceneFactory.create(this, game);
+		var ith_scene = Game.SceneFactory.create(this, game);
+		ith_scene.init();
+		return ith_scene;
 	});
 										
 	// load any resources that may be available to the user throughout the game.
@@ -192,6 +194,7 @@ Game.prototype.newRound = function (next_round) {
 					++game.round_nbr;
 					game.current_round = new Game.Round(game, game.rounds.get(game.round_nbr - 1));
 				}
+				$.event.trigger("Game.newRound", { round: game.current_round });
 			}
 		}, 
 		function catch_func (e) {
