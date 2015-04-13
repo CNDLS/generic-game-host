@@ -22,7 +22,7 @@ function Game(game_spec, report_url, csrftoken) {
 	
 	this.current_round = undefined;
 	this.round_nbr = 0;
-	this.element = $("#game");
+	this.container = this.read("Container");
 	this.title = $("#title").html(this.read("Title"));
 	this.rounds = this.read("Rounds"); // the rounds of the game.
 	this.internal_clock = this.read("InternalClock"); // alt InternalClock eg; main GodotEngine scene.
@@ -73,6 +73,7 @@ function Game(game_spec, report_url, csrftoken) {
  */
 Game.DEFAULTS = {
 	Title: "Generic Game",
+	Container: $("#game"),
 	InternalClock: "InternalClock",
 	Scenes: [],
 	Widgets: [],
@@ -109,7 +110,7 @@ Game.prototype.introduce = function () {
 		intro_spec = { content: intro_spec };
 	}
 	// by default, use Game.Card.Modal to define the card.
-	intro_spec = $.extend({ klass: "Modal" }, intro_spec);
+	intro_spec = $.extend({ type: "Modal" }, intro_spec);
 	
 	// deliver just the intro card. we will require a click-through on this card.
 	var intro_card = this.dealer.dealOneCard(intro_spec);
@@ -138,32 +139,46 @@ Game.prototype.gameFeedback = function () {
 		css_class: "game_summary"
 	};
 	var feedback_card = Game.Card.create(feedback_spec);
-	feedback_card.deal();
+	feedback_card.dealTo();
 	// add to the msg stream as well.
 	this.sendMessage(gameFeedbackMessage);
 };
 
-Game.prototype.read = function (fieldName /* , defaultValue */ ) {
+Game.prototype.read = function (field_name /* , default_value */ ) {
 	if (!this.hasOwnProperty("spec")) { 
-		console.log("Warning: Game spec not defined.");
+		console.warn("YAML spec not defined for read().");
 		return undefined;
 	}
-	var defaultValue = arguments[1] || undefined;
-	var rtn_val = this.spec.get(fieldName);
-	if (rtn_val === undefined && (typeof defaulValue !== "undefined")) { rtn_val = defaulValue; }
+	// provide a number of ways to define objects through the spec. 
+	// but keep them simple and like natural language.
+	// fall back to defaults defined on Game or Game.Round,
+	// whoever is calling this.
+	var default_value = arguments[1] || undefined;
+	var rtn_val = this.spec.get(field_name);
+	// first, try falling back to a passed-in return value.
+	if (rtn_val === undefined && (typeof default_value !== "undefined")) { rtn_val = default_value; }
+	// then, check the defaults for the Game or Game.Round.
 	var defaults = this.constructor.DEFAULTS || {};
-	if (rtn_val === undefined && (typeof defaults[fieldName] !== "undefined")) {
-		rtn_val = defaults[fieldName];
+	if (rtn_val === undefined && (typeof defaults[field_name] !== "undefined")) {
+		rtn_val = defaults[field_name];
 	}
 	if (rtn_val === undefined) {
-		console.log("Cannot provide a '" + fieldName + "' from Game spec or defaults.");
+		console.log("Cannot provide a '" + field_name + "' from Game spec or defaults.");
 	}
 	// if rtn_val is the name of something that is defined on the Game, Game.Round, etc. object, use that.
 	if (this.constructor.hasOwnProperty(rtn_val)) {
 		rtn_val = this.constructor[rtn_val];
+	} else if ((rtn_val instanceof YAML) 
+				&& this.constructor.hasOwnProperty(field_name)
+				&& typeof this.constructor[field_name] === "function") {
+		// if it is YAML for something that can be created on the Game or Game.Round, create the object for it.
+		// (eg; field_name is "Prompter").
+		rtn_val = new this.constructor[field_name](this, rtn_val);
 	}
 	// if rtn_val is a function, instantiate it, passing in the Game object.
-	if (typeof rtn_val === "function") { rtn_val = new rtn_val(this); }
+	if (typeof rtn_val === "function") { 
+		rtn_val = new rtn_val(this); 
+	}
 	return rtn_val;
 };
 

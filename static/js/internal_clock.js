@@ -75,7 +75,7 @@ Game.ProcessingClock.prototype.start = function () {
 	// create a canvas element in the Game for Processing to operate within.
 	var game_canvas;
 	try {
-		game_canvas = $('<canvas/>', { 'class':'game-canvas' }).width(game.element.width()).height(game.element.height()).get(0);
+		game_canvas = $('<canvas/>', { 'class':'game-canvas' }).width(game.container.width()).height(game.container.height()).get(0);
 		this.processing = new Processing(game_canvas, ticker);
 	} catch (e) {
 		console.warn("Could not link tick function to Processing::draw(). Default clock will be used.");

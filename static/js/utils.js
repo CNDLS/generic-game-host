@@ -103,6 +103,9 @@ Util = {
  * in a given recursion.
  ************************************************************/
 $.fn.render = function (spec) {
+	if (spec instanceof jQuery) {
+		return spec;
+	}
 	// test of whether we can apply a string to our function for creating tags.
 	// string must be of the form tag[#id][.class]
 	// optional conditions are so it will match either or both id and classnames.
@@ -116,10 +119,10 @@ $.fn.render = function (spec) {
 			return str; // probably a space in the text.
 		} else {
 			var tag_name, el, id, classnames;
-			tag_name = matches[1] || "div"; // so we can do "#id.class" descriptors.
+			tag_name = matches[1] || "div"; // so we can use descriptors that are just ids and/or class names.
 			el = $(document.createElement(tag_name));
 			if (id = matches[2]) {
-				el.attr("id", id);
+				el.attr("id", id.replace("#", ""));
 			}
 			if (classnames = matches[3]) {
 				el.addClass(classnames.split(".").join(" "));
@@ -135,9 +138,10 @@ $.fn.render = function (spec) {
 			// which are, in fact, valid HTML.
 			// we have to exclude our tag descriptors, though.
 			if (spec.is_valid_html() && !tag_id_class_regexp.test(spec)) {
-				$(this).html(spec);
+				return $(this).html(spec);
 			} else {
 				$(this).append(createElement(spec));
+				return $(this).children().last();
 			}
 			break;
 			
@@ -157,10 +161,11 @@ $.fn.render = function (spec) {
 					$(this).append(el);
 				}
 			}
+			return $(this).children().last();
 			break;
 			
 		case "number":
-			$(this).html(spec);
+			return $(this).html(spec);
 			break;
 	}
 	

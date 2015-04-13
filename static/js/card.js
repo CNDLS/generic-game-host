@@ -14,21 +14,23 @@ Game = Game || function () {};
  * Alternately, other Card prototypes can be defined on the Game object,
  * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
-Game.Card = function(spec, container) {
+Game.Card = function(spec) {
 	if (spec === null) {
 		return; // this is when we are creating a Card to be a prototype for another type of object.
 	}
 	
 	// default values for cards.
 	Game.Card.DEFAULTS = {
-		timeout: null,
-		container: $("#cards")
+		timeout: null
 	};
 	// some card-related constants.
 	Game.Card.SEND_TO_BACK = -1;
 	
+	// save the spec, in case we need to manipulate the card contents later on.
 	this.spec = spec;
-	this.container = container || Game.Card.DEFAULTS.container;
+	
+	// make space to save any dealer I'm associated with.
+	this.dealer = {};
 	
 	// we want to always have a single HTML element to represent each Card.
 	var card_scaffold = $(document.createElement("div"));
@@ -58,16 +60,24 @@ Game.Card = function(spec, container) {
 }
 
 Game.Card.prototype.style = function (css_classes) {
-	this.element.addClass(css_classes);
+	// remove card class and then add back those specified.
+	this.element.removeClass("card").addClass(css_classes);
 	return this; // for daisy-chaining.
 }
 
 
-Game.Card.prototype.deal = function (dfd, position) {
-	this.dfd = dfd || $.Deferred();
-	if (this.container === Game){
-		this.container = window.game.container;
+Game.Card.prototype.dealTo = function (container, dfd, position) {
+	// find or create a place in the game in which to put the cards.
+	var container_spec = container || this.spec.container || this.dealer.container || "#cards";
+	this.container = $(container_spec);
+	if (this.container.length == 0) {
+		this.container = $("#game").render(container_spec);
 	}
+	console.log("card container", this.container);
+	
+	this.dfd = dfd || $.Deferred();
+	
+	// other possible position options... maybe an integer...?
 	if (position === Game.Card.SEND_TO_BACK) {
 		$(this.container).prepend(this.element);
 	} else {
@@ -80,8 +90,9 @@ Game.Card.prototype.report = function () {
 	return JSON.stringify(this.spec.content) || "undefined";
 }
 
+// a create method for basic Card types (as opposed to those controlled by Dealers).
 Game.Card.create = function (spec) {
-	var card_class = spec["klass"] || "Card";
+	var card_class = spec["type"] || "Card";
 	var card;
 	if (card_class === "Card"){
 		card = new Game.Card(spec);
@@ -103,8 +114,8 @@ Game.Card.Modal = function (spec) {
 $.extend(Game.Card.Modal.prototype, Game.Card.prototype);
 Game.Card.Modal.prototype = new Game.Card(null); 
 
-Game.Card.Modal.prototype.deal = function (dfd) {
-	Game.Card.prototype.deal.call(this, dfd);
+Game.Card.Modal.prototype.dealTo = function (container, dfd) {
+	Game.Card.prototype.dealTo.call(this, container, dfd);
 	this.addOKButton();
 	return true;
 }

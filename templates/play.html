@@ -25,7 +25,6 @@
 
     <div id="game">
       {% if game_content_template %}{% include game_content_template %}{% endif %}
-	  <div id="cards"></div><!-- default card container -->
     </div><!-- end of #game -->
   
   </div><!-- end of #content -->
@@ -47,11 +46,11 @@
 		<script type="text/javascript" src="{{ STATIC_URL }}js/utils.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/game.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/round.js" ></script>
-		<script type="text/javascript" src="{{ STATIC_URL }}js/cards.js" ></script>
-		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/card.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealer.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/internal_clock.js" ></script>
-		<script type="text/javascript" src="{{ STATIC_URL }}js/widgets.js" ></script>
-		<script type="text/javascript" src="{{ STATIC_URL }}js/scenes.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/widget.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/scene.js" ></script>
 		<script type="text/javascript" src="{{ STATIC_URL }}js/game_utils.js" ></script>
 		<script type="text/javascript" id="reader" src="{{ STATIC_URL }}js/yaml-reader.js"  read-from="{{ AJAX_PREFIX }}/read/{{ game.id }}/"></script>
 		<script type="text/javascript" id="reporter" src="{{ STATIC_URL }}js/reporter.js"  report-to="{{ AJAX_PREFIX }}/write/{{ game.id }}/" csrftoken="{{ csrf_token }}"></script>

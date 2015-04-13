@@ -31,13 +31,13 @@ $.extend(Game, {
 	clearCards: function (selector) {
 		// tell all dealers to clear their cards from the game.
 		try {
-			this.prompter.discardAll();
-			this.listener.discardAll();
-			this.responder.discardAll();
+			this.current_round.prompter.discardAll();
+			this.current_round.listener.discardAll();
+			this.current_round.responder.discardAll();
 		} catch (e) {
 			console.log(e);
 		}
 		// clear any remaining cards (probably orphaned).
-		this.element.find(selector).find(".card").remove();
+		this.container.find(selector).find(".card").remove();
 	}
 });

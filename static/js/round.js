@@ -15,7 +15,8 @@ Game.Round = function (game, round_spec) {
 	this.spec = round_spec;
 	
 	this.read = Game.prototype.read.bind(this);
-	
+
+	this.container = this.read("Container") || game.container;
 	this.pointValue = this.read("Points");
 	this.threshold_score = this.read("Threshold");
 	this.resources = this.read("Resources");
@@ -41,7 +42,7 @@ Game.Round = function (game, round_spec) {
 	// *** MESSAGING AND DEBUGGING ***
 	this.onchangestate = function (name, from, to) {
 		console.log(name + ": change state from " + from + " to " + to);
-		this.game.element.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
+		this.game.container.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
 		$.event.trigger("Round." + name, { from: from, to: to });
 	};
 
@@ -101,7 +102,7 @@ Game.Round.prototype.onGivePrompt = function () {
 	if (typeof this.prompter === "string") {
 		this.prompter = new Game[this.prompter](this);
 	}
-	if (this.prompter instanceof Game.Prompter) {
+	if (this.prompter instanceof Game.Round.Prompter) {
 		var endPrompting = this.endPrompting.bind(this);
 		this.prompter.dealCards(endPrompting);
 		return StateMachine.ASYNC;
@@ -118,23 +119,24 @@ Game.Round.prototype.endPrompting = function () {
 }
 
 Game.Round.prototype.onListenForPlayer = function () {
-	if (this.max_time !== "none"){
-		// this.game.clock.start(this.max_time);
-	}
-	if (typeof this.listener === "string") {
-		this.listener = new Game[this.listener](this);
-	}
-	if (this.listener instanceof Game.Listener) {
+	if (this.listener instanceof Game.Round.Listener) {
 		var endListening = this.endListening.bind(this);
 		this.listener.dealCards(endListening);
 		return StateMachine.ASYNC;
-	} // if listener fails, this will just transition us into the next state.
+	} // if I failed to create a listener, this will just transition us into the next state.
 };
 
 Game.Round.prototype.endListening = function (answer, score) {
 	$.event.trigger("game.stopClock");
-	// record user answer.
-	this.game.record({ event: "user answers", answer: answer.getContents() });
+	// record user's answer.
+	var user_answer;
+	try {
+		user_answer = answer.getContents();
+	} catch (e) {
+		console.log("failed to get answer from user.", e);
+	}
+	
+	this.game.record({ event: "user answers", answer: user_answer });
 	var _this = this;
 	this.game.nextTick().then(function () {
 		_this.evaluate(answer, score);

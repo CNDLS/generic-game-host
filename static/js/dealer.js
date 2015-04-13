@@ -10,8 +10,9 @@
  * They all borrow functionality from the Dealer prototype.
  */
 
-Game.Dealer = function (context) {
-	this.context = context; // game or round.
+Game.Dealer = function (game_or_round, container) {
+	this.context = game_or_round;
+	this.container = container || game_or_round.container;
 	this.cards = [];
 	
 	Game.Dealer.NO_DEAL = [];
@@ -19,16 +20,17 @@ Game.Dealer = function (context) {
 // default action for dealing cards is just to put them onscreen,
 // and then resolve the promise right away.
 Game.Dealer.prototype.dealCards = function (successFn) {
+	var dealer = this;
 	var deal_promises = $(this.cards).collect(function() {
 		var card = this;
 		var dfd = $.Deferred();
 		// deal the card, passing the deferred object,
 		// which it can take the responsibility for and then must
 		// dfd.resolve() once the card is dealt.
-		// if it takes on that responsibility, card.deal() returns true.
+		// if it takes on that responsibility, card.dealTo() returns true.
 		// REMEMBER, at this point, the Card is just saying whether or not it has been dealt;
 		// Cards that wait for user input once they've been dealt should do so via a different dfd.
-		( card.deal(dfd) ) ? $.noop() : dfd.resolve();
+		( card.dealTo(null, dfd) ) ? $.noop() : dfd.resolve();
 		return dfd.promise();
 	});
 	
@@ -41,10 +43,10 @@ Game.Dealer.prototype.dealCards = function (successFn) {
 	$.when.apply($, deal_promises).then(successFn || $.noop);
 }
 
-Game.Dealer.prototype.addCard = function (card_or_spec, container) {
+Game.Dealer.prototype.addCard = function (card_or_spec) {
 	var card = card_or_spec;
 	if ( !(card_or_spec instanceof Game.Card) ){
-		card = Game.Card.create(card_or_spec, container);
+		card = Game.Card.create(card_or_spec);
 	}
 	this.cards.push(card);
 	return card;
@@ -96,13 +98,14 @@ Game.ListenerCard = {};
 Game.ResponderCard = {};
 
 // a factory for creating cards for the various dealers.
-Game.CardFactory = {
-	create: function (/* dealer_card_scope_name, card_type, round, ... */) {
+Game.DealersCardFactory = {
+	create: function (/* dealer_card_scope_name, card_type, dealer, ... */) {
 	    if (arguments.length === 0) return;
 	    var args = Array.prototype.slice.call(arguments);
 		var dealer_card_scope_name = args.shift();
 		var dealer_card_scope = Game[dealer_card_scope_name];
 		var card_type = args.shift();
+		var dealer = args.shift();
 		return in_production_try(this, function () {
 			if (typeof card_type !== "string") {
 				throw new Error("Invalid Card Type.");
@@ -119,10 +122,12 @@ Game.CardFactory = {
 				// add css classes for dealer_card_scope & card_type.
 				var css_classes = [
 					// PromptCard becomes prompt css class.
+					"card",
 					dealer_card_scope_name.replace("Card", "").underscore(), // eg; SomeDealerCard -> some_dealer
 					card_type.underscore() // eg; MultipleChoiceCard -> multiple_choice_card
 				].join(" ");
 				card.style(css_classes);
+				card.dealer = dealer;
 				return card;
 			}
 		});
@@ -134,27 +139,24 @@ Game.CardFactory = {
  * Prompter handles setting up a Round.
  * It provides whatever information a Player needs to play the round.
  */
-Game.Prompter = function (round) {
-	Util.extend_properties(this, new Game.Dealer(round));
+Game.Round.Prompter = function (round, spec) {
+	var container = (spec && spec.container) ? spec.container : round.container;
+	Util.extend_properties(this, new Game.Dealer(round, container));
 	
-	Game.Prompter.DEFAULTS = {
+	Game.Round.Prompter.DEFAULTS = {
 		Type: "Simple" // just a text/html message in a Card.
 	}
 
 	// deliver the prompt card(s) from the current Round spec.
+	var _this = this;
 	var prompts = round.read("Prompt");
 	if ( !(prompts instanceof Array) ){ prompts = [prompts]; }
 	this.cards = $.map(prompts, function(prompt) {
-		var prompt_card_type = prompt.prompt_type || Game.Prompter.DEFAULTS.Type;
-		return Game.CardFactory.create("PromptCard", prompt_card_type, prompt);
+		var prompt_card_type = prompt.prompt_type || Game.Round.Prompter.DEFAULTS.Type;
+		return Game.DealersCardFactory.create("PromptCard", prompt_card_type, _this, prompt);
 	});
-	
-	// var _this = this;
-	// $.each(prompts, function (i, prompt) {
-	// 	_this.addCard(prompt);
-	// });
 }
-$.extend(Game.Prompter.prototype, Game.Dealer.prototype);
+$.extend(Game.Round.Prompter.prototype, Game.Dealer.prototype);
 
 
 Game.PromptCard.Simple = function (args) {
@@ -171,10 +173,11 @@ $.extend(Game.PromptCard.Simple.prototype, Game.Card.prototype);
  * Basic response widget types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
  * Other types can be defined in a game_utils.js file for a particular instance. 
  */
-Game.Listener = function(round) {
-	Util.extend_properties(this, new Game.Dealer(round));
+Game.Round.Listener = function(round, spec) {
+	var container = (spec && spec.container) ? spec.container : round.container;
+	Util.extend_properties(this, new Game.Dealer(round, container));
 	
-	Game.Listener.DEFAULTS = {
+	Game.Round.Listener.DEFAULTS = {
 		Type: "MultipleChoiceCard"
 	}
 	// get response types and insure it is an array.
@@ -183,12 +186,13 @@ Game.Listener = function(round) {
 		response_types = [response_types];
 	}
 	// assemble cards made by all the response types into my cards array.
+	var _this = this;
 	this.cards = $.map(response_types, function(response_type) {
-		var listener_card_type = response_type || Game.Listener.DEFAULTS.Type;
-		return Game.CardFactory.create("ListenerCard", listener_card_type, round);
+		var listener_card_type = response_type || Game.Round.Listener.DEFAULTS.Type;
+		return Game.DealersCardFactory.create("ListenerCard", listener_card_type, _this, round);
 	});
 }
-$.extend(Game.Listener.prototype, Game.Dealer.prototype);
+$.extend(Game.Round.Listener.prototype, Game.Dealer.prototype);
 
 
 /* Each ListenerCard will capture input form the user(s).
@@ -281,11 +285,12 @@ Game.Answer.prototype.getContents = function () {
 /* 
  * Responder
  * The Responder deals card(s) which give feedback to the user, based on their answer & its score.
+ * TODO: add possibility of tailoring Responder w/in YAML, as is done with Prompter and Listener.
  */
-Game.Responder = function (round, answer, score) {
-	Util.extend_properties(this, new Game.Dealer(round));
+Game.Round.Responder = function (round, answer, score) {
+	Util.extend_properties(this, new Game.Dealer(round, round.container));
 	
-	Game.Responder.DEFAULTS = {
+	Game.Round.Responder.DEFAULTS = {
 		FeedbackType: "Simple" // just a text/html message in a Card.
 	}
 	
@@ -302,12 +307,13 @@ Game.Responder = function (round, answer, score) {
 
 	// assemble cards made by all the feedback into my cards array.
 	// careful, as 'feedback' is a mass noun: they are feedback; it is feedback.
+	var _this = this;
 	this.cards = $.map(feedback, function(feedback) {
 		var feedback_type = feedback.type || Game.Responder.DEFAULTS.FeedbackType
-		return Game.CardFactory.create("ResponderCard", feedback_type, round, answer, score);
+		return Game.DealersCardFactory.create("ResponderCard", feedback_type, _this, round, answer, score);
 	});
 }
-$.extend(Game.Responder.prototype, Game.Dealer.prototype);
+$.extend(Game.Round.Responder.prototype, Game.Dealer.prototype);
 
 
 Game.ResponderCard.Simple = function (args) {
