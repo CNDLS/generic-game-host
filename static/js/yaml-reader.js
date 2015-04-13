@@ -125,14 +125,16 @@ YAML.prototype.shift = function () {
 };
 
 YAML.prototype.indexOf = function (obj) {
-	var i = -1;
+	var i = 0;
 	for (var m in this) {
-		i++;
-		if (this[m].equals(obj)) {
+		if ( (this[m] instanceof YAML) && (this[m].equals(obj)) ) {
+			return i;
+		} else if (this[m] === obj) {
 			return i;
 		}
+		i++;
 	}
-	return i;
+	return -1;
 };
 
 YAML.prototype.equals = function (obj) {
@@ -144,8 +146,8 @@ YAML.prototype.equals = function (obj) {
 	}
 	// loop through my members; check against m.
 	for (var m in this) {
-		if ((this[m] instanceof YAML) && !this[m].equals(obj[m])) {
-			return false;
+		if (this[m] instanceof YAML) {
+			return (this[m].equals(obj[m]));
 		} else if (this[m] !== obj[m]) {
 			return false;
 		}

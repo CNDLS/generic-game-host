@@ -98,7 +98,10 @@ Game.prototype.record = function (data) {
 }
 
 Game.prototype.report = function (create_round, catch_func) {
-	this.reporter.sendReport().then(function () {
+	// changed create_round call from .then() to .done(), 
+	// so the game won't pause if AJAX fails.
+	// hopefully, we'll get the data sent at the next opportunity.
+	this.reporter.sendReport().done(function () {
 		in_production_try(this, create_round, catch_func);
 	});
 }
@@ -192,7 +195,7 @@ Game.prototype.allowReplay = function () {
 
 Game.prototype.newRound = function (next_round) {
 	// do reporting here.
-	// only advance upon successfully reporting progress.
+	// advance to next round upon successfully reporting progress.
 	// if there's a communications failure, we'll at least know when it happened.
 	var game = this;
 	var game_is_over = ((this.round_nbr >= this.rounds.length) && !next_round);
