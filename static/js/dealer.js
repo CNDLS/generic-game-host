@@ -207,8 +207,8 @@ Game.ListenerCard.FreeResponseCard = function (args) {
 }
 $.extend(Game.ListenerCard.FreeResponseCard.prototype, Game.Card.prototype);
 
-Game.ListenerCard.FreeResponseCard.prototype.deal = function (dfd) {
-	Game.Card.prototype.deal.call(this, dfd);
+Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container, dfd) {
+	Game.Card.prototype.dealTo.call(this, container, dfd);
 	var _this = this;
 	this.element.find("input[type=text]").on("keypress", function(e) {
         if (e.keyCode === 13) {
@@ -245,8 +245,8 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 }
 $.extend(Game.ListenerCard.MultipleChoiceCard.prototype, Game.Card.prototype);
 
-Game.ListenerCard.MultipleChoiceCard.prototype.deal = function (dfd) {
-	Game.Card.prototype.deal.call(this, dfd);
+Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container, dfd) {
+	Game.Card.prototype.dealTo.call(this, container, dfd);
 	var _this = this;
 	this.element.find("input[type=radio]").on("click", function(e) {
 		var clicked_radio_btn = _this.radio_btns[e.target.id];

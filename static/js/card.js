@@ -73,7 +73,6 @@ Game.Card.prototype.dealTo = function (container, dfd, position) {
 	if (this.container.length == 0) {
 		this.container = $("#game").render(container_spec);
 	}
-	console.log("card container", this.container);
 	
 	this.dfd = dfd || $.Deferred();
 	

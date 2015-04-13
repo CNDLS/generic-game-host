@@ -133,7 +133,7 @@ Game.Round.prototype.endListening = function (answer, score) {
 	try {
 		user_answer = answer.getContents();
 	} catch (e) {
-		console.log("failed to get answer from user.", e);
+		console.log("failed to get answer from user.", e.stack);
 	}
 	
 	this.game.record({ event: "user answers", answer: user_answer });
@@ -148,7 +148,7 @@ Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, answer,
 	if (typeof this.responder === "string") {
 		this.responder = new Game[this.responder](this, answer, score);
 	}
-	if (this.responder instanceof Game.Responder) {
+	if (this.responder instanceof Game.Round.Responder) {
 		var endResponding = this.endResponding.bind(this);
 		this.responder.dealCards(endResponding);
 		return StateMachine.ASYNC;
