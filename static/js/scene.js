@@ -13,13 +13,14 @@ Game.SetPiece = {}
 
 // a factory for creating Scenes (Dealers).
 Game.SceneFactory = {
-	create: function (scene_spec, game_or_round) {
+	create: function (scene_spec, game_or_round, events) {
 		var scene_type_name = scene_spec.scene_type || "Basic";
 		var backdrop_spec = scene_spec.backdrop || {};
 		var set_piece_specs = scene_spec.set_pieces || [];
 		var scene;
 		in_production_try(this, function () {
 			scene = new Game.Scene[scene_type_name](backdrop_spec, set_piece_specs, game_or_round);
+			scene.init(events);
 		});
 		return scene;
 	}
@@ -49,11 +50,14 @@ Game.Scene.Basic = function (backdrop_spec, set_piece_specs, game_or_round) {
 $.extend(Game.Scene.Basic.prototype, Game.Dealer.prototype);
 
 
-Game.Scene.Basic.prototype.init = function () {
+Game.Scene.Basic.prototype.init = function (events) {
 	// track Game.newRound events
 	$(document).on("Game.newRound", this.setup.bind(this));
 	// track all of the state transitions that happen in Rounds.
-	$(document).on("Round.*", this.trackRound.bind(this));
+	var round_events = $.collect(events, function () {
+		return "Round." + this.name;
+	}).join(" ");
+	$(document).on(round_events, this.trackRound.bind(this));
 }
 
 
@@ -74,7 +78,7 @@ Game.Scene.Basic.prototype.setup = function (evt, obj, addl_classes) {
 }
 
 
-Game.Scene.Basic.prototype.trackRound = function (evt) {
+Game.Scene.Basic.prototype.trackRound = function (evt, round, state_info) {
 	console.log("tracking", evt);
 }
 

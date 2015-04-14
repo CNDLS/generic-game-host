@@ -17,6 +17,11 @@ Game.Dealer = function (game_or_round, container) {
 	
 	Game.Dealer.NO_DEAL = [];
 }
+
+Game.Dealer.prototype.init = function () {
+	// stub.
+}
+	
 // default action for dealing cards is just to put them onscreen,
 // and then resolve the promise right away.
 Game.Dealer.prototype.dealCards = function (successFn) {
@@ -293,7 +298,7 @@ Game.Answer.prototype.getContents = function () {
  * The Responder deals card(s) which give feedback to the user, based on their answer & its score.
  * TODO: add possibility of tailoring Responder w/in YAML, as is done with Prompter and Listener.
  */
-Game.Round.Responder = function (round, answer, score) {
+Game.Round.Responder = function (round) {
 	Util.extend_properties(this, new Game.Dealer(round, round.container));
 	
 	Game.Round.Responder.DEFAULTS = {
@@ -321,6 +326,11 @@ Game.Round.Responder = function (round, answer, score) {
 }
 $.extend(Game.Round.Responder.prototype, Game.Dealer.prototype);
 
+Game.Round.Responder.prototype.init = function (answer, score) {
+	// hang onto answer & score, so they are available to listeners of Round events.
+	this.answer = answer;
+	this.score = score;
+}
 
 Game.ResponderCard.Simple = function (args) {
 	var round = args.shift();

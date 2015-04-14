@@ -39,8 +39,7 @@ function Game(game_spec, report_url, csrftoken) {
 	// A Scene is just another Card.
 	var scene_specs = this.read("Scenes");
 	this.scenes = $.collect(scene_specs, function (i){
-		var ith_scene = Game.SceneFactory.create(this, game);
-		ith_scene.init();
+		var ith_scene = Game.SceneFactory.create(this, game, Game.Round.Events);
 		return ith_scene;
 	});
 										

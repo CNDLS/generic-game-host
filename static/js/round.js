@@ -28,26 +28,16 @@ Game.Round = function (game, round_spec) {
 	this.prompter = this.read("Prompter");
 	this.listener = this.read("Listener");
 	this.responder = this.read("Responder");
-	
-	// the available states, and the events that transition between them.
-	this.events = [
-		{ name: "prompt",		from: "none",									to: "GivePrompt" },
-		{ name: "listen",		from: "GivePrompt",								to: "ListenForPlayer" },
-		{ name: "evaluate",		from: "ListenForPlayer",						to: "EvaluateResponse" },
-		{ name: "timeout",		from: "ListenForPlayer",						to: "EvaluateResponse" },
-		{ name: "advance",		from: "EvaluateResponse",						to: "end" },
-		{ name: "abort",		from: StateMachine.WILDCARD,					to: "end" }
-	];
 		 
 	// *** MESSAGING AND DEBUGGING ***
 	this.onchangestate = function (name, from, to) {
 		console.log(name + ": change state from " + from + " to " + to);
 		this.game.container.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
-		$.event.trigger("Round." + name, { from: from, to: to });
+		$.event.trigger("Round." + name, { round: this, from: from, to: to });
 	};
 
 	// create a StateMachine to track what user can do in various situations.
-	$.extend(this, StateMachine.create({ events: this.events,
+	$.extend(this, StateMachine.create({ events: Game.Round.Events,
 										 error: function () {
 											 Array.prototype.unshift.call(arguments, "State Error:")
 											 console.log(Array.prototype.slice.call(arguments));
@@ -61,6 +51,16 @@ Game.Round = function (game, round_spec) {
 	// PERFORM ANY SETUP FOR THE ROUND.
 	this.setup();
 }
+
+Game.Round.Events = 	// the available states, and the events that transition between them.
+	[
+		{ name: "prompt",		from: "none",									to: "GivePrompt" },
+		{ name: "listen",		from: "GivePrompt",								to: "ListenForPlayer" },
+		{ name: "evaluate",		from: "ListenForPlayer",						to: "EvaluateResponse" },
+		{ name: "timeout",		from: "ListenForPlayer",						to: "EvaluateResponse" },
+		{ name: "advance",		from: "EvaluateResponse",						to: "end" },
+		{ name: "abort",		from: StateMachine.WILDCARD,					to: "end" }
+	];
 
 Game.Round.DEFAULTS = {
 	Points: 1,
@@ -99,10 +99,8 @@ Game.Round.prototype.setup = function () {
 };
 
 Game.Round.prototype.onGivePrompt = function () {
-	if (typeof this.prompter === "string") {
-		this.prompter = new Game[this.prompter](this);
-	}
 	if (this.prompter instanceof Game.Round.Prompter) {
+		this.prompter.init();
 		var endPrompting = this.endPrompting.bind(this);
 		this.prompter.dealCards(endPrompting);
 		return StateMachine.ASYNC;
@@ -120,6 +118,7 @@ Game.Round.prototype.endPrompting = function () {
 
 Game.Round.prototype.onListenForPlayer = function () {
 	if (this.listener instanceof Game.Round.Listener) {
+		this.prompter.init();
 		var endListening = this.endListening.bind(this);
 		this.listener.dealCards(endListening);
 		return StateMachine.ASYNC;
@@ -150,10 +149,8 @@ Game.Round.prototype.endListening = function (answer, score) {
 
 Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, answer, score) {
 	this.game.addPoints(score);
-	if (typeof this.responder === "string") {
-		this.responder = new Game[this.responder](this, answer, score);
-	}
 	if (this.responder instanceof Game.Round.Responder) {
+		this.responder.init(answer, score);
 		var endResponding = this.endResponding.bind(this);
 		this.responder.dealCards(endResponding);
 		return StateMachine.ASYNC;
