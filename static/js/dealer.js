@@ -194,6 +194,12 @@ Game.Round.Listener = function(round, spec) {
 }
 $.extend(Game.Round.Listener.prototype, Game.Dealer.prototype);
 
+Game.Round.Listener.prototype.deactivateCards = function () {
+	$.each(this.cards, function () {
+		$(this.element).find("input").prop( "disabled", true );
+	});
+}
+
 
 /* Each ListenerCard will capture input form the user(s).
  * Upon receiving user input, the card resolves the Listener's Deferred,
