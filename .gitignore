@@ -5,6 +5,7 @@
 local_settings.py
 settings.py
 media
+media.zip
 wsgi
 static/css/custom.css
 static/admin

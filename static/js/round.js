@@ -28,12 +28,36 @@ Game.Round = function (game, round_spec) {
 	this.prompter = this.read("Prompter");
 	this.listener = this.read("Listener");
 	this.responder = this.read("Responder");
+
+	this.tear_down = this.read("Teardown") || $.noop;
 		 
-	// *** MESSAGING AND DEBUGGING ***
+	// *** MESSAGING ***
+	// This is where we attach animations, etc through objects like the Scene object.
+	// we allow them the opportunity to halt the advance into the next state by
+	// sending them a continue flag, which they can trip.
+	// we then return that to the state engine.
 	this.onchangestate = function (name, from, to) {
-		console.log(name + ": change state from " + from + " to " + to);
+		// console.log(name + ": change state from " + from + " to " + to);
 		this.game.container.get(0).style.webkitTransform = 'scale(1)'; // force a page redraw (webkit issue). 
-		$.event.trigger("Round." + name, { round: this, from: from, to: to });
+	}
+	
+	this.onenterstate = function (name, from, to /*, args... */) {
+		var args = Array.prototype.slice.call(arguments);
+		var name = args.shift();
+		var from = args.shift();
+		var to = args.shift();
+		var event_info = { round: this, name: name, from: from, to: to, args: args, continue: true };
+		$.event.trigger("Round.enter" + to, event_info);
+	}
+
+	this.onleavestate = function (name, from, to /*, args... */) {
+		var args = Array.prototype.slice.call(arguments);
+		var name = args.shift();
+		var from = args.shift();
+		var to = args.shift();
+		var event_info = { round: this, name: name, from: from, to: to, args: args, continue: true };
+		$.event.trigger("Round.leave" + from, event_info);
+		return (event_info.continue) ? null : StateMachine.ASYNC;
 	};
 
 	// create a StateMachine to track what user can do in various situations.
@@ -58,8 +82,7 @@ Game.Round.Events = 	// the available states, and the events that transition bet
 		{ name: "listen",		from: "GivePrompt",								to: "ListenForPlayer" },
 		{ name: "evaluate",		from: "ListenForPlayer",						to: "EvaluateResponse" },
 		{ name: "timeout",		from: "ListenForPlayer",						to: "EvaluateResponse" },
-		{ name: "advance",		from: "EvaluateResponse",						to: "end" },
-		{ name: "abort",		from: StateMachine.WILDCARD,					to: "end" }
+		{ name: "advance",		from: "EvaluateResponse",						to: "End" }
 	];
 
 Game.Round.DEFAULTS = {
@@ -81,7 +104,6 @@ Game.Round.DEFAULTS = {
 };
 
 Game.Round.prototype.setup = function () {
-	this.game.sendMessage("Starting Round " + this.nbr);
 	// record the start time of the round.
 	this.game.record({ round_nbr: this.nbr, event: "start of round" });
 	// do any presentation that sets up the round for the player(s).
@@ -89,7 +111,7 @@ Game.Round.prototype.setup = function () {
 	if (typeof setup === "function") {
 		// do setup(), which returns a dfd promise.
 		setup.apply(this).then(this.prompt.bind(this));
-		return StateMachine.ASYNC; // setup presentation is responsible for issuing this.prompt();
+		return StateMachine.ASYNC; // setup presentation happens before this.prompt();
 	} else {
 		var _this = this;
 		this.game.nextTick().then(function () {
@@ -171,15 +193,12 @@ Game.Round.prototype.onbeforetimeout = function () {
 	$.event.trigger("game.stopClock");
 };
 
-Game.Round.prototype.onend = function () {
+Game.Round.prototype.onEnd = function (eventname, from, to, next_round) {
 	// do any 'tear down' of the round. do also for ending/interrupting game?
-	// this.game.clock.stop();
-	// this.game.clock.reset();
-	var tear_down = this.read("Teardown") || $.noop;
-	tear_down.call(this);
+	this.tear_down();
 	var _this = this;
 	this.game.nextTick().then(function () {
-		var next_round = _this.read("Next");
+		var next_round = _this.read("Next", next_round);
 		_this.game.newRound(next_round);
 	});
 };

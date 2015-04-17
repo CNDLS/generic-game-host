@@ -29,15 +29,7 @@ $.extend(Game, {
 	},
 	
 	clearCards: function (selector) {
-		// tell all dealers to clear their cards from the game.
-		try {
-			this.current_round.prompter.discardAll();
-			this.current_round.listener.discardAll();
-			this.current_round.responder.discardAll();
-		} catch (e) {
-			console.log(e);
-		}
-		// clear any remaining cards (probably orphaned).
+		// clear all selected cards.
 		this.container.find(selector).find(".card").remove();
 	}
 });

@@ -11,7 +11,7 @@ function playmp3(name) {
     audioElement.setAttribute("src", media_url + "game/sounds/" + name + ".mp3");
     audioElement.load();
     audioElement.addEventListener("canplay", function () {
-		console.log("playing", "' + name + '");
+		console.log("playing", "'" + name + "'");
 		audioElement.play();
     });
 }
@@ -79,6 +79,21 @@ String.prototype.is_valid_html = function () {
 	test_div.html(this);
 	return (test_div[0].childNodes.length) ? true : false;
 }
+
+
+// return an arraty with no duplicates.
+Array.prototype.getUnique = function(){
+   var u = {}, a = [];
+   for(var i = 0, l = this.length; i < l; ++i){
+      if(u.hasOwnProperty(this[i])) {
+         continue;
+      }
+      a.push(this[i]);
+      u[this[i]] = 1;
+   }
+   return a;
+}
+
 
 Util = {
 	extend_properties: function(child, parent) {

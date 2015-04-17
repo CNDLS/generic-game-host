@@ -165,7 +165,7 @@ Game.prototype.read = function (field_name /* , default_value */ ) {
 		rtn_val = defaults[field_name];
 	}
 	if (rtn_val === undefined) {
-		console.log("Cannot provide a '" + field_name + "' from Game spec or defaults.");
+		// console.log("Cannot provide a '" + field_name + "' from Game spec or defaults.");
 	}
 	// if rtn_val is the name of something that is defined on the Game, Game.Round, etc. object, use that.
 	if (this.constructor.hasOwnProperty(rtn_val)) {

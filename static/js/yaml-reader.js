@@ -156,7 +156,7 @@ YAML.prototype.equals = function (obj) {
 }
 
 // don't show custom functions when the object is listed.
-$.each(["get", "shift", "readOrEvaluate", "indexOf", "count", "equals"], function(){
+$.each(["get", "shift", "readOrEvaluate", "indexOf", "count", "equals", "getUnique"], function(){
 	Object.defineProperty(YAML.prototype, this, { enumerable: false });
 });
 

@@ -26,7 +26,12 @@ Game.Dealer.prototype.init = function () {
 // and then resolve the promise right away.
 Game.Dealer.prototype.dealCards = function (successFn) {
 	var dealer = this;
-	var deal_promises = $(this.cards).collect(function() {
+	this.successFn = successFn;
+	// we hold the deal_promises on the dealer object,
+	// so other entities (eg; those that add animations)
+	// can add promises of their own, which they resolve when they are ready,
+	// allowing us to then move on.
+	this.deal_promises = $(this.cards).collect(function() {
 		var card = this;
 		var dfd = $.Deferred();
 		// deal the card, passing the deferred object,
@@ -40,12 +45,12 @@ Game.Dealer.prototype.dealCards = function (successFn) {
 	});
 	
 	// if no cards are dealt, get a promise from the InternalClock.
-	if (deal_promises == Game.Dealer.NO_DEAL) {
-		deal_promises.push(this.game.internal_clock.getPromise());
+	if (this.deal_promises == Game.Dealer.NO_DEAL) {
+		this.deal_promises.push(this.game.internal_clock.getPromise());
 	}
 	
 	// weird construction lets us put our array of promises into params of $.when().
-	$.when.apply($, deal_promises).then(successFn || $.noop);
+	this.master_promise = $.when.apply($, this.deal_promises).then(this.successFn || $.noop);
 }
 
 Game.Dealer.prototype.addCard = function (card_or_spec) {
@@ -56,6 +61,15 @@ Game.Dealer.prototype.addCard = function (card_or_spec) {
 	this.cards.push(card);
 	return card;
 }
+
+Game.Dealer.prototype.addPromise = function (dfd_promise, new_successFn) {
+	this.master_promise.reject();
+	this.deal_promises.push(dfd_promise);
+	// have to re-do when()...?
+	var _this = this;
+	this.master_promise = $.when.apply($, this.deal_promises).then(new_successFn || _this.successFn || $.noop);
+}
+
 // deal one specified card, regardless of what else might be in my 'deck'.
 Game.Dealer.prototype.dealOneCard = function (card_or_spec, successFn) {
 	var sv_cards = this.cards;

@@ -53,18 +53,30 @@ $.extend(Game.Scene.Basic.prototype, Game.Dealer.prototype);
 Game.Scene.Basic.prototype.init = function (events) {
 	// track Game.newRound events
 	$(document).on("Game.newRound", this.setup.bind(this));
+	
 	// track all of the state transitions that happen in Rounds.
+	// *** insure that only one listener gets created for each enter and leave event.
 	var round_events = $.collect(events, function () {
-		return "Round." + this.name;
-	}).join(" ");
+		return "Round.leave" + this.from + " Round.enter" + this.to;
+	}).getUnique().join(" ");
 	$(document).on(round_events, this.trackRound.bind(this));
 }
 
 
 // I respond to Round setup events by loading my background and dealing my cards.
-Game.Scene.Basic.prototype.setup = function (evt, obj, addl_classes) {
+Game.Scene.Basic.prototype.setup = function (evt, obj) {
 	if (!this.onstage) {
-		var backdrop_classes = "backdrop " + (addl_classes || "");
+		// all scene types get defined on Game.Scene, so we can loop 
+		// through them to discover our class.
+		var scene_type_names = Object.keys(Game.Scene);
+		var _this = this;
+		var scene_class = $.any(scene_type_names, function () {
+			if (Game.Scene[this] === _this.constructor) {
+				return this.underscore();
+			}
+		}) || "";
+		
+		var backdrop_classes = "backdrop " + scene_class;
 		this.backdrop.style(backdrop_classes);
 		this.backdrop.dealTo(this.container, null, Game.Card.SEND_TO_BACK);
 		// create the set pieces and place (deal) them.
@@ -78,8 +90,8 @@ Game.Scene.Basic.prototype.setup = function (evt, obj, addl_classes) {
 }
 
 
-Game.Scene.Basic.prototype.trackRound = function (evt, round, state_info) {
-	console.log("tracking", evt);
+Game.Scene.Basic.prototype.trackRound = function (evt, state_info) {
+	console.log("tracking", evt.namespace, state_info);
 }
 
 

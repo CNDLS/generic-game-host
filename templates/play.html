@@ -56,7 +56,7 @@
 		<script type="text/javascript" id="reporter" src="{{ STATIC_URL }}js/reporter.js"  report-to="{{ AJAX_PREFIX }}/write/{{ game.id }}/" csrftoken="{{ csrf_token }}"></script>
 			
 		<!-- library scripts. to be loaded for certain game types. -->
-		<script type="text/javascript" src="{{ STATIC_URL }}js/processing.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/createjs-2014.12.12.combined.js" ></script>
         
         <!-- game-type-specific js. -->
         {% if game_js %}
