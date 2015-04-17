@@ -82,7 +82,8 @@ Game.Round.Events = 	// the available states, and the events that transition bet
 		{ name: "listen",		from: "GivePrompt",								to: "ListenForPlayer" },
 		{ name: "evaluate",		from: "ListenForPlayer",						to: "EvaluateResponse" },
 		{ name: "timeout",		from: "ListenForPlayer",						to: "EvaluateResponse" },
-		{ name: "advance",		from: "EvaluateResponse",						to: "End" }
+		{ name: "advance",		from: "EvaluateResponse",						to: "End" },
+		{ name: "abort",		from: StateMachine.WILDCARD,					to: "End" }
 	];
 
 Game.Round.DEFAULTS = {

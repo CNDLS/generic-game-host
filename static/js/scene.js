@@ -91,7 +91,16 @@ Game.Scene.Basic.prototype.setup = function (evt, obj) {
 
 
 Game.Scene.Basic.prototype.trackRound = function (evt, state_info) {
-	console.log("tracking", evt.namespace, state_info);
+	// if a function w the event namespace is defined on the scene,
+	// call it, passing the event and the info object.
+	// don't interrupt the game if there are any problems.
+	// this is all for decoration.
+	// console.log("tracking " + evt.namespace);
+	try {
+		(this[evt.namespace] || $.noop)(evt, state_info);
+	} catch (e) {
+		console.log("Scene failed to respond to event.", evt, e);
+	}
 }
 
 

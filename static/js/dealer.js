@@ -14,6 +14,7 @@ Game.Dealer = function (game_or_round, container) {
 	this.context = game_or_round;
 	this.container = container || game_or_round.container;
 	this.cards = [];
+	this.deal_promises = [];
 	
 	Game.Dealer.NO_DEAL = [];
 }
@@ -63,11 +64,15 @@ Game.Dealer.prototype.addCard = function (card_or_spec) {
 }
 
 Game.Dealer.prototype.addPromise = function (dfd_promise, new_successFn) {
-	this.master_promise.reject();
+	if (this.master_promise && this.master_promise.state() === "resolved") {
+		return;
+	}
 	this.deal_promises.push(dfd_promise);
 	// have to re-do when()...?
 	var _this = this;
-	this.master_promise = $.when.apply($, this.deal_promises).then(new_successFn || _this.successFn || $.noop);
+	if (new_successFn) {
+		this.master_promise = $.when.apply($, this.deal_promises).then(new_successFn);
+	}
 }
 
 // deal one specified card, regardless of what else might be in my 'deck'.
