@@ -18,6 +18,7 @@ Game.Widgets.CountdownClock = function (game) {
 	// listen for startClock and stopClock events from the game.
 	$(document).on("game.startClock", this.start.bind(this));
 	$(document).on("game.stopClock", this.stop.bind(this));
+	$(document).on("game.resetClock", this.reset.bind(this));
 };
 
 Game.Widgets.CountdownClock.prototype.start = function (evt, max_time) {

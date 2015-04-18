@@ -28,8 +28,16 @@ $.extend(Game, {
 		}
 	},
 	
+	withCard: function (selector_to_query, test_selector, return_value, default_value) {
+		if ($(selector_to_query).is(test_selector)) {
+			return return_value;
+		} else {
+			return default_value;
+		}
+	},
+	
 	clearCards: function (selector) {
 		// clear all selected cards.
-		this.container.find(selector).find(".card").remove();
+		this.container.find(selector || "*").find(".card").remove();
 	}
 });

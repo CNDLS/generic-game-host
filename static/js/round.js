@@ -194,12 +194,26 @@ Game.Round.prototype.onbeforetimeout = function () {
 	$.event.trigger("game.stopClock");
 };
 
+Game.Round.prototype.onbeforeabort = function (eventname, from, to, next_round, abort_tear_down) {
+	if (abort_tear_down) {
+		this.tear_down = abort_tear_down;
+	}
+	this.onEnd(eventname, from, to, next_round);
+	return false; // don't continue with this event chain.
+};
+
 Game.Round.prototype.onEnd = function (eventname, from, to, next_round) {
+	$.event.trigger("game.resetClock");
+	
 	// do any 'tear down' of the round. do also for ending/interrupting game?
-	this.tear_down();
+	if ((this.tear_down instanceof YAML) && GameFunctionType.resolve(this.tear_down)) {
+		var game_fn = GameFunctionType.construct(this.tear_down);
+		game_fn.evaluate();
+	} else if (typeof this.tear_down === "function") {
+		this.tear_down();
+	}
 	var _this = this;
 	this.game.nextTick().then(function () {
-		var next_round = _this.read("Next", next_round);
-		_this.game.newRound(next_round);
+		_this.game.newRound(next_round || _this.read("Next"));
 	});
 };
