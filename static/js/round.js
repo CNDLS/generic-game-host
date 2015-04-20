@@ -141,7 +141,7 @@ Game.Round.prototype.endPrompting = function () {
 
 Game.Round.prototype.onListenForPlayer = function () {
 	if (this.listener instanceof Game.Round.Listener) {
-		this.prompter.init();
+		this.listener.init();
 		var endListening = this.endListening.bind(this);
 		this.listener.dealCards(endListening);
 		return StateMachine.ASYNC;

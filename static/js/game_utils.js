@@ -36,8 +36,9 @@ $.extend(Game, {
 		}
 	},
 	
-	clearCards: function (selector) {
+	clearCards: function (selector, card_classnames) {
 		// clear all selected cards.
-		this.container.find(selector || "*").find(".card").remove();
+		card_classnames = (card_classnames || "") + ".card";
+		$(selector || "*").find(card_classnames).remove();
 	}
 });

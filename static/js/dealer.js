@@ -317,13 +317,21 @@ Game.Answer.prototype.getContents = function () {
  * The Responder deals card(s) which give feedback to the user, based on their answer & its score.
  * TODO: add possibility of tailoring Responder w/in YAML, as is done with Prompter and Listener.
  */
-Game.Round.Responder = function (round) {
-	Util.extend_properties(this, new Game.Dealer(round, round.container));
+Game.Round.Responder = function (round, spec) {
+	var container = (spec && spec.container) ? spec.container : round.container;
+	Util.extend_properties(this, new Game.Dealer(round, container));
 	
 	Game.Round.Responder.DEFAULTS = {
 		FeedbackType: "Simple" // just a text/html message in a Card.
 	}
-	
+}
+$.extend(Game.Round.Responder.prototype, Game.Dealer.prototype);
+
+Game.Round.Responder.prototype.init = function (answer, score) {
+	// hang onto answer & score, so they are available to listeners of Round events.
+	this.answer = answer;
+	this.score = score;
+
 	// get answer's feedback, if any.
 	var feedback = [];
 	if (typeof answer !== "undefined") {
@@ -339,16 +347,9 @@ Game.Round.Responder = function (round) {
 	// careful, as 'feedback' is a mass noun: they are feedback; it is feedback.
 	var _this = this;
 	this.cards = $.map(feedback, function(feedback) {
-		var feedback_type = feedback.type || Game.Responder.DEFAULTS.FeedbackType
-		return Game.DealersCardFactory.create("ResponderCard", feedback_type, _this, round, answer, score);
+		var feedback_type = feedback.type || Game.Round.Responder.DEFAULTS.FeedbackType
+		return Game.DealersCardFactory.create("ResponderCard", feedback_type, _this, _this.round, answer, score);
 	});
-}
-$.extend(Game.Round.Responder.prototype, Game.Dealer.prototype);
-
-Game.Round.Responder.prototype.init = function (answer, score) {
-	// hang onto answer & score, so they are available to listeners of Round events.
-	this.answer = answer;
-	this.score = score;
 }
 
 Game.ResponderCard.Simple = function (args) {
