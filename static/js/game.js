@@ -201,8 +201,7 @@ Game.prototype.newRound = function (next_round) {
 	this.report(
 		function create_round() {
 			if (game_is_over) {
-				game.gameFeedback();
-				game.allowReplay();
+				game.end();
 			} else {
 				if (next_round instanceof YAML) {
 					game.current_round = new Game.Round(game, next_round);
@@ -215,11 +214,15 @@ Game.prototype.newRound = function (next_round) {
 			}
 		}, 
 		function catch_func (e) {
-			game.gameFeedback();
-			game.allowReplay();
+			game.end();
 		}
 	);
 };
+
+Game.prototype.end = function() {
+	this.gameFeedback();
+	this.allowReplay();
+}
 
 Game.prototype.abort = function() {
 	// this is our way of cleaning up following a fatal error.
