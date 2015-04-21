@@ -400,8 +400,11 @@ table#detail td {
   float: left;
   padding: 0.25em 1em;
 }
-#footer ul li img {
+#footer ul li {
   height: 64px;
+}
+#footer ul li object {
+  height: 100%;
 }
 
 #logo-gu {
