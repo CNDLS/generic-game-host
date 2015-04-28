@@ -26,7 +26,6 @@ function Game(game_spec, report_url, csrftoken) {
 	this.title = $("#title").html(this.read("Title"));
 	this.rounds = this.read("Rounds"); // the rounds of the game.
 	this.internal_clock = this.read("InternalClock"); // alt InternalClock eg; main GodotEngine scene.
-	this.dealer = this.read("Dealer"); // generic Dealer just for Intro or other notifications from the Game.
 	this.reporter = this.read("Reporter");
 	this.winning_score = this.read("WinningScore");
 	this.current_score = 0;
@@ -77,7 +76,7 @@ Game.DEFAULTS = {
 	Scenes: [],
 	Widgets: [],
 	Reporter: "Reporter",
-	Dealer: "Dealer",
+	IntroDealer: "Dealer",
 	Rounds: [],
 	Utilities: {},
 	Intro: "Welcome to the game!",
@@ -106,17 +105,29 @@ Game.prototype.report = function (create_round, catch_func) {
 }
 
 Game.prototype.introduce = function () {
-	// introduce any explanatory note.
-	var intro_spec = this.read("Intro");
-	if (typeof intro_spec === "string"){
-		intro_spec = { content: intro_spec };
-	}
-	// by default, use Game.Card.Modal to define the card.
-	intro_spec = $.extend({ type: "Modal" }, intro_spec);
+	this.intro_dealer = this.read("IntroDealer");
 	
-	// deliver just the intro card. we will require a click-through on this card.
-	var intro_card = this.dealer.dealOneCard(intro_spec);
-	$.when( intro_card.dfd ).then(this.newRound.bind(this));
+	// introduce any explanatory note.
+	var intro_specs = this.read("Intro");
+	if (!intro_specs instanceof Array) {
+		intro_specs = [intro_specs];
+	}
+	
+	// make sure our intro_specs fit requirements.
+	var _this = this;
+	var intro_cards = $.each(intro_specs, function () {
+		var intro_spec = this;
+		if (typeof intro_spec === "string"){
+			intro_spec = { content: intro_spec };
+		}
+		// by default, use Game.Card.Modal to define the card.
+		intro_spec = $.extend({ type: "Modal" }, intro_spec);
+		return _this.intro_dealer.addCard(intro_spec);
+	});
+	
+	// deliver just the intro cards. 
+	// the default IntroDealer will deal the Cards, one at-a-time, requiring click-through on each.
+	this.intro_dealer.dealCards(this.newRound.bind(this));
 };
 
 Game.prototype.timeoutRound = function () {

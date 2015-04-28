@@ -103,15 +103,31 @@ Game.Card.create = function (spec) {
 
 
 /* 
+ * Game.Card.SequenceStep
+ * Cards which are a part of a sequence of Cards.
+ * When a Dealer encounters a SequenceStep Card, 
+ * it halts dealing until the current list of promises is resolved,
+ * then it deals cards again, until all are dealt 
+ * or until the Dealer reaches another SequenceStep Card.
+ */
+Game.Card.SequenceStep = function (spec) {
+	// create a card in the normal way.
+	Util.extend_properties(this, new Game.Card(spec));
+}
+$.extend(Game.Card.SequenceStep.prototype, Game.Card.prototype);
+Game.Card.SequenceStep.prototype = new Game.Card(null); 
+
+
+/* 
  * Game.Card.Modal
  * Cards which 'stop the action' & require a user response.
  */
 Game.Card.Modal = function (spec) {
 	// create a card in the normal way.
-	Util.extend_properties(this, new Game.Card(spec));
+	Util.extend_properties(this, new Game.Card.SequenceStep(spec));
 }
-$.extend(Game.Card.Modal.prototype, Game.Card.prototype);
-Game.Card.Modal.prototype = new Game.Card(null); 
+$.extend(Game.Card.Modal.prototype, Game.Card.SequenceStep.prototype);
+Game.Card.Modal.prototype = new Game.Card.SequenceStep(null); 
 
 Game.Card.Modal.prototype.dealTo = function (container, dfd) {
 	Game.Card.prototype.dealTo.call(this, container, dfd);

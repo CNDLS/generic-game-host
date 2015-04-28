@@ -15,6 +15,7 @@ Game.Dealer = function (game_or_round, container) {
 	this.container = container || game_or_round.container;
 	this.cards = [];
 	this.deal_promises = [];
+	this.marker = 0; // where we are in dealing cards.
 	
 	Game.Dealer.NO_DEAL = [];
 }
@@ -25,24 +26,36 @@ Game.Dealer.prototype.init = function () {
 	
 // default action for dealing cards is just to put them onscreen,
 // and then resolve the promise right away.
-Game.Dealer.prototype.dealCards = function (successFn) {
-	var dealer = this;
+Game.Dealer.prototype.dealCards = function (successFn, start_at) {
 	this.successFn = successFn;
 	// we hold the deal_promises on the dealer object,
 	// so other entities (eg; those that add animations)
 	// can add promises of their own, which they resolve when they are ready,
 	// allowing us to then move on.
-	this.deal_promises = $(this.cards).collect(function() {
-		var card = this;
-		var dfd = $.Deferred();
-		// deal the card, passing the deferred object,
-		// which it can take the responsibility for and then must
-		// dfd.resolve() once the card is dealt.
-		// if it takes on that responsibility, card.dealTo() returns true.
-		// REMEMBER, at this point, the Card is just saying whether or not it has been dealt;
-		// Cards that wait for user input once they've been dealt should do so via a different dfd.
-		( card.dealTo(null, dfd) ) ? $.noop() : dfd.resolve();
-		return dfd.promise();
+	var _this = this;
+	this.deal_promises = $(this.cards).collect(function(i) {
+		if (i == _this.marker) {
+			var card = this;
+			if (card instanceof Game.Card.SequenceStep) {
+				// stop deaing, until all current cards resolve their promises.
+				_this.savedSuccessFn = _this.successFn;
+				_this.successFn = (function () {
+					this.dealCards(this.savedSuccessFn, ++this.marker);
+				}).bind(_this);
+			} else {
+				// keep dealing cards.
+				++_this.marker;
+			}
+			var dfd = $.Deferred();
+			// deal the card, passing the deferred object,
+			// which it can take the responsibility for and then must
+			// dfd.resolve() once the card is dealt.
+			// if it takes on that responsibility, card.dealTo() returns true.
+			// REMEMBER, at this point, the Card is just saying whether or not it has been dealt;
+			// Cards that wait for user input once they've been dealt should do so via a different dfd.
+			( card.dealTo(null, dfd) ) ? $.noop() : dfd.resolve();
+			return dfd.promise();
+		}
 	});
 	
 	// if no cards are dealt, get a promise from the InternalClock.
@@ -361,3 +374,20 @@ Game.ResponderCard.Simple = function (args) {
 	}
 }
 $.extend(Game.ResponderCard.Simple.prototype, Game.Card.prototype);
+
+
+
+/*
+ * SequentialDealer - this is a Dealer usually defined on the Game. It is for dealing a sequence of cards,
+ * one after the other, as each one's Deferred promise resolves. All other Dealers wait in parallel for
+ * all Card promises to be resolved before moving on.
+ */
+// Game.SequentialDealer = function (game, specs) {
+// 	var container = (spec && spec.container) ? spec.container : game.container;
+// 	Util.extend_properties(this, new Game.Dealer(game, container));
+// }
+// $.extend(Game.SequentialDealer.prototype, Game.Dealer.prototype);
+//
+// Game.SequentialDealer.prototype.dealCards = function(successFn) {
+// 	debugger;
+// }
