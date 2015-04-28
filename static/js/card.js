@@ -26,6 +26,15 @@ Game.Card = function(spec) {
 	// some card-related constants.
 	Game.Card.SEND_TO_BACK = -1;
 	
+	// evaluate any YAML that needs it.
+	// if (spec instanceof YAML) {
+	// 	var spec_proto = spec.constructor.prototype;
+	// 		debugger;
+	// 	if (spec_proto["evaluate"] instanceof Function) {
+	// 		spec = spec_proto.evaluate.call(spec);
+	// 	}
+	// }
+	
 	// save the spec, in case we need to manipulate the card contents later on.
 	this.spec = spec;
 	

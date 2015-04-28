@@ -34,9 +34,17 @@ EncodedLink.prototype.evaluate = function () {
 		content = content.evaluate();
 	}
 	delete this.data.content;
+	
 	var href = this.data['href'] || "#";
 	delete this.data.href;
-	var link = "<a href='" + href + "'"
+	var classnames = this.data['class'] || "#";
+	if (classnames){
+		delete this.data.class;
+		var link = "<a class='" + classnames + "' href='" + href + "'";
+	} else {
+		var link = "<a href='" + href + "'";
+	}
+	
 	for (m in this.data) {
 		link = link + " " + m + "='" + this.data[m] + "'"
 	}
@@ -55,15 +63,29 @@ var LinkType = new jsyaml.Type("!link", {
 	}
 });
 
-	
+
+function Concat (data) {
+	data.unshift([]);
+	this.data = Array.prototype.reduce.call(data, function (a, b) {
+		return a.concat(b);
+	});
+}
+Concat.prototype.evaluate = function () {
+	this.str_data = $.collect(this.data, function (i) {
+		var item = (this["evaluate"] instanceof Function) ? this.evaluate() : this;
+		return item;
+	});
+	return this.str_data.join("");
+}
+
 var ConcatType = new jsyaml.Type("!concat", {
 	kind: "sequence",
+	instanceOf: Concat,
+	resolve: function (data) {
+		return data instanceof Array; 
+	},
 	construct: function (data) {
-		var str_data = $.collect(data, function (i) {
-			var proto = this.constructor.prototype;
-			return (proto.hasOwnProperty("evaluate")) ? proto.evaluate.apply(this) : this;
-		});
-		return str_data.join("");
+		return new Concat(data);
 	}
 });
 
@@ -124,6 +146,10 @@ YAML.prototype.shift = function () {
 	return Array.prototype.shift.call(this);
 };
 
+YAML.prototype.join = function () {
+	return Array.prototype.join.call(this);
+};
+
 YAML.prototype.indexOf = function (obj) {
 	var i = 0;
 	for (var m in this) {
@@ -156,7 +182,7 @@ YAML.prototype.equals = function (obj) {
 }
 
 // don't show custom functions when the object is listed.
-$.each(["get", "shift", "readOrEvaluate", "indexOf", "count", "equals", "getUnique"], function(){
+$.each(["get", "shift", "join", "readOrEvaluate", "indexOf", "count", "equals", "getUnique"], function(){
 	Object.defineProperty(YAML.prototype, this, { enumerable: false });
 });
 
