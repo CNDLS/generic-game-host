@@ -47,7 +47,7 @@ Game.Scene.Basic = function (backdrop_spec, set_piece_specs, game_or_round) {
 	}
 	this.onstage = false; // we should be able to switch out scenes while saving their state.
 }
-$.extend(Game.Scene.Basic.prototype, Game.Dealer.prototype);
+Util.extend(Game.Scene.Basic, Game.Dealer);
 
 
 Game.Scene.Basic.prototype.init = function (events) {
@@ -124,5 +124,5 @@ Game.SetPieceFactory = {
 Game.SetPiece.Basic = function (card_spec) {
 	Util.extend_properties(this, new Game.Card(card_spec));
 }
-$.extend(Game.SetPiece.Basic.prototype, Game.Card.prototype);
+Util.extend(Game.SetPiece.Basic, Game.Card);
 Game.SetPiece.Basic.prototype = new Game.Card(null); 

@@ -26,15 +26,6 @@ Game.Card = function(spec) {
 	// some card-related constants.
 	Game.Card.SEND_TO_BACK = -1;
 	
-	// evaluate any YAML that needs it.
-	// if (spec instanceof YAML) {
-	// 	var spec_proto = spec.constructor.prototype;
-	// 		debugger;
-	// 	if (spec_proto["evaluate"] instanceof Function) {
-	// 		spec = spec_proto.evaluate.call(spec);
-	// 	}
-	// }
-	
 	// save the spec, in case we need to manipulate the card contents later on.
 	this.spec = spec;
 	
@@ -42,27 +33,32 @@ Game.Card = function(spec) {
 	this.dealer = {};
 	
 	// we want to always have a single HTML element to represent each Card.
-	var card_scaffold = $(document.createElement("div"));
-	card_scaffold.render(spec.content || spec);
+	if ( ((spec instanceof HTMLElement) || (spec instanceof jQuery)) 
+		&& ($(spec).attr("data-keep-in-dom") === "true") ) {
+		this.element = $(spec);
+	} else {
+		var card_scaffold = $(document.createElement("div"));
+		card_scaffold.render(spec.content || spec);
 	
-	// we want to always have a single HTML element to represent each Card.
-	// so if the spec has generated siblings, we wrap them in a div.
-	var nodes_in_card = card_scaffold.get(0).childNodes;
-	switch (nodes_in_card.length) {
-		case 0:
-			throw new Error("Could not create Card.");
-			break;
+		// we want to always have a single HTML element to represent each Card.
+		// so if the spec has generated siblings, we wrap them in a div.
+		var nodes_in_card = card_scaffold.get(0).childNodes;
+		switch (nodes_in_card.length) {
+			case 0:
+				throw new Error("Could not create Card.");
+				break;
 			
-		case 1:
-			// if it is a text node, use card_scaffold as the Card element.
-			// otherwise, use the child node.
-			var node = nodes_in_card[0];
-			this.element = (node.nodeType == 3) ? card_scaffold : $(node);
-			break;
+			case 1:
+				// if it is a text node, use card_scaffold as the Card element.
+				// otherwise, use the child node.
+				var node = nodes_in_card[0];
+				this.element = (node.nodeType == 3) ? card_scaffold : $(node);
+				break;
 			
-		default:
-			this.element = card_scaffold;
-			break;
+			default:
+				this.element = card_scaffold;
+				break;
+		}
 	}
 	
 	this.element.addClass("card");
@@ -74,13 +70,18 @@ Game.Card.prototype.style = function (css_classes) {
 	return this; // for daisy-chaining.
 }
 
+Game.Card.prototype.find = function (selector) {
+	// just pass to element.
+	return this.element.find(selector);
+}
+
 
 Game.Card.prototype.dealTo = function (container, dfd, position) {
 	// find or create a place in the game in which to put the cards.
-	var container_spec = container || this.spec.container || this.dealer.container || "#cards";
+	var container_spec = container || this.spec.container || this.dealer.container;
 	this.container = $(container_spec);
 	if (this.container.length == 0) {
-		this.container = $("#game").render(container_spec);
+		this.container = $("#game");
 	}
 	
 	this.dfd = dfd || $.Deferred();
@@ -123,7 +124,7 @@ Game.Card.SequenceStep = function (spec) {
 	// create a card in the normal way.
 	Util.extend_properties(this, new Game.Card(spec));
 }
-$.extend(Game.Card.SequenceStep.prototype, Game.Card.prototype);
+Util.extend(Game.Card.SequenceStep, Game.Card);
 Game.Card.SequenceStep.prototype = new Game.Card(null); 
 
 
@@ -135,7 +136,7 @@ Game.Card.Modal = function (spec) {
 	// create a card in the normal way.
 	Util.extend_properties(this, new Game.Card.SequenceStep(spec));
 }
-$.extend(Game.Card.Modal.prototype, Game.Card.SequenceStep.prototype);
+Util.extend(Game.Card.Modal, Game.Card.SequenceStep);
 Game.Card.Modal.prototype = new Game.Card.SequenceStep(null); 
 
 Game.Card.Modal.prototype.dealTo = function (container, dfd) {

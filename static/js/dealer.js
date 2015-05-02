@@ -26,7 +26,7 @@ Game.Dealer.prototype.init = function () {
 	
 // default action for dealing cards is just to put them onscreen,
 // and then resolve the promise right away.
-Game.Dealer.prototype.dealCards = function (successFn, start_at) {
+Game.Dealer.prototype.dealCards = function (successFn, start_at, dfd) {
 	this.successFn = successFn;
 	// we hold the deal_promises on the dealer object,
 	// so other entities (eg; those that add animations)
@@ -46,7 +46,7 @@ Game.Dealer.prototype.dealCards = function (successFn, start_at) {
 				// keep dealing cards.
 				++_this.marker;
 			}
-			var dfd = $.Deferred();
+			dfd = dfd || $.Deferred();
 			// deal the card, passing the deferred object,
 			// which it can take the responsibility for and then must
 			// dfd.resolve() once the card is dealt.
@@ -56,7 +56,7 @@ Game.Dealer.prototype.dealCards = function (successFn, start_at) {
 			( card.dealTo(null, dfd) ) ? $.noop() : dfd.resolve();
 			return dfd.promise();
 		}
-	});
+	}).getUnique();
 	
 	// if no cards are dealt, get a promise from the InternalClock.
 	if (this.deal_promises == Game.Dealer.NO_DEAL) {
@@ -137,8 +137,8 @@ Game.ResponderCard = {};
 // a factory for creating cards for the various dealers.
 Game.DealersCardFactory = {
 	create: function (/* dealer_card_scope_name, card_type, dealer, ... */) {
-	    if (arguments.length === 0) return;
-	    var args = Array.prototype.slice.call(arguments);
+		if (arguments.length === 0) return;
+		var args = Array.prototype.slice.call(arguments);
 		var dealer_card_scope_name = args.shift();
 		var dealer_card_scope = Game[dealer_card_scope_name];
 		var card_type = args.shift();
@@ -193,14 +193,14 @@ Game.Round.Prompter = function (round, spec) {
 		return Game.DealersCardFactory.create("PromptCard", prompt_card_type, _this, prompt);
 	});
 }
-$.extend(Game.Round.Prompter.prototype, Game.Dealer.prototype);
+Util.extend(Game.Round.Prompter, Game.Dealer);
 
 
 Game.PromptCard.Simple = function (args) {
 	var spec = args.shift();
 	Util.extend_properties(this, new Game.Card(spec));
 }
-$.extend(Game.PromptCard.Simple.prototype, Game.Card.prototype);
+Util.extend(Game.PromptCard.Simple, Game.Card);
 
 
 /* 
@@ -210,7 +210,7 @@ $.extend(Game.PromptCard.Simple.prototype, Game.Card.prototype);
  * Basic response widget types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
  * Other types can be defined in a game_utils.js file for a particular instance. 
  */
-Game.Round.Listener = function(round, spec) {
+Game.Round.Listener = function(round, spec, response_types) {
 	var container = (spec && spec.container) ? spec.container : round.container;
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
@@ -218,7 +218,8 @@ Game.Round.Listener = function(round, spec) {
 		Type: "MultipleChoiceCard"
 	}
 	// get response types and insure it is an array.
-	var response_types = round.read("ResponseTypes");
+	response_types = response_types || [];
+	response_types = round.read("ResponseTypes", response_types);
 	if (typeof response_types === "string") {
 		response_types = [response_types];
 	}
@@ -229,14 +230,47 @@ Game.Round.Listener = function(round, spec) {
 		return Game.DealersCardFactory.create("ListenerCard", listener_card_type, _this, round);
 	});
 }
-$.extend(Game.Round.Listener.prototype, Game.Dealer.prototype);
+Util.extend(Game.Round.Listener, Game.Dealer);
 
-Game.Round.Listener.prototype.deactivateCards = function () {
+Game.Round.Listener.prototype.deactivateCards = function(){
 	$.each(this.cards, function () {
 		$(this.element).find("input").prop( "disabled", true );
 	});
 }
 
+/*
+ * PromptLinkListener -- listens for clicks on links embedded in the Prompt card(s).
+ */
+Game.Round.PromptLinkListener = function (round, spec) {
+	Util.extend_properties(this, new Game.Round.Listener(round, spec));
+	// I don't need a ResponseType -- by default, I just scan
+	// the Prompt for links, and call those my cards. I attach a click
+	// listener to each to set up promises.
+	// Of course, this all relies on the Prompt still being available onscreen.
+	// What to do about mis-matches between nbr of links in the Prompt 
+	// and nbr of answers listed in the spec?
+	var _this = this;
+	var prompt_links = [];
+	$(round.prompter.cards).each(function(){
+		$.merge(prompt_links, this.find("a"));
+	});
+	$.each(round.answers, function (i, answer_spec) {
+		var link_id = "prompt_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
+		try {
+			var card_elem = prompt_links[i];
+			var link_card = Game.DealersCardFactory.create("ListenerCard", "LinkCard", _this, round, card_elem);
+			_this.addCard(link_card);
+			link_card.answer = new Game.Answer(answer_spec);
+		} catch (e) {
+			console.log(e)
+		}
+	});
+}
+Util.extend(Game.Round.PromptLinkListener, Game.Round.Listener);
+
+Game.Round.PromptLinkListener.prototype.dealCards = function (successFn, start_at, dfd) {
+	Game.Dealer.prototype.dealCards.call(this, successFn, start_at, $.Deferred());
+}
 
 /* Each ListenerCard will capture input form the user(s).
  * Upon receiving user input, the card resolves the Listener's Deferred,
@@ -248,7 +282,7 @@ Game.ListenerCard.FreeResponseCard = function (args) {
 	var round = args.shift();
 	Util.extend_properties(this, new Game.Card({ div:"<input type=\"text\" />" }));
 }
-$.extend(Game.ListenerCard.FreeResponseCard.prototype, Game.Card.prototype);
+Util.extend(Game.ListenerCard.FreeResponseCard, Game.Card);
 
 Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container, dfd) {
 	Game.Card.prototype.dealTo.call(this, container, dfd);
@@ -286,7 +320,7 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 	}).join("\n");
 	Util.extend_properties(this, new Game.Card(radio_btn_html));
 }
-$.extend(Game.ListenerCard.MultipleChoiceCard.prototype, Game.Card.prototype);
+Util.extend(Game.ListenerCard.MultipleChoiceCard, Game.Card);
 
 Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container, dfd) {
 	Game.Card.prototype.dealTo.call(this, container, dfd);
@@ -303,6 +337,33 @@ Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container, dfd
 	return true;
 }
 
+
+/* 
+ * This card waits for a click on a link. 
+ */
+Game.ListenerCard.LinkCard = function (args) {
+	this.round = args.shift();
+	var elem = args.shift();
+	$(elem).attr("data-keep-in-dom", true);
+	Util.extend_properties(this, new Game.Card(elem));
+}
+Util.extend(Game.ListenerCard.LinkCard, Game.Card);
+
+Game.ListenerCard.LinkCard.prototype.dealTo = function (container, dfd) {
+	var _this = this;
+	this.element.click(function(e) {
+		// disable the link after one click (maybe will want a double-click option at some point?)
+		$(this).prop('disabled', true);
+		// get answer & score, and pass them when resolving my promise (dfd).
+		var correct = _this.answer.correct || false;
+		var value = _this.answer.value || 1;
+		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
+		var answer = new Game.Answer(_this.answer);
+		var score = correct ? value : neg_value;
+		dfd.resolve(answer, score);
+	});
+	return true;
+}
 
 /* 
  * Answers are how the user's actions are communicated to the program. 
@@ -338,7 +399,7 @@ Game.Round.Responder = function (round, spec) {
 		FeedbackType: "Simple" // just a text/html message in a Card.
 	}
 }
-$.extend(Game.Round.Responder.prototype, Game.Dealer.prototype);
+Util.extend(Game.Round.Responder, Game.Dealer);
 
 Game.Round.Responder.prototype.init = function (answer, score) {
 	// hang onto answer & score, so they are available to listeners of Round events.
@@ -373,21 +434,4 @@ Game.ResponderCard.Simple = function (args) {
 		Util.extend_properties(this, new Game.Card(answer.feedback));
 	}
 }
-$.extend(Game.ResponderCard.Simple.prototype, Game.Card.prototype);
-
-
-
-/*
- * SequentialDealer - this is a Dealer usually defined on the Game. It is for dealing a sequence of cards,
- * one after the other, as each one's Deferred promise resolves. All other Dealers wait in parallel for
- * all Card promises to be resolved before moving on.
- */
-// Game.SequentialDealer = function (game, specs) {
-// 	var container = (spec && spec.container) ? spec.container : game.container;
-// 	Util.extend_properties(this, new Game.Dealer(game, container));
-// }
-// $.extend(Game.SequentialDealer.prototype, Game.Dealer.prototype);
-//
-// Game.SequentialDealer.prototype.dealCards = function(successFn) {
-// 	debugger;
-// }
+Util.extend(Game.ResponderCard.Simple, Game.Card);

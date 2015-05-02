@@ -149,6 +149,7 @@ Game.Round.prototype.onListenForPlayer = function () {
 };
 
 Game.Round.prototype.endListening = function (answer, score) {
+	debugger;
 	// make any listener cards still onscreen unreceptive to user input (show them disabled).
 	// this is the default behavior; a listener would have to override if inputs should stay active
 	// past this point.

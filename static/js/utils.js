@@ -102,6 +102,14 @@ Util = {
 				child[m] = parent[m];
 			}
 		}
+	},
+	
+	extend: function(subclass, superclass) {
+		"use strict";
+
+		function o() { this.constructor = subclass; }
+		o.prototype = superclass.prototype;
+		return (subclass.prototype = new o());
 	}
 }
 
@@ -163,8 +171,14 @@ $.fn.render = function (spec) {
 		case "object":
 			if (spec instanceof Array) {
 				for (var item in spec) {
-					$(this).append(createElement(item));
+					if (spec instanceof HTMLElement) {
+						$(this).append(item);
+					} else {
+						$(this).append(createElement(item));
+					}
 				}
+			} else if (spec instanceof HTMLElement) {
+				$(this).append(spec);
 			} else {
 				var keys = Object.keys(spec);
 				var key;
