@@ -1,25 +1,28 @@
 body {
   /*text-align: center;*/
-  background: #6699cc;
   font-family: helvetica, arial, sans-serif;
-  margin: 0 0;
+  font-size: 18px;
+  padding: 0;
+  margin: 0 ;
   height: 100%;  
   min-height: 100%;
+  text-transform: lowercase;
+  letter-spacing: 0.75px;
 }
-
-body.browser {
-  background: white;
-}
-
 textarea {
   padding: 0 0;
   margin: 0 0;
   border: none;
-  }
-
+}
 
 #game {
-    margin: 24px;
+  margin: 24px;
+  text-transform: none;
+}
+
+.left_column, .right_column {
+  float: left;
+  height: 100%;
 }
 
 #login-box {
@@ -126,10 +129,12 @@ textarea#clock, textarea#scoreboard {
   color: #fff;
 }
 textarea#clock {
-    background-color: #ee4e00;
+  background-color: #ee4e00;
+  overflow: hidden;
 }
 textarea#scoreboard {
-    background-color: #4eee00;
+  background-color: #4eee00;
+  overflow: hidden;
 }
 
 
@@ -172,6 +177,36 @@ a:focus {
 
 .active {
   background-position: right 12px;
+}
+
+ul.gallery {
+  bottom: 0;
+}
+ul.gallery {
+  list-style: none;
+}
+ul.gallery li {
+  padding-top: 0.5em;
+}
+
+ul.gallery li:nth-child(1) {
+  transform: rotate(-0.75deg);
+}
+ul.gallery li:nth-child(2) {
+  transform: rotate(0.5deg);
+}
+ul.gallery li:nth-child(3) {
+  transform: rotate(-1deg);
+}
+
+ul.objectives li:nth-child(1) {
+  list-style: url('../img/o1.png');
+}
+ul.objectives li:nth-child(2) {
+  list-style: url('../img/x1.png');
+}
+ul.objectives li:nth-child(3) {
+  list-style: url('../img/o2.png');
 }
 
 #message {
@@ -369,39 +404,66 @@ table#detail td {
   opacity: 0.3;
 }
 
-
-
 .blurb {
   padding: 1em 2em;
+  color: dodgerblue;
+  font-family: 'Shadows Into Light Two', cursive;
 }
 .gallery {
   padding: 0 2em;
 }
-.gallery a {
-	color: #011e41;
+.gallery li.the-games {
+  width: 100%;
+  text-align: center;
+}
+.gallery li.the-games a {
+	color: #ff66ff;
 	text-decoration:none;
 	padding: 0.25em 1em;
 }
-.gallery a:hover {
+.gallery li.the-games a:hover {
 	color: white;
-	background: #011e41;
+	background: #ff66ff;
 }
 
 #banner {
-  padding: 0.25em 0.5em;
+  padding: 2em 1em 0 1em;
+}
+#banner h1 {
+  font-family: 'Shadows Into Light Two', cursive;
+  color: #ff66ff;
+  margin-bottom: 0;
+}
+#banner h1 span.lev {
+  color: #99ff66;
+}
+#banner h1 span.slash {
+  color: #ff66ff;
+  font-weight: bold;
+}
+#banner h1 span.l {
+  color: #66ffff;
 }
 
+#footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
 #footer ul {
-  background:#ccc;
+  background: #ffce56;
   list-style: none;
-  padding-left:0;
+  padding: 0.25em;
+  margin: 0;
+  font-size: 0.85em;
 }
 #footer ul li {
   float: left;
-  padding: 0.25em 1em;
+  padding: 0.5em 1em;
+  color: dodgerblue;
 }
 #footer ul li img {
-  height: 64px;
+  height: 40px;
 }
 
 #logo-gu {
