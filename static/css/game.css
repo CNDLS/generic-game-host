@@ -252,6 +252,7 @@ ul.objectives li:nth-child(3) {
 
 .report.dialog {
   background: rgba(255,255,255,0.33);
+  min-width: 75%;
 }
 
 .report.dialog h1{

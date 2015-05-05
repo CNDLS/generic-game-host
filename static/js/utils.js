@@ -94,7 +94,6 @@ Array.prototype.getUnique = function(){
    return a;
 }
 
-
 Util = {
 	extend_properties: function(child, parent) {
 		for (m in parent) {

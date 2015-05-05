@@ -8,6 +8,7 @@
 
 
 Game.Scene = {}
+Game.Scene.new = Game.new.bind(Game.Scene);
 Game.SetPiece = {}
 
 

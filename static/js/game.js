@@ -239,3 +239,18 @@ Game.prototype.abort = function() {
 	// this is our way of cleaning up following a fatal error.
 	// nothing to do here in a generic way, but maybe we'll want the option of a game tearDown()?
 }
+
+
+/* 
+ * STATIC FUNCTIONS ON GAME OBJECT  Util.extend_properties(this, new Game.Dealer(game_or_round));
+ */
+Game.new = function (proto, scope_name, obj) {
+	fn = function(){
+		Util.extend_properties(this, (proto || this).prototype.constructor.apply(this, arguments));
+	};
+	Util.extend(fn, proto || this);
+	for (var m in obj) {
+		fn.prototype[m] = obj[m];
+	}
+	this[scope_name] = fn;
+}
