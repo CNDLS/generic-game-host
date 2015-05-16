@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+<div class="left_column">
+  <div id="banner">
+    <img src="{% static "img/levl.png" %}">
+    <h1><span class="lev">learning environment</span> <span class="slash">/</span> <span class="l">lab</span></h1>
+  </div>
+  <div class="blurb">
+    <h2>What if students wanted to play your course until they <u>won</u>?</h2> 
+    This is Georgetown University's kit for making Web games for teaching and learning.<br />
+    Use it to develop simple, Web-based games that express something.
+
+    <h2>lev/l Objectives</h2>
+    <ul class="objectives">
+      <li>add compelling game features to learning activities.</li>
+      <li>adjust gameplay to meet learning goals.</li>
+      <li>assess student learning through gameplay.</li>
+    </ul>
+  </div>
+</div>
+<div class="right_column">
+  <ul class="gallery">
+    <li><img src="{% static "img/spanish-game01.2.png" %}"></li>
+    <li><img src="{% static "img/evidence_game2.png" %}"></li>
+    <li><img src="{% static "img/spanish-game02.2.png" %}"></li>
+    <li class="the-games"><a href="{% url 'list' %}">The Games &gg;</a></li>
+  </ul>
+</div>
+
+<div id="footer">
+  <ul class="clearfix">
+    <li><a href="mailto:cndls@georgetown.edu?Subject=SaxaJS" target="_top"><img id="logo-cndls" src="{% static "img/cndls-logo.png" %}"></a></li>
+    <li><img id="logo-gu" src="{% static "img/gu-logo.png" %}"></li>
+    <li>
+        3520 Prospect St. NW #314<br />
+        Washington, DC 20057<br />
+        202.687.0625
+    </li>
+  </ul>
+</div>
+{% endblock %}

@@ -1,18 +1,23 @@
 body {
   /*text-align: center;*/
   font-family: helvetica, arial, sans-serif;
-  font-size: 18px;
+  font-size: 24px;
   padding: 0;
   margin: 0 ;
   height: 100%;  
   min-height: 100%;
-  text-transform: lowercase;
+/*  text-transform: lowercase;*/
   letter-spacing: 0.75px;
 }
 textarea {
   padding: 0 0;
   margin: 0 0;
   border: none;
+}
+
+.navbar-brand {
+  width: 210px;
+  height: 90px;
 }
 
 #game {
@@ -87,7 +92,7 @@ label.form-label {
   padding-left: .3em;
   text-transform: uppercase;
   color: #6699cc;
-  font-family: 'Rationale', sans-serif;
+  font-family: 'OSP-DIN', sans-serif;
 }
 
 .right{
@@ -102,7 +107,7 @@ label.form-label {
 
 #top a {
   font-size: 1.5em;
-  font-family: 'Rationale', sans-serif;
+  font-family: 'OSP-DIN', sans-serif;
 	color: #6699cc;
 	text-decoration: none;
   text-transform: uppercase;
@@ -119,7 +124,7 @@ label.form-label {
 }
 
 textarea#clock, textarea#scoreboard {
-  font-family: 'Rationale', sans-serif;
+  font-family: 'OSP-DIN', sans-serif;
   font-size: 2em;
   padding-top:10px;
   text-align: center;
@@ -155,7 +160,6 @@ a:focus {
   padding: 0;
   background:  url() no-repeat right top;  
   position: absolute;
-  left:770px;
 
 }
 .btn-slide {
@@ -165,7 +169,7 @@ a:focus {
   padding: 7px 10px 0px 10px;
   height: 43px;
   display: block;
-  font-family: 'Rationale', sans-serif;
+  font-family: 'OSP-DIN', sans-serif;
   font-size: 2em;
   color: #fff;
   text-decoration: none;
@@ -405,11 +409,6 @@ table#detail td {
   opacity: 0.3;
 }
 
-.blurb {
-  padding: 1em 2em;
-  color: dodgerblue;
-  font-family: 'Shadows Into Light Two', cursive;
-}
 .gallery {
   padding: 0 2em;
 }
@@ -452,7 +451,7 @@ table#detail td {
   width: 100%;
 }
 #footer ul {
-  background: #ffce56;
+  background: #92989B;
   list-style: none;
   padding: 0.25em;
   margin: 0;
@@ -461,14 +460,14 @@ table#detail td {
 #footer ul li {
   float: left;
   padding: 0.5em 1em;
-  color: dodgerblue;
+  color: white;
 }
 #footer ul li img {
   height: 40px;
 }
 
 #logo-gu {
-  padding-top: 0.25em;
+  padding-top: 0.75em;
 }
 
 .disabled {

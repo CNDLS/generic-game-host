@@ -1,0 +1,73 @@
+/*!
+ * Start Bootstrap - Half Slider HTML Template (http://startbootstrap.com)
+ * Code licensed under the Apache License v2.0.
+ * For details, see http://www.apache.org/licenses/LICENSE-2.0.
+ */
+
+html,
+body {
+    height: 100%;
+    color: #373737;
+    font-size: 12px;
+}
+.navbar {
+  background-color: #373737;
+}
+.navbar-header {
+  height: 64px;
+}
+
+ul.nav.navbar-nav {
+  padding-top: 8px;
+  color: #373737;
+}
+ul.nav.navbar-nav li span {
+  display: block;
+  padding-top: 15px;
+}
+.navbar-brand {
+  padding: 0;
+}
+
+img.logo {
+  height: 64px;
+}
+
+/* You can change the height of the carousel by changing the height in the class below. It is set to 50% by default, but can be any height! */
+
+.carousel {
+  padding-top: 64px;
+  height: 72%;  
+  background-color: #111;
+}
+
+.item,
+.active,
+.carousel-inner {
+    height: 100%;
+}
+
+/* Background images are set within the HTML using inline CSS, not here */
+
+.fill {
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-position: top;
+    -webkit-background-size: contain;
+    -moz-background-size: contain;
+    background-size: contain;
+    -o-background-size: contain;
+}
+.blurb {
+  font-size: 1.5em;
+  text-align: center;
+}
+.blurb h1 {
+  color: #109991;
+  font-size: 1.75em;
+}
+
+footer {
+    margin: 50px 0;
+}

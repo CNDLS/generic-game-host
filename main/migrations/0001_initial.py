@@ -15,6 +15,7 @@ class Migration(SchemaMigration):
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('template', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True)),
             ('css', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True)),
+            ('js', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True)),
             ('score_accrues_to_computer', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal(u'main', ['GameType'])
@@ -27,6 +28,8 @@ class Migration(SchemaMigration):
             ('game_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.GameType'])),
             ('public', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('parsed', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('winning_score', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('score_accrues_to_computer', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('game_spec', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True)),
         ))
         db.send_create_signal(u'main', ['Game'])
@@ -111,7 +114,9 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'parsed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'public': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
+            'public': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'score_accrues_to_computer': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'winning_score': ('django.db.models.fields.IntegerField', [], {'default': '0'})
         },
         u'main.gamereport': {
             'Meta': {'object_name': 'GameReport'},
@@ -126,6 +131,7 @@ class Migration(SchemaMigration):
             'css': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'js': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'score_accrues_to_computer': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'template': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'})

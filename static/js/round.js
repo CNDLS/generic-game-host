@@ -14,6 +14,8 @@ Game.Round = function (game, round_spec) {
 	this.nbr = this.game.round_nbr;
 	this.spec = round_spec;
 	
+	this.roundID = guid(); // requires reporter.js
+	
 	this.read = Game.prototype.read.bind(this);
 
 	this.container = this.read("Container") || game.container;
@@ -22,7 +24,7 @@ Game.Round = function (game, round_spec) {
 	this.resources = this.read("Resources");
 	this.answers = this.read("Answers");
 	this.max_time = this.read("MaxTime");
-	this.played_round = {}; // to store data of what happened in the round.
+	this.played_round = { guid: this.roundID }; // to store data of what happened in the round.
 
 	// the three managers which will guide the round through its states.
 	this.prompter = this.read("Prompter");
@@ -88,7 +90,6 @@ Game.Round.Events = 	// the available states, and the events that transition bet
 
 Game.Round.DEFAULTS = {
 	Points: 1,
-	Threshold: 1,
 	Resources: {},
 	Answers: [],
 	MaxTime: 5,
@@ -99,9 +100,7 @@ Game.Round.DEFAULTS = {
 	},
 	Prompter: "Prompter",
 	Listener: "Listener",
-	Responder: "Responder",
-	WonRoundFeedback: "<h3>Good Round!</h3>",
-	LostRoundFeedback: "<h3>Sorry, you lost that round.</h3>"
+	Responder: "Responder"
 };
 
 Game.Round.prototype.setup = function () {
@@ -202,6 +201,12 @@ Game.Round.prototype.onbeforeabort = function (eventname, from, to, next_round, 
 	return false; // don't continue with this event chain.
 };
 
+Game.Round.prototype.cancelTransition = function () {
+	if (this.transition && (typeof this.transition === "function")) {
+		this.transition.cancel();
+	}
+}
+
 Game.Round.prototype.onEnd = function (eventname, from, to, next_round) {
 	$.event.trigger("game.resetClock");
 	
@@ -214,6 +219,7 @@ Game.Round.prototype.onEnd = function (eventname, from, to, next_round) {
 	}
 	var _this = this;
 	this.game.nextTick().then(function () {
+		this.game.record({ event: "round transition", old_round: this.played_round });
 		_this.game.newRound(next_round || _this.read("Next"));
 	});
 };

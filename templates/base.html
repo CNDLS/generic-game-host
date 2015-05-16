@@ -5,10 +5,17 @@
   <head>
     <title>CNDLS-ITEL Generic Game</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
-   	<link href='https://fonts.googleapis.com/css?family=Rationale' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Shadows+Into+Light+Two' rel='stylesheet' type='text/css'>
+   	<link href='{{ STATIC_URL }}fonts/OSP-DIN.ttf' rel='stylesheet' type='text/css'>
     <link rel="shortcut icon" href="{{ STATIC_URL }}favicon.ico" />
     <link href="{{ STATIC_URL }}css/game.css" media="screen, print" rel="stylesheet" type="text/css" />
+    
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static "css/half-slider.css" %}" rel="stylesheet">
+    
 		{% block css %}{% endblock %}
   </head> 
   <body class="{{ body_class }}">

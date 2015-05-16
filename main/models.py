@@ -59,8 +59,10 @@ class Game(models.Model):
             game_yaml_file = open(game_yaml_file_path, 'r')
             game_yaml = yaml.load(game_yaml_file)
 
+            # for a first stab at game YAML validation, 
+            # we try to create a Round object for each Round in the uploaded file.
+            # if this fails, we pass back a validation error.
             rounds = game_yaml.get('rounds')
-
             for i, round in enumerate(rounds):
                 rnd, created = Round.objects.get_or_create(game=self, nbr=(i+1), points=value)
                 if created:
