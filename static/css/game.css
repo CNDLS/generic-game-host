@@ -1,6 +1,16 @@
+@font-face {
+  font-family: "DINOffcCondMedi";
+  src: url('DINOffc-CondMedi.ttf');
+}
+
+@font-face {
+  font-family: "DINOffcLight";
+  src: url('DINOffc-Light.ttf');
+}
+
 body {
   /*text-align: center;*/
-  font-family: helvetica, arial, sans-serif;
+  font-family: 'DINOffc-Light', sans-serif;
   font-size: 24px;
   padding: 0;
   margin: 0 ;
@@ -92,7 +102,6 @@ label.form-label {
   padding-left: .3em;
   text-transform: uppercase;
   color: #6699cc;
-  font-family: 'OSP-DIN', sans-serif;
 }
 
 .right{
@@ -107,7 +116,6 @@ label.form-label {
 
 #top a {
   font-size: 1.5em;
-  font-family: 'OSP-DIN', sans-serif;
 	color: #6699cc;
 	text-decoration: none;
   text-transform: uppercase;
@@ -158,9 +166,8 @@ a:focus {
 .slide {
   margin: 0;
   padding: 0;
-  background:  url() no-repeat right top;  
-  position: absolute;
-
+  background:  url() no-repeat right top;
+  opacity: 1.0;
 }
 .btn-slide {
   /*background: #51876d url(images/white-arrow.gif) no-repeat right -50px;*/

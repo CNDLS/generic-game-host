@@ -23,6 +23,12 @@ logger = logging.getLogger(__name__)
 
 def index(request):
     return render_to_response('index.html', context_instance=RequestContext(request))
+
+def teams(request):
+    return render_to_response('teams.html', context_instance=RequestContext(request))
+
+def design(request):
+    return render_to_response('design.html', context_instance=RequestContext(request))
     
 # list all the games that are available to students.
 @login_required

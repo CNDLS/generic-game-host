@@ -11,6 +11,8 @@ urlpatterns = patterns('',
     # Examples:
     url(r'^$', 'main.views.index', name='index'),
     url(r'^list$', 'main.views.list', name='list'),
+    url(r'^teams$', 'main.views.teams', name='teams'),
+    url(r'^design$', 'main.views.design', name='design'),
     url(r'^read/(?P<game_id>\d+)/$', 'main.views.read', name='read'),
     url(r'^play/(?P<game_id>\d+)/$', 'main.views.play', name='play'),
     url(r'^write/(?P<game_id>\d+)/$', 'main.views.write_results', name='write'),
