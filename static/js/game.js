@@ -82,10 +82,8 @@ Game.DEFAULTS = {
 	Intro: "Welcome to the game!",
 	Resources: {},
 	WinningScore: 1,
-	WonGameFeedback: 
-		h3: "Hey, you won!"
-	LostGameFeedback: 
-		h3: "That didn't work out so well; you lost. Better luck next time!"
+	WonGameFeedback: "<h3>Hey, you won!</h3>",
+	LostGameFeedback: "<h3>That didn't work out so well; you lost. Better luck next time!</h3>"
 };
 
 Game.prototype.nextTick = function () {

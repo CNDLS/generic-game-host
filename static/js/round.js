@@ -219,7 +219,7 @@ Game.Round.prototype.onEnd = function (eventname, from, to, next_round) {
 	}
 	var _this = this;
 	this.game.nextTick().then(function () {
-		this.game.record({ event: "round transition", old_round: this.played_round });
+		_this.game.record({ event: "round transition", old_round: _this.played_round });
 		_this.game.newRound(next_round || _this.read("Next"));
 	});
 };

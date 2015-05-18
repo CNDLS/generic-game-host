@@ -37,11 +37,22 @@
           </p>
       </div>
     </div>
-
   </div>
   
-  
-  
+  <div class="hidden">
+    {% autoescape off %}
+    {% for game in games %}
+      <div id="description_{{ game.id }}">
+        <h2>In '{{ game.name }}' ...</h2>
+        {{ game.description }}
+        <p>
+          <a class="btn" href="{% url 'play' game.id %}" class='button'>Play</a>
+          <a class="btn" href="" class='button'>Cancel</a>
+        </p>
+      </div>
+    {% endfor %}  
+    {% endautoescape %}
+  </div>
   
 </div>
 {% endblock %}
