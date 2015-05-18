@@ -2,7 +2,39 @@
 {% load staticfiles %}
 
 {% block css%}
+   <link href="{% static "css/public.css" %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-Teams
+
+<!-- Page Content -->
+<div class="public container">
+  <div class="row">
+      <div class="col-lg-12">
+        <p class="tagline">
+          LEV/L simplifies game development for educators and university faculty by dividing the labor required to build a game. 
+        </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-8">
+      <ul class="outline">
+        <li>Faculty focus on the 'script,' expressed in a Game Design Document. This is a highly-structured document, because it needs to be read by a computer, but it is designed to be relatively simple to create and edit. The format is very flexible; you can specify as much or as little complexity as you want. Based on the player's actions, the game can:
+          <ul>
+            <li>award or take back points,</li>
+            <li>skip forward or loop back to other rounds,</li>
+            <li>enforce time limits,</li>
+            <li>trigger animations,</li>
+            <li>make resources available to the player,</li>
+            <li>and many other options...</li>
+          </ul>
+        </li>
+        <li>CNDLS student assistants and other support staff create scripts and style documents that describe the look and feel of the game. The game is just a Web page where elements are added or removed to create scenes where the game takes place. You can style these with ordinary Web stylesheets. By following a simple structure, the game scripts can both respond to and trigger events that happen during game play. The game scripts can also be integrated with HTML5 game or animation libraries to create more compelling effects.</li>
+        <li>CNDLS provides the framework code that assembles the Game Design Document and the custom scripts and styles to generate the game experience and to record student interactions.</li>
+      </ul>
+    </div>
+    <div class="col-lg-4">
+      <img src="{% static "img/controls.png" %}">
+    </div>
+  </div>
+</div>
 {% endblock %}

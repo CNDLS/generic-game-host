@@ -1,0 +1,39 @@
+.public.container {
+  padding: 96px 0;
+  font-size: 1.5em;
+}
+.tagline {
+  font-size: 1.75em;
+  color: #15CCC2;
+}
+.public.container ul {
+  list-style: none;
+}
+.public.container ul.outline > li {
+  margin: 1.5em 0;
+}
+.public.container li {
+  margin: 0.25em 0;
+}
+
+ul.options {
+  font-style: italic;
+  padding-bottom: 24px;
+}
+
+ul.options span,
+p span {
+  font-weight: bold;
+  color: #15CCC2;
+}
+
+ul.outline h3 {
+  color: #15CCC2;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.ctr {
+  text-align: center;
+}

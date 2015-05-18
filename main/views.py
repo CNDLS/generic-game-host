@@ -64,7 +64,6 @@ def play(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     game_type = game.game_type or GameType()
     template_vars = { 'game': game,
-                      'game_content_template': game_type.template or None,
                       'game_css':  game_type.css or None,
                       'game_js':  game_type.js or None,
                       'current_user': request.user,

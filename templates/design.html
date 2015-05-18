@@ -2,7 +2,53 @@
 {% load staticfiles %}
 
 {% block css%}
+   <link href="{% static "css/public.css" %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
-Design
+
+<!-- Page Content -->
+<div class="public container">
+  <div class="row">
+      <div class="col-lg-12">
+        <p class="tagline">
+          Start by scripting a conversation between you and your students. Everything you add will refer back to that. 
+        </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-8">
+      <p> Here are some of the things you can specify about your game:</p>
+      <ul class="options">
+        <li>a <span>Title</span>,</li>
+        <li>what <span>Winning</span> looks like,</li>
+        <li>the <span>Scenes</span> where the game takes place,</li>
+        <li><span>Scoreboards</span>, <span>Clocks</span>, and other display <span>Widgets</span>,</li>
+        <li><span>Resources</span> the player can find and use,</li>
+        <li>and, most importantly, the <span>Rounds</span> that make up the game...</li>
+      </ul>
+        <p class="actors">In the framework code, each <span>Round</span> has 3 actors, or 'Dealers.' Each type of Dealer can exchange information in a different way with the player. Together, they form a cycle of communication between your game and your students.</p>
+      <ul class="outline">
+        <li>
+          <h3>Prompter</h3>
+          <p>I pose a question or propose an idea to start the Round.</p>
+        </li>
+        <li>
+          <h3>Listener</h3>
+          <p>I collect whatever <span>Answer(s)</span> the player makes in response to the Prompt, and I evaluate them.</p>
+        </li>
+        <li>
+          <h3>Responder</h3>
+          <p>I generate any kind of Feedback you specify that fits the player's <span>Answer(s)</span>.</p>
+        </li>
+      </ul>
+      <p>Only one <span>Round</span> can be active at a time. Initially, your Rounds will probably look like an exchange of texts. As your game design develops, you may choose to represent information in a variety of other ways (e.g.; video, animations, simulations, data displays, and others).</p>
+    </div> 
+    <div class="col-lg-4">
+      <a href="{% static "pdf/levlhandout.pdf" %}" target="_blank">
+        <img src="{% static "img/pdf_doc_64.png" %}" />
+        <div>An Introduction to Game Design Documents</div>
+      </a>
+    </div>
+  </div>
+</div>
 {% endblock %}

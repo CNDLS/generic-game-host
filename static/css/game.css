@@ -30,6 +30,10 @@ textarea {
   height: 90px;
 }
 
+.navbar-nav a {
+  font-size: 1.25em;
+}
+
 #game {
   margin: 24px;
   text-transform: none;
@@ -42,23 +46,18 @@ textarea {
 
 #login-box {
 	width: 460px;
-	margin: 50px auto;
+	margin: 150px auto;
 	padding: 30px;
-	border: 1px solid #3366aa;
-	-webkit-border-radius: 9px;
-	-moz-border-radius: 9px;
-	border-radius: 9px;
-	background-color: #6699cc;
-	color: #3366aa;
+	background-color: #92989B;
+	color: white;
 }
 
 input.btn, a.btn {
 	display: inline-block;
 	padding: 6px 12px;
-	border: 1px solid #3366aa;
-	border-radius: 4px;
-	color: #fff;
-	background-color: #6699cc;
+	border: 1px solid #ccc;
+	color: white;
+	background-color: #92989B;
 	font-size: 14px;
 	margin-left: 96px;
 	text-decoration: none;
@@ -67,15 +66,15 @@ input.btn, a.btn {
 input.btn:hover, a.btn:hover {
 	background-color: white;
 	cursor: pointer;
-	color: #6699cc;
+	color: #15CCC2;
 }
 
 input.form-control {
     width: 200px;
     height: 34px;
     font-size: 14px;
-    border: 1px solid #3366aa;
-    border-radius: 4px;
+    border: 1px solid #15CCC2;
+    border-radius: 0;
     padding: 0 10px;
 }
 
@@ -84,24 +83,15 @@ label.form-label {
     width: 100px;
     margin-top: 10px;
     float: left;
-    font-weight: bold;
-    color: #3366aa;
+    color: white;
 }
 
 #top {
-  height: 50px;
-  background: #3366aa;
-  border-top: 10px solid #6699cc;
   clear: both;
 }
 
 #top h1 {
-  display: inline-block;
-  line-height: 0;
   font-size: 2em;
-  padding-left: .3em;
-  text-transform: uppercase;
-  color: #6699cc;
 }
 
 .right{
@@ -115,10 +105,9 @@ label.form-label {
 }
 
 #top a {
-  font-size: 1.5em;
-	color: #6699cc;
+  font-size: 1.25em;
+	color: #92989B;
 	text-decoration: none;
-  text-transform: uppercase;
   display: inline-block;  
   padding-left: .5em;
 }
@@ -246,19 +235,10 @@ ul.objectives li:nth-child(3) {
 	text-align: center;
 }
 .dialog {
-	margin: 100px auto 0 auto;
-  border-top: 12px solid #6699cc;
-	padding: 24px;
-	padding: 20px;
+  padding: 20px;
   width: 460px;
   margin: 50px auto;
-  border: 1px solid #6699cc;
-  background-color: #3366aa;
-  color: #fff;
-	-webkit-border-radius: 12px;
-	-moz-border-radius: 12px;
-	border-radius: 12px;
-	text-align: left;
+  text-align: left;
 }
 
 .report.dialog {
@@ -271,13 +251,13 @@ ul.objectives li:nth-child(3) {
 }
 
 .report.dialog #game_list a{
-  color: #6699cc;
+  color: #92989B;
   background-color: transparent;
 }
 
 .report.dialog #game_list a:hover{
   color: white;
-  background-color: #6699cc;
+  background-color: #92989B;
 }
 
 ul#summary {
@@ -307,7 +287,6 @@ table#detail td {
 }
 
 .instructions {
-  color: #6699cc;
 }
 
 .dialog h1{
@@ -326,17 +305,9 @@ table#detail td {
 }
 
 #game_list a{
-	color: white;
+	color: #92989B;
 	display: block;
   padding: 6px 12px;
-  -webkit-border-bottom-left-radius: 4px;
-  -moz-border-bottom-left-radius: 4px;
-  border-bottom-left-radius: 4px;
-  -webkit-border-top-left-radius: 4px;
-  -moz-border-top-left-radius: 4px;
-  border-top-left-radius: 4px;
-  color: #fff;
-  background-color: #6699cc;
   font-size: 18px;
 
 	text-decoration: none;
@@ -346,8 +317,8 @@ table#detail td {
 }
 
 #game_list a:hover, #game_list a.selected{
-	background-color: white;
-  color: #3366aa;
+  color: white;
+  background-color: #92989B;
 }
 
 .card {
@@ -453,7 +424,7 @@ table#detail td {
 }
 
 #footer {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   width: 100%;
 }

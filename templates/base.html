@@ -18,7 +18,70 @@
 		{% block css %}{% endblock %}
   </head> 
   <body class="{{ body_class }}">
+  {% block nav %}    
+      <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                </button>
+                <a class="navbar-brand" href="{% url 'index' %}">
+                  <!-- <object id="logo" type="image/svg+xml" data="{% static 'img/levl.svg' %}">&nbsp;</object> -->
+                  <svg version="1.1" id="logo" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                  	 viewBox="0 0 821 360" enable-background="new 0 0 821 360" xml:space="preserve">
+
+                  		<style type="text/css">
+                     </style>
+                  <g>
+                  	<polygon class="lev_bg" points="544.6,0 0,0 0,360 471.3,360"/>
+                  	<polygon class="l_bg" points="591.4,0 518.1,360 821,360 821,0"/>
+                  </g>
+                  <path fill="#FFFFFF" d="M75.2,298.6V61.9h28.6v211h62.8v25.6H75.2z"/>
+                  <path fill="#FFFFFF" d="M195.2,298.6V61.9h91.4v25.6h-62.8V167H278v25.6h-54.2V273h62.8v25.6H195.2z"/>
+                  <path fill="#FFFFFF" d="M382,298.6h-29.2L301.5,61.9h31.6l34.2,190.4l34.6-190.4h31.2L382,298.6z"/>
+                  <path fill="#FFFFFF" d="M646.6,298.6V61.9h28.6v211H738v25.6H646.6z"/>
+                  </svg>
+                </a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="{% url 'teams' %}">Game Design Teams</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'design' %}">Game Design Documents</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'list' %}">The Games</a>
+                    </li>
+                    <li>
+                        <a class="contact" href="#">Learn More</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+  {% endblock %}
   {% block content %}{% endblock %}
+  {% block footer %}
+      <!-- Footer -->
+      <div id="footer">
+        <ul class="clearfix">
+          <li><a href="mailto:cndls@georgetown.edu?Subject=SaxaJS" target="_top"><img id="logo-cndls" src="{% static "img/cndls-logo.png" %}"></a></li>
+          <li><img id="logo-gu" src="{% static "img/gu-logo.png" %}"></li>
+          <li>
+              3520 Prospect St. NW #314<br />
+              Washington, DC 20057<br />
+              202.687.0625
+          </li>
+        </ul>
+      </div>
+  {% endblock %}
 	
 
 	<script type="text/javascript">
@@ -30,6 +93,8 @@
 	<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.enumerable.js" ></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.easing.1.3.js" ></script>
 	<script type="text/javascript" src="{{ STATIC_URL }}js/inflection.js" ></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
 	{% block js %}{% endblock %}
   </body>
 </html>

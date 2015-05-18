@@ -3,55 +3,8 @@
 
 {% block css%}
 {% endblock %}
+
 {% block content %}
-
-    <!-- Navigation -->
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                </button>
-                <a class="navbar-brand" href="#">
-                  <!-- <object id="logo" type="image/svg+xml" data="{% static 'img/levl.svg' %}">&nbsp;</object> -->
-                  <svg version="1.1" id="logo" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-                  	 viewBox="0 0 821 360" enable-background="new 0 0 821 360" xml:space="preserve">
-
-                  		<style type="text/css">
-                     </style>
-                  <g>
-                  	<polygon class="lev_bg" points="544.6,0 0,0 0,360 471.3,360"/>
-                  	<polygon class="l_bg" points="591.4,0 518.1,360 821,360 821,0"/>
-                  </g>
-                  <path fill="#FFFFFF" d="M75.2,298.6V61.9h28.6v211h62.8v25.6H75.2z"/>
-                  <path fill="#FFFFFF" d="M195.2,298.6V61.9h91.4v25.6h-62.8V167H278v25.6h-54.2V273h62.8v25.6H195.2z"/>
-                  <path fill="#FFFFFF" d="M382,298.6h-29.2L301.5,61.9h31.6l34.2,190.4l34.6-190.4h31.2L382,298.6z"/>
-                  <path fill="#FFFFFF" d="M646.6,298.6V61.9h28.6v211H738v25.6H646.6z"/>
-                  </svg>
-                </a>
-            </div>
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    <li>
-                        <a href="{% url 'teams' %}">Game Design Teams</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'design' %}">Game Design Documents</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'list' %}">The Games</a>
-                    </li>
-                    <li>
-                        <a class="contact" href="#">Learn More</a>
-                    </li>
-                </ul>
-            </div>
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container -->
-    </nav>
 
     <!-- Half Page Image Background Carousel Header -->
     <header id="myCarousel" class="carousel slide">
@@ -64,10 +17,10 @@
         <!-- Wrapper for Slides -->
         <div class="carousel-inner">
             <div class="item active" data-count=2 data-lev-clr="#839a80" data-l-clr="#416453" >
-                <div class="fill" style="background-image:url('{{ STATIC_URL }}img/evidence-game-1.png');"></div>
+                <div class="fill" style="background-image:url('{{ STATIC_URL }}img/evidence-game/evidence-game-1.jpg');"></div>
             </div>
-            <div class="item" data-count=2 data-lev-clr="#b4b4b4" data-l-clr="#92160e" >
-                <div class="fill" style="background-image:url('{{ STATIC_URL }}img/spanish-game-1.png');"></div>
+            <div class="item" data-count=3 data-lev-clr="#b4b4b4" data-l-clr="#92160e" >
+                <div class="fill" style="background-image:url('{{ STATIC_URL }}img/spanish-game-maze/spanish-game-maze-3.jpg');"></div>
             </div>
         </div>
 
@@ -94,7 +47,10 @@
     </div>
     <!-- /.container -->
 
+{% endblock %}
 
+
+{% block footer %}
     <!-- Footer -->
     <div id="footer">
       <ul class="clearfix">
@@ -107,20 +63,14 @@
         </li>
       </ul>
     </div>
-    
+{% endblock %}
 
-    <!-- jQuery -->
-    <script src="{{ STATIC_URL }}js/jquery-1.10.2.js"></script>
-
-    <!-- Bootstrap Core JavaScript -->
-    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
-
+{% block js %}
     <!-- Script to Activate the Carousel -->
   <script>
-    var intvl_dur = 10000;
-    function crossFadeDuringSlide (/* evt */) {
+    // color logo to match colors in carousel slides.
+    function colorLogo () {
       var curr_slide = $('.carousel').find('.item.active');
-
       // color the logo to fit the game in the current slide.
       var lev_clr, l_clr;
       if (lev_clr = curr_slide.data('lev-clr')) {
@@ -129,53 +79,9 @@
       if (l_clr = curr_slide.data('l-clr')) {
         $("polygon.l_bg").css("fill", l_clr);
       }
-      
-      // in between slide events, do a dissolve.
-      var tot_slides = curr_slide.data('count') || 1;
-      var curr_slide_url = curr_slide.find('.fill').css('background-image');
-      var curr_slide_url_array = curr_slide_url.split("/");
-      var curr_slide_fname = curr_slide_url_array.pop();
-      var iter_regex = /(?=\w+)\d+/;
-      var curr_slide_nbr = curr_slide_fname.match(iter_regex);
-      var curr_slide_nbr = parseInt(curr_slide_nbr) || 1;
-      if (curr_slide_nbr < tot_slides) {
-        var new_slide_fname = curr_slide_fname.replace(iter_regex, ++curr_slide_nbr);
-        curr_slide_url_array.push(new_slide_fname);
-        var new_slide_url = curr_slide_url_array.join("/");
-        // preload the image.
-        $("<img />").attr("src", new_slide_url.replace(/(url\()\S+(\))/, ''));
-        curr_slide
-        .delay((intvl_dur / tot_slides) - 250)
-        .animate({ "opacity": 0 }, { duration: 125,
-          done: function () {
-            curr_slide.find('.fill').css('background-image', new_slide_url);
-            curr_slide.animate({ "opacity": 1.0 }, { duration: 125 });
-          }
-        });
-      }
     }
-    
-    function resetStartingSlide (/* evt */) {
-      var curr_slide = $('.carousel').find('.item.active');
-      var curr_slide_url = curr_slide.find('.fill').css('background-image');
-      var curr_slide_url_array = curr_slide_url.split("/");
-      var curr_slide_fname = curr_slide_url_array.pop();
-      var iter_regex = /(?=\w+)\d+/;
-      var first_slide_fname = curr_slide_fname.replace(iter_regex, 1);
-      curr_slide_url_array.push(first_slide_fname);
-      var first_slide_url = curr_slide_url_array.join("/");
-      curr_slide.find('.fill').css('background-image', first_slide_url  );
-    }
-    // init
-    // $(function () {
-      $('.carousel').carousel({ interval: intvl_dur })
-      // cue first crossfade.
-      crossFadeDuringSlide();
-      // wait for others.
-      $('.carousel')
-      .on('slid.bs.carousel', crossFadeDuringSlide)
-      .on('slide.bs.carousel', resetStartingSlide);
-    // });
+    $('.carousel').carousel({ interval: 5000 });
+    $('.carousel').on('slid.bs.carousel', colorLogo);
   </script>
 
 {% endblock %}
