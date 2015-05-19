@@ -88,6 +88,7 @@ label.form-label {
 
 #top {
   clear: both;
+  margin-top: 64px;
 }
 
 #top h1 {
@@ -427,12 +428,14 @@ table#detail td {
   position: fixed;
   bottom: 0;
   width: 100%;
+  margin-right: 0;
+  margin-left: 0;
 }
 #footer ul {
   background: #92989B;
   list-style: none;
-  padding: 0.25em;
   margin: 0;
+  height: 52px;
   font-size: 0.85em;
 }
 #footer ul li {
@@ -443,7 +446,9 @@ table#detail td {
 #footer ul li img {
   height: 40px;
 }
-
+.dialog h1,.dialog h2 {
+  color: #15CCC2;
+}
 #logo-gu {
   padding-top: 0.75em;
 }

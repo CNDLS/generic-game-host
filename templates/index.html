@@ -2,6 +2,7 @@
 {% load staticfiles %}
 
 {% block css%}
+   <link href="{% static "css/public.css" %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -12,12 +13,26 @@
         <ol class="carousel-indicators">
             <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
             <li data-target="#myCarousel" data-slide-to="1"></li>
+            <li data-target="#myCarousel" data-slide-to="2"></li>
+            <li data-target="#myCarousel" data-slide-to="3"></li>
         </ol>
 
         <!-- Wrapper for Slides -->
         <div class="carousel-inner">
-            <div class="item active" data-count=2 data-lev-clr="#839a80" data-l-clr="#416453" >
+            <div class="item active" >
+              <div class="fill-text">
+                <p>"The hope is that they’re going to think hard about what it takes to get evidence in, that they’re going to learn objections so they can do it quickly and on their feet under time constraints, that they’re strategic about which objections to use, and that they have—most importantly—fun doing it so that the fun reinforces the learning aspect of it."</p>
+                <div class="byline">Tanina Rostain, Professor of Law, Georgetown Law Center</div>
+              </div>
+            </div>
+            <div class="item" data-count=2 data-lev-clr="#839a80" data-l-clr="#416453" >
                 <div class="fill" style="background-image:url('{{ STATIC_URL }}img/evidence-game/evidence-game-1.jpg');"></div>
+            </div>
+            <div class="item" >
+              <div class="fill-text">
+                <p>"The advantage for the students is that it’s going to be a learner-centered task; they can go back and play it as many times as they want. The kinds of processes we’re looking at and that we’re going to try and promote in these tasks include attention, awareness, levels of awareness. They have to process in activation of prior knowledge, working memory…and with this knowledge, we can design these tasks so we can get our students to be comfortably engaged as they do the tasks."</p>
+                <div class="byline">Ronald Leow, Professor, Department of Spanish and Portuguese</div>
+              </div>
             </div>
             <div class="item" data-count=3 data-lev-clr="#b4b4b4" data-l-clr="#92160e" >
                 <div class="fill" style="background-image:url('{{ STATIC_URL }}img/spanish-game-maze/spanish-game-maze-3.jpg');"></div>
@@ -43,26 +58,13 @@
               LEV/L is Georgetown University's kit for making Web games for teaching and learning.<br />
               Use it to develop simple, Web-based games that express something.
             </div>
+            <div class="col-lg-12 blurb">
+              <a class="contact" href="{% url 'contact' %}">Learn More</a>
+            </div>
         </div>
     </div>
     <!-- /.container -->
 
-{% endblock %}
-
-
-{% block footer %}
-    <!-- Footer -->
-    <div id="footer">
-      <ul class="clearfix">
-        <li><a href="mailto:cndls@georgetown.edu?Subject=SaxaJS" target="_top"><img id="logo-cndls" src="{% static "img/cndls-logo.png" %}"></a></li>
-        <li><img id="logo-gu" src="{% static "img/gu-logo.png" %}"></li>
-        <li>
-            3520 Prospect St. NW #314<br />
-            Washington, DC 20057<br />
-            202.687.0625
-        </li>
-      </ul>
-    </div>
 {% endblock %}
 
 {% block js %}
@@ -72,13 +74,10 @@
     function colorLogo () {
       var curr_slide = $('.carousel').find('.item.active');
       // color the logo to fit the game in the current slide.
-      var lev_clr, l_clr;
-      if (lev_clr = curr_slide.data('lev-clr')) {
-        $("polygon.lev_bg").css("fill", lev_clr);
-      }
-      if (l_clr = curr_slide.data('l-clr')) {
-        $("polygon.l_bg").css("fill", l_clr);
-      }
+      var lev_clr = curr_slide.data('lev-clr') || '';
+      var l_clr = curr_slide.data('l-clr') || '';
+      $("polygon.lev_bg").css("fill", lev_clr);
+      $("polygon.l_bg").css("fill", l_clr);
     }
     $('.carousel').carousel({ interval: 5000 });
     $('.carousel').on('slid.bs.carousel', colorLogo);

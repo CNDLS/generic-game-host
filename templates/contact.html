@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block css%}
+   <link href="{% static "css/public.css" %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="public container">
+  <div class="row">
+      <div class="col-lg-12">
+        <h2>I'd like to recieve information about LEV/L as it is developed.</h2>
+        <form action="">
+          <ul>
+            <li>
+              <label for="first_name">First Name:</lable><input type="text" name="first_name"></input>
+            </li>
+            <li>
+              <label for="last_name">Last Name:</lable><input type="text" name="last_name"></input>
+            </li>
+            <li>
+              <label for="email">Email:</lable><input type="text" name="email"></input>
+            </li>
+            <li>
+              <label for="institution">Institution:</lable><input type="text" name="institution"></input>
+            </li>
+          </ul>
+        </form>
+      </div>
+  </div>
+</div>
+{% endblock %}

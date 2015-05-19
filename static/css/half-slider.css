@@ -30,16 +30,20 @@ ul.nav.navbar-nav li span {
 }
 
 
-ul.nav.navbar-nav li a.contact {
+a.contact {
+  display: block;
   background-color: #92989B;
   border-radius: 6px;
   color: #ddd;
   padding: 12px 10px;
-  margin: 0 20px;
+  margin:  48px auto 96px auto;
+  width: 240px;
+  font-size: 18px;
 }
 
-ul.nav.navbar-nav li a.contact:hover {
+a.contact:hover {
   background-color: #15CCC2;
+  text-decoration: none;
   color: white;
 }
 
@@ -86,7 +90,25 @@ polygon.l_bg {
   color: #109991;
   font-size: 1.75em;
 }
-
+.fill-text {
+  padding: 2em 0 ;
+  color: #ddd;
+  font-size: 20px;
+  text-align: center;
+  display: relative;
+  width: 100%;
+  height: 100%;
+}
+.fill-text p {
+  width: 50%;
+  margin: 0 auto;
+}
+.fill-text .byline {
+  margin-top: 1em;
+  font-style: italic;
+  font-size: 18px;
+  color: white;
+}
 footer {
     margin: 50px 0;
 }

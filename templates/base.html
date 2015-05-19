@@ -57,9 +57,6 @@
                     <li>
                         <a href="{% url 'list' %}">The Games</a>
                     </li>
-                    <li>
-                        <a class="contact" href="#">Learn More</a>
-                    </li>
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -70,8 +67,8 @@
   {% block content %}{% endblock %}
   {% block footer %}
       <!-- Footer -->
-      <div id="footer">
-        <ul class="clearfix">
+      <div id="footer"class="row">
+        <ul class="col-lg-12 clearfix">
           <li><a href="mailto:cndls@georgetown.edu?Subject=SaxaJS" target="_top"><img id="logo-cndls" src="{% static "img/cndls-logo.png" %}"></a></li>
           <li><img id="logo-gu" src="{% static "img/gu-logo.png" %}"></li>
           <li>

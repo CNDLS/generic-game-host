@@ -29,6 +29,10 @@ def teams(request):
 
 def design(request):
     return render_to_response('design.html', context_instance=RequestContext(request))
+
+def contact(request):
+    return render_to_response('contact.html', context_instance=RequestContext(request))
+    
     
 # list all the games that are available to students.
 @login_required
