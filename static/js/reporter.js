@@ -42,21 +42,24 @@ Game.Reporter.prototype.sendReport = function () {
 	if (this.csrftoken !== undefined) {
 		headers["X-CSRFToken"] = this.csrftoken;
 	}
-	return $.ajax({
-		url: this.report_url,
-		type: "POST",
-		dataType: "json",
-		data: JSON.stringify(this.user_data),
-		headers: headers,
-		success: function (data, textStatus, xhr) {
-			// only nuke the user_data once we're sure it has been recieved. 
-			// this way, if we see multiple copies of the session object, we know some connection attempts have failed.
-			reporter.user_data = [];
-		},
-		error: function (xhr, error_name, error) {
-			console.error(xhr, error_name, error.stack);
-		}
-	});
+	var dfd = $.Deferred();
+	dfd.resolve();
+	return dfd.promise();
+	// return $.ajax({
+	// 	url: this.report_url,
+	// 	type: "POST",
+	// 	dataType: "json",
+	// 	data: JSON.stringify(this.user_data),
+	// 	headers: headers,
+	// 	success: function (data, textStatus, xhr) {
+	// 		// only nuke the user_data once we're sure it has been recieved.
+	// 		// this way, if we see multiple copies of the session object, we know some connection attempts have failed.
+	// 		reporter.user_data = [];
+	// 	},
+	// 	error: function (xhr, error_name, error) {
+	// 		console.error(xhr, error_name, error.stack);
+	// 	}
+	// });
 };
 
 

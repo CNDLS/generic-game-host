@@ -63,7 +63,7 @@
         {% endif %}
 
 		<script type="text/javascript">
-
+            var STATIC_URL = "{{ STATIC_URL }}";
 			// 'bootstrapping' script. reads URL of YAML file from a <SCRIPT> tag attribute & uses it to create a Game object.
 			//  by default, we just put the game into a variable on the window scope. some implementations might want something different: multiple games, maybe?
 			var game;

@@ -131,7 +131,8 @@ $.fn.render = function (spec) {
 	// test of whether we can apply a string to our function for creating tags.
 	// string must be of the form tag[#id][.class]
 	// optional conditions are so it will match either or both id and classnames.
-	var tag_id_class_regexp = /^(\w+)?(#\S+)?((?:\.\S+)*)?$/;
+	// 6/15 -- this will now also trap any attributes (to be parsed by a separate regexp).
+	var tag_id_class_regexp = /^(\w+)?(#\w+)?((?:\.\w[^\[]+)*)?(\[\S+=\S+\])*$/;
 	
 	// function to turn a descriptor into an empty HTML element.
 	// successful matches are of the form: [<whole str>, <tag name>, <id>, <class names separated by .>]
@@ -148,6 +149,37 @@ $.fn.render = function (spec) {
 			}
 			if (classnames = matches[3]) {
 				el.addClass(classnames.split(".").join(" "));
+			}
+			var attributes = matches[4];
+			if (attributes) {
+				var attr_regexp = /(\[([^=]+)=([^\]]+)\])/g;
+				var attr_spec;
+				var attrs_obj = {};
+				while (attr_spec = attr_regexp.exec(attributes)) {
+					var attr_key = attr_spec[2];
+					var attr_value = attr_spec[3];
+					el.attr(attr_key, attr_value);
+					attrs_obj[attr_key] = attr_value
+					// special case of svg element with src attribute: we pull the contents of the src file
+					// and use it to replace the <svg> element.
+					if ((tag_name == "svg") && (attr_key == "src")) {
+						$.ajax(STATIC_URL + attr_value, { crossDomain: true })
+						.done(function (svg_file) {
+							var svg_file_jQ = $(svg_file.documentElement);
+							el.replaceWith(svg_file_jQ);
+							for (saved_attr_key in attrs_obj) {
+								if (saved_attr_key != "src") {
+									svg_file_jQ.attr(saved_attr_key, attr_value);
+								}
+							}
+						})
+						.fail(function () {
+							// convert svg tag to an object tag w src as data attr...?
+							// Does this make a good fallback? I guess it depends on the reason for the ajax failure.
+							
+						})
+					}
+				}
 			}
 			return el;
 		}
