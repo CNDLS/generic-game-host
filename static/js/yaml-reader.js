@@ -4,6 +4,9 @@
 // 	var yaml = require("./js-yaml.js");
 
 function GameFunction (fname, params) {
+	if (typeof Game[fname] != "function") {
+		throw new Error("Cannot find " + fname + "() function on the Game object.")
+	}
 	this.fn = Game[fname];
 	this.params = params;
 }
@@ -124,7 +127,6 @@ YAML.prototype.count = function () {
 YAML.prototype.get = function (key) {
 	key = key.toString();
 	var value;
-	
 	if (this.hasOwnProperty(key)) {
 		value = this[key];
 	} else if (this.hasOwnProperty(key.underscore())) {

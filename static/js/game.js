@@ -17,7 +17,7 @@ var environment = { mode: "development" };
  * Details of that could differ between implementations, so we leave all of that to the host app.
  * Look for a bootstrapping script in the page that hosts this file.
  */
-function Game(game_spec, report_url, csrftoken) {
+function Game(game_spec) {
 	this.spec = game_spec;
 	
 	this.current_round = undefined;
@@ -27,7 +27,15 @@ function Game(game_spec, report_url, csrftoken) {
 	this.rounds = this.read("Rounds"); // the rounds of the game.
 	this.internal_clock = this.read("InternalClock"); // alt InternalClock eg; main GodotEngine scene.
 	this.reporter = this.read("Reporter");
+	
+	// either a winning_score or a winning() function must be provided.
 	this.winning_score = this.read("WinningScore");
+	if (this.winning_score === undefined) {
+		this.winning = this.read("Winning");
+		if (typeof this.winning != "function") {
+			throw new Error("YAML must specify either a winning score or a winning() function.");
+		}
+	}
 	this.current_score = 0;
 
 	var game = this;
@@ -53,9 +61,6 @@ function Game(game_spec, report_url, csrftoken) {
 	this.widgets = $.each(widget_specs, function (i, widget_type_name){
 		return new Game.Widgets[widget_type_name](game);
 	});
-	
-	// set up the reporter with the url & csrf token passed in from play.html
-	this.reporter.setURL(report_url, csrftoken);
 
 	// record the time the game was started.
 	this.record({ event: "start of game" });
@@ -81,7 +86,6 @@ Game.DEFAULTS = {
 	Utilities: {},
 	Intro: "Welcome to the game!",
 	Resources: {},
-	WinningScore: 1,
 	WonGameFeedback: "<h3>Hey, you won!</h3>",
 	LostGameFeedback: "<h3>That didn't work out so well; you lost. Better luck next time!</h3>"
 };
@@ -139,9 +143,18 @@ Game.prototype.addPoints = function (points) {
 	$.event.trigger("game.addPoints", [points]);
 };
 
+Game.prototype.checkIfUserWon = function () {
+	this.user_won = false;
+	if (Util.isNumeric(this.winning_score) && (this.current_score >= this.winning_score)) {
+		this.user_won = true;
+	} else if ((typeof this.winning === "function") && (this.winning() === true)) {
+		this.user_won = true;
+	}
+}
+
 Game.prototype.gameFeedback = function () {
 	var gameFeedbackMessage;
-	if (this.current_score >= this.winning_score) {
+	if (this.user_won) {
 		gameFeedbackMessage = this.read("WonGameFeedback");
 	} else {
 		gameFeedbackMessage = this.read("LostGameFeedback");
@@ -209,6 +222,10 @@ Game.prototype.newRound = function (next_round) {
 	// if there's a communications failure, we'll at least know when it happened.
 	var game = this;
 	var game_is_over = ((this.round_nbr >= this.rounds.length) && !next_round);
+
+	this.checkIfUserWon();
+	game_is_over = game_is_over || this.user_won;
+	
 	this.report(
 		function create_round() {
 			if (game_is_over) {
@@ -242,7 +259,9 @@ Game.prototype.abort = function() {
 
 
 /* 
- * STATIC FUNCTIONS ON GAME OBJECT  Util.extend_properties(this, new Game.Dealer(game_or_round));
+ * CREATING SCOPES ON GAME OBJECT (or other object bound to this function).
+ * Allows for syntax where a 'bag of functions' refines an existing object.
+ * For example, this is used in demo.js to create a Game.Scene.Gorge object that is easy to read.
  */
 Game.new = function (proto, scope_name, obj) {
 	fn = function(){
@@ -254,3 +273,38 @@ Game.new = function (proto, scope_name, obj) {
 	}
 	this[scope_name] = fn;
 }
+
+
+/*
+ *  BOOTSTRAPPING THE GAME OBJECT. 
+ *  Reads URL of YAML file from a <SCRIPT> tag attribute & uses it to create a Game object.
+ *  By default, we just put the game into a variable on the window scope. some implementations might want something different: multiple games, maybe?
+ */
+$(function () {
+	var read_url = $("script#reader").attr("read-from");
+	var report_url = $("script#reporter").attr("report-to");
+	var csrftoken = $("script#reporter").attr("csrftoken");
+          var parsed_yaml;
+	// get the YAML from our URL.
+	$.ajax({
+		url: read_url,
+		type: "GET",
+		success: function (data /* , textStatus, XMLHttpRequest */) {
+			// try to parse the game data.
+			in_production_try(this,
+				function () {
+					// try to make a game from the parsed game data.
+					parsed_yaml = new YAML( jsyaml.safeLoad(data, { schema: GAME_SCHEMA }) );
+				}
+			);
+                  
+                  if (parsed_yaml) {
+				game = new Game(parsed_yaml);
+                      game.reporter.setURL(report_url, csrftoken);
+                  }
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+			console.error(XMLHttpRequest, textStatus, errorThrown);
+		}
+	});
+});

@@ -64,32 +64,7 @@
 
 		<script type="text/javascript">
             var STATIC_URL = "{{ STATIC_URL }}";
-			// 'bootstrapping' script. reads URL of YAML file from a <SCRIPT> tag attribute & uses it to create a Game object.
-			//  by default, we just put the game into a variable on the window scope. some implementations might want something different: multiple games, maybe?
 			var game;
-			$(function () {
-				var read_url = $("script#reader").attr("read-from");
-				var report_url = $("script#reporter").attr("report-to");
-				var csrftoken = $("script#reporter").attr("csrftoken");
-				// get the YAML from our URL.
-				$.ajax({
-					url: read_url,
-					type: "GET",
-					success: function (data /* , textStatus, XMLHttpRequest */) {
-						// try to parse the game data.
-						in_production_try(this,
-							function () {
-								// try to make a game from the parsed game data.
-								var parsed_yaml = new YAML( jsyaml.safeLoad(data, { schema: GAME_SCHEMA }) );
-								game = new Game(parsed_yaml, report_url, csrftoken);
-							}
-						);
-					},
-					error: function (XMLHttpRequest, textStatus, errorThrown) {
-						console.error(XMLHttpRequest, textStatus, errorThrown);
-					}
-				});
-			});
 		</script>
 
 {% endblock %}

@@ -109,6 +109,10 @@ Util = {
 		function o() { this.constructor = subclass; }
 		o.prototype = superclass.prototype;
 		return (subclass.prototype = new o());
+	},
+	
+	isNumeric: function(val) {
+		return !isNaN(parseFloat(val)) && isFinite(val);
 	}
 }
 
@@ -169,7 +173,7 @@ $.fn.render = function (spec) {
 							el.replaceWith(svg_file_jQ);
 							for (saved_attr_key in attrs_obj) {
 								if (saved_attr_key != "src") {
-									svg_file_jQ.attr(saved_attr_key, attr_value);
+									el.attr(saved_attr_key, attr_value);
 								}
 							}
 						})
