@@ -111,6 +111,16 @@ Util = {
 		return (subclass.prototype = new o());
 	},
 	
+	clone: function(src_fn) {
+		var temp = function () { return src_fn.apply(this, arguments); };
+		for(var key in src_fn) {
+		    if (src_fn.hasOwnProperty(key)) {
+		        temp[key] = src_fn[key];
+		    }
+		}
+		return temp;
+	},
+	
 	isNumeric: function(val) {
 		return !isNaN(parseFloat(val)) && isFinite(val);
 	}
@@ -167,7 +177,7 @@ $.fn.render = function (spec) {
 					// special case of svg element with src attribute: we pull the contents of the src file
 					// and use it to replace the <svg> element.
 					if ((tag_name == "svg") && (attr_key == "src")) {
-						$.ajax(STATIC_URL + attr_value, { crossDomain: true })
+						$.ajax(MEDIA_URL + "uploads/custom_img/" + attr_value, { crossDomain: true })
 						.done(function (svg_file) {
 							var svg_file_jQ = $(svg_file.documentElement);
 							el.replaceWith(svg_file_jQ);

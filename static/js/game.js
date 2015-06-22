@@ -262,16 +262,25 @@ Game.prototype.abort = function() {
  * CREATING SCOPES ON GAME OBJECT (or other object bound to this function).
  * Allows for syntax where a 'bag of functions' refines an existing object.
  * For example, this is used in demo.js to create a Game.Scene.Gorge object that is easy to read.
+ * ancestry goes subclass -> metaclass -> superclass.
  */
-Game.new = function (proto, scope_name, obj) {
-	fn = function(){
-		Util.extend_properties(this, (proto || this).prototype.constructor.apply(this, arguments));
-	};
-	Util.extend(fn, proto || this);
-	for (var m in obj) {
-		fn.prototype[m] = obj[m];
+Game.new = function (superclass, scope_name, fn_or_obj, obj) {
+	"use strict";
+	var subclass;
+	
+	if (typeof fn_or_obj === "function") {
+		subclass = fn_or_obj;
+	} else {
+		// create a function to hold all the properties in obj.
+		subclass = function () {
+			return superclass.prototype.constructor.apply(this, arguments);
+		};
+		obj = fn_or_obj;
 	}
-	this[scope_name] = fn;
+	subclass.prototype = Util.extend(subclass, superclass);
+	$.extend(subclass.prototype, obj);
+	this[scope_name] = subclass;
+	return subclass;
 }
 
 
