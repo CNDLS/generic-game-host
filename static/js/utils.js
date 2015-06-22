@@ -146,7 +146,14 @@ $.fn.render = function (spec) {
 	// string must be of the form tag[#id][.class]
 	// optional conditions are so it will match either or both id and classnames.
 	// 6/15 -- this will now also trap any attributes (to be parsed by a separate regexp).
-	var tag_id_class_regexp = /^(\w+)?(#\w+)?((?:\.\w[^\[]+)*)?(\[\S+=\S+\])*$/;
+	// Oof. Regex's are hard, in part because there's no room for comments.
+	// Here is a breakdown of the capture groups:
+	// (\w+)? == optional tag name.
+	// (#\w[^\.\[]+)? == optional id, leading up to either a list of class names or a list of attributes
+	// ((?:\.\w[^\[]+)*)? == optional list of class names -- not capturing individual class names, just the whole list.
+	// ... note about above: you need both the * for matching 0 or more, and the ?, in order to get the whole thing.
+	// (\[\S+=\S+\])* == 0 or more attributes. done. whew.
+	var tag_id_class_regexp = /^(\w+)?(#\w[^\.\[]+)?((?:\.\w[^\[]+)*)?(\[\S+=\S+\])*$/;
 	
 	// function to turn a descriptor into an empty HTML element.
 	// successful matches are of the form: [<whole str>, <tag name>, <id>, <class names separated by .>]
@@ -164,6 +171,9 @@ $.fn.render = function (spec) {
 			if (classnames = matches[3]) {
 				el.addClass(classnames.split(".").join(" "));
 			}
+			// the element gets a promise attached to it, which resolves when the el is part of the DOM.
+			// var dfd = $.Deferred;
+			// el.data("dfd", dfd);
 			var attributes = matches[4];
 			if (attributes) {
 				var attr_regexp = /(\[([^=]+)=([^\]]+)\])/g;
