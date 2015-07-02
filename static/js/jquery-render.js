@@ -39,7 +39,13 @@ $.fn.render = function (spec) {
 			return str; // probably a space in the text.
 		} else {
 			tag_name = matches[1] || "div"; // so we can use descriptors that are just ids and/or class names.
-			el = $(document.createElement(tag_name));
+			if (tag_name === "svg") {
+				// make a div to hold the loaded svg.
+				el = $(document.createElement("div"));
+				el.addClass("svg");
+			} else {
+				el = $(document.createElement(tag_name));
+			}
 			
 			if (id = matches[2]) {
 				el.attr("id", id.replace("#", ""));
@@ -65,14 +71,13 @@ $.fn.render = function (spec) {
 								// we pull the contents of the src file
 								// and use it to replace the <svg> element.
 								$.ajax(MEDIA_URL + "uploads/custom_img/" + attr_value, { crossDomain: true })
-								.done(function (svg_file) {
+								.then(function (svg_file) {
 									var svg_file_jQ = $(svg_file.documentElement);
-									el.replaceWith(svg_file_jQ);
-									for (saved_attr_key in attrs_obj) {
-										if (saved_attr_key != "src") {
-											el.attr(saved_attr_key, attr_value);
-										}
-									}
+									// put svg file root node into element.
+									var svg_root_element = document.importNode(svg_file.documentElement,true);
+									el.append(svg_root_element);
+									el.data({ promise: dfd.promise() });
+									// give added elements a chance to show up in the DOM.
 									dfd.resolve();
 								})
 								.fail(function () {
@@ -98,6 +103,8 @@ $.fn.render = function (spec) {
 							break;
 					}
 				}
+			} else {
+				dfd.resolve(); // no atrributes.
 			}
 			
 			el.data({ promise: dfd.promise() });
@@ -154,6 +161,7 @@ $.fn.render = function (spec) {
 					$(this).append(el);
 				}
 			}
+			
 			// make a promise that encapsulates all the collected promises.
 			this.data({ promise: $.when.apply($, promises) });
 			break;

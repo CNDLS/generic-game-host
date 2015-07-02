@@ -112,19 +112,41 @@ Game.Round.prototype.setup = function () {
 		// do setup(), which returns a dfd promise.
 		setup.apply(this).then(this.prompt.bind(this));
 		return StateMachine.ASYNC; // setup presentation happens before this.prompt();
-	} else {
-		var _this = this;
-		this.game.nextTick().then(function () {
-			_this.prompt();
-		});
+	} else  {
+		// if scene has changed, put up the new one.
+		var reset_scene, prompt_without_scene;
+		try {
+			var prior_scene = this.game.scenes[this.game.prior_round_nbr];
+			reset_scene = (prior_scene.rounds.indexOf(this.game.current_round) === -1);
+		} catch (e) {
+			reset_scene = true;
+		}
+
+		var round = this;
+		if (reset_scene) {
+			try {
+				var current_scene = this.game.scenes[this.nbr];
+				current_scene.setup(round).then(function () {
+					round.prompt();
+				});
+			} catch (e) {
+				prompt_without_scene = true;
+			}
+		} else {
+			prompt_without_scene = true;
+		}
+		if (prompt_without_scene) {
+			this.game.nextTick().then(function () {
+				round.prompt();
+			});
+		}
 	}
 };
 
 Game.Round.prototype.onGivePrompt = function () {
 	if (this.prompter instanceof Game.Round.Prompter) {
 		this.prompter.init();
-		var endPrompting = this.endPrompting.bind(this);
-		this.prompter.dealCards(endPrompting);
+		this.prompter.deal().then(this.endPrompting.bind(this));
 		return StateMachine.ASYNC;
 	} // if prompter fails, this will just transition us into the next state.
 };
@@ -134,7 +156,7 @@ Game.Round.prototype.endPrompting = function () {
 	this.game.record({ event: "prompt given", prompt: this.prompter.report() });
 	var _this = this;
 	this.game.nextTick().then(function () {
-		_this.listen();
+		// _this.listen();
 	});
 }
 

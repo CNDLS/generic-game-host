@@ -14,14 +14,21 @@ Game.SetPiece = {}
 
 // a factory for creating Scenes (Dealers).
 Game.SceneFactory = {
-	create: function (scene_spec, game_or_round, events) {
+	create: function (scene_spec, game, events) {
 		var scene_type_name = scene_spec.scene_type || "Basic";
 		var backdrop_spec = scene_spec.backdrop || {};
 		var set_piece_specs = scene_spec.set_pieces || [];
+		
 		var scene;
 		in_production_try(this, function () {
-			scene = new Game.Scene[scene_type_name](backdrop_spec, set_piece_specs, game_or_round);
+			scene = new Game.Scene[scene_type_name](backdrop_spec, set_piece_specs, game);
 			scene.init(events);
+
+			// associate scene w the rounds it is used in.
+			scene.rounds = scene_spec.rounds || [];
+			if (scene.rounds === "all") {
+				scene.rounds = $(game.rounds).collect(function (i) { return i; });
+			}
 		});
 		return scene;
 	}
@@ -52,9 +59,6 @@ Util.extend(Game.Scene.Basic, Game.Dealer);
 
 
 Game.Scene.Basic.prototype.init = function (events) {
-	// track Game.newRound events
-	$(document).on("Game.newRound", this.setup.bind(this));
-	
 	// track all of the state transitions that happen in Rounds.
 	// *** insure that only one listener gets created for each enter and leave event.
 	var round_events = $.collect(events, function () {
@@ -65,7 +69,8 @@ Game.Scene.Basic.prototype.init = function (events) {
 
 
 // I respond to Round setup events by loading my background and dealing my cards.
-Game.Scene.Basic.prototype.setup = function (evt, obj) {
+Game.Scene.Basic.prototype.setup = function (round) {
+	var dfd = $.Deferred();
 	if (!this.onstage) {
 		// all scene types get defined on Game.Scene, so we can loop 
 		// through them to discover our class.
@@ -79,17 +84,36 @@ Game.Scene.Basic.prototype.setup = function (evt, obj) {
 		
 		var backdrop_classes = "backdrop " + scene_class;
 		this.backdrop.style(backdrop_classes);
-		this.backdrop.dealTo(this.container, null, Game.Card.SEND_TO_BACK);
-		// create the set pieces and place (deal) them.
+		
+		// put down the backdrop, then create and add the set pieces.
 		var _this = this;
-		this.set_pieces = $.each(this.set_piece_specs, function (i, card_spec) {
-			var set_piece = _this.addCard(Game.SetPieceFactory.create(card_spec));
-			set_piece.style("set_piece").dealTo(_this.backdrop.element);
+		this.deal(this.backdrop).then(function () {
+			_this.set_pieces = $.collect(_this.set_piece_specs, function (i) {
+				var card_spec = this;
+				var set_piece = _this.addCard(Game.SetPieceFactory.create(card_spec));
+				set_piece.style("set_piece");
+				return set_piece;
+			});
+			// deal the set pieces into the backdrop.
+			_this.deal(_this.set_pieces, _this.backdrop.element).then(function() {
+				// once all the Cards are dealt, call finalize(), 
+				// so custom scripts will have access to them all.
+				_this.finalize();
+				_this.onstage = true;
+				// all round to move on.
+				dfd.resolve();
+			});
 		});
-		this.onstage = true;
+	} else {
+		dfd.resolve();
 	}
+	
+	return dfd.promise();
 }
 
+Game.Scene.Basic.prototype.finalize = function () {
+	// kept for custom code.
+}
 
 Game.Scene.Basic.prototype.trackRound = function (evt, state_info) {
 	// game scenes can have a handler function named for entering or leaving any Round state,
@@ -99,7 +123,7 @@ Game.Scene.Basic.prototype.trackRound = function (evt, state_info) {
 	// don't interrupt the game if there are any problems, as
 	// this is all for decoration.
 	try {
-		return (this[evt.namespace] || $.noop)(evt, state_info);
+		return (this[evt.namespace] || $.noop).bind(this)(evt, state_info);
 	} catch (e) {
 		console.error("Scene error in responding to Round state transition.", evt, e, e.stack);
 	}

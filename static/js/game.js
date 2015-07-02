@@ -20,8 +20,9 @@ var environment = { mode: "development" };
 function Game(game_spec) {
 	this.spec = game_spec;
 	
-	this.current_round = undefined;
+	this.current_round;
 	this.round_nbr = 0;
+	this.prior_round_nbr = 0;
 	this.container = this.read("Container");
 	this.title = $("#title").html(this.read("Title"));
 	this.rounds = this.read("Rounds"); // the rounds of the game.
@@ -39,17 +40,19 @@ function Game(game_spec) {
 	this.current_score = 0;
 
 	var game = this;
-	
+
+	// A Scene is made of Cards.
 	// load any HTML to define the Scene(s) in which the game will take place.
-	// we'll rely on css to set initial positions of objects,
-	// and any scene should be referencable by any rendering library we attach to.
-	// A Scene is just another Card.
+	// Create an object that associates Scenes with the Rounds in which they appear.
 	var scene_specs = this.read("Scenes");
-	this.scenes = $.collect(scene_specs, function (i){
+	this.scenes = {};
+	$(scene_specs).each(function (i){
 		var ith_scene = Game.SceneFactory.create(this, game, Game.Round.Events);
-		return ith_scene;
+		$(ith_scene.rounds).each(function () {
+			game.scenes[Math.round(this)] = ith_scene;
+		})
 	});
-										
+		
 	// load any resources that may be available to the user throughout the game.
 	// later, build in a concept of returning to a saved game, and restoring the
 	// current state of these resources.
@@ -119,7 +122,7 @@ Game.prototype.introduce = function () {
 	
 	// make sure our intro_specs fit requirements.
 	var _this = this;
-	var intro_cards = $.each(intro_specs, function () {
+	var intro_cards = $.collect(intro_specs, function () {
 		var intro_spec = this;
 		if (typeof intro_spec === "string"){
 			intro_spec = { content: intro_spec };
@@ -129,9 +132,22 @@ Game.prototype.introduce = function () {
 		return _this.intro_dealer.addCard(intro_spec);
 	});
 	
+	// we'll need to wait for user input. 
+	// each card should know what it needs to wait for before we can move on.
+	var user_input_promises = $.collect(intro_cards, function () {
+		return this.completion_promise || null;
+	});
+	if (user_input_promises === []) {
+		user_input_promises.push(this.internal_clock.getPromise());
+	}
 	// deliver just the intro cards. 
 	// the default IntroDealer will deal the Cards, one at-a-time, requiring click-through on each.
-	this.intro_dealer.dealCards(this.newRound.bind(this));
+	this.intro_dealer.deal(intro_cards).then(function () {
+		// when all user_input_promises are fulfilled, move on.
+		$.when.apply($, user_input_promises).then(function () {
+			_this.newRound();
+		});
+	});
 };
 
 Game.prototype.timeoutRound = function () {
@@ -231,6 +247,8 @@ Game.prototype.newRound = function (next_round) {
 			if (game_is_over) {
 				game.end();
 			} else {
+				game.prior_round_nbr = game.round_nbr;
+				
 				if (next_round instanceof YAML) {
 					game.current_round = new Game.Round(game, next_round);
 					game.round_nbr = game.rounds.indexOf(next_round) + 1;

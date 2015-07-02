@@ -17,6 +17,8 @@ Game = Game || function () {};
 Game.Card = function(spec) {
 	if (spec === null) {
 		return; // this is when we are creating a Card to be a prototype for another type of object.
+	} else if (spec instanceof String) {
+		spec = spec.toString();
 	}
 	
 	// default values for cards.
@@ -38,7 +40,8 @@ Game.Card = function(spec) {
 		this.element = $(spec);
 	} else {
 		var card_scaffold = $(document.createElement("div"));
-		card_scaffold.render(spec.content || spec);
+		var rendered_element = card_scaffold.render(spec.content || spec);
+		this.load_promise = rendered_element.data().promise;
 	
 		// we want to always have a single HTML element to represent each Card.
 		// so if the spec has generated siblings, we wrap them in a div.
@@ -135,6 +138,9 @@ Game.Card.SequenceStep.prototype = new Game.Card(null);
 Game.Card.Modal = function (spec) {
 	// create a card in the normal way.
 	Util.extend_properties(this, new Game.Card.SequenceStep(spec));
+	// add the bit where we wait for the user.
+	this.completion_dfd = $.Deferred();
+	this.completion_promise = this.completion_dfd.promise();
 }
 Util.extend(Game.Card.Modal, Game.Card.SequenceStep);
 Game.Card.Modal.prototype = new Game.Card.SequenceStep(null); 
@@ -150,9 +156,11 @@ Game.Card.Modal.prototype.addOKButton = function () {
 	// for now, we"re going to stick to the notion that all intros require a click to continue.
 	var card = this;
 	var onclick_handler = this.spec['okClick'] || $.noop;
+	
 	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
 		card.element.remove();
-		card.dfd.resolve();
+		onclick_handler.call(card);
+		card.completion_dfd.resolve();
 	});
 	ok_button.appendTo(this.element);
 };
