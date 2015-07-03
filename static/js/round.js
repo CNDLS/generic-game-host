@@ -163,18 +163,19 @@ Game.Round.prototype.endPrompting = function () {
 Game.Round.prototype.onListenForPlayer = function () {
 	if (this.listener instanceof Game.Round.Listener) {
 		this.listener.init();
-		var endListening = this.endListening.bind(this);
-		this.listener.deal().then(listen).then(endListening);
+		var _this = this;
+		this.listener.deal()
+		.then(function () {
+			_this.listener.listen()
+			.then(function () {
+				_this.endListening();
+			});
+		});
 		return StateMachine.ASYNC;
 	} // if I failed to create a listener, this will just transition us into the next state.
 };
 
 Game.Round.prototype.endListening = function (answer, score) {
-	// make any listener cards still onscreen unreceptive to user input (show them disabled).
-	// this is the default behavior; a listener would have to override if inputs should stay active
-	// past this point.
-	this.listener.deactivateCards();
-	
 	$.event.trigger("game.stopClock");
 	// record user's answer.
 	var user_answer;

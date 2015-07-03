@@ -78,6 +78,10 @@ Game.Card.prototype.find = function (selector) {
 	return this.element.find(selector);
 }
 
+// default way to activate/deactivate card is to set disabled attr on any input(s) in the card.
+Game.Card.prototype.setActive = function (flag) {
+	$(this.element).find("input").prop( "disabled", !flag );
+}
 
 Game.Card.prototype.dealTo = function (container) {
 	// find or create a place in the game in which to put the cards.

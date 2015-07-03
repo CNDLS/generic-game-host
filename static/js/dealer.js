@@ -250,17 +250,41 @@ Game.Round.Listener = function (round, spec, response_types) {
 }
 Util.extend(Game.Round.Listener, Game.Dealer);
 
+// The Listener should deal cards that are initially in a disabled state. They will be enabled upon listen().
+Game.Round.Listener.prototype.deal = function (cards_to_be_dealt, container, dealing_dfd) {
+	this.deactivateCards();
+	return Game.Dealer.prototype.deal.call(this, cards_to_be_dealt, container, dealing_dfd);
+}
+
+// Activate cards. Create a Deferred object. and pass it to each card.
+// They decide how to resolve it (perhaps in combination)?
 Game.Round.Listener.prototype.listen = function () {
-	var promises_for_user_input = $(this.cards).collect(function () {
-		return this.promise;
+	this.activateCards();
+	var user_input_dfd = $.Deferred();
+	// default is to respond to first user action.
+	var _this = this;
+	var card_elements = $(this.cards).collect(function () {
+		return this.element;
 	});
-	
-	return $.when.apply($, promises_for_user_input);
+	$(document).on("listener.userInput", function (evt, answer, score) {
+		// make any listener cards still onscreen unreceptive to user input (show them disabled).
+		// this is the default behavior; a listener would have to override if inputs should stay active
+		// past this point.
+		_this.deactivateCards();
+		user_input_dfd.resolve(answer, score);
+	});
+	return user_input_dfd.promise();
+}
+
+Game.Round.Listener.prototype.activateCards = function () {
+	$.each(this.cards, function () {
+		this.setActive(true);
+	});
 }
 
 Game.Round.Listener.prototype.deactivateCards = function () {
 	$.each(this.cards, function () {
-		$(this.element).find("input").prop( "disabled", true );
+		this.setActive(false);
 	});
 }
 
@@ -306,19 +330,18 @@ Game.ListenerCard.FreeResponseCard = function (args) {
 }
 Util.extend(Game.ListenerCard.FreeResponseCard, Game.Card);
 
-Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container, dfd) {
-	Game.Card.prototype.dealTo.call(this, container, dfd);
+Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container) {
+	Game.Card.prototype.dealTo.call(this, container);
 	var _this = this;
 	this.element.find("input[type=text]").on("keypress", function (e) {
         if (e.keyCode === 13) {
 			var answer = new Game.Answer(e.target.value);
 			var score = 1; // any response is accepted.
-			_this.dfd.resolve(answer, score);
+			$(_this.element).trigger("listener.userInput", answer, score);
 			e.target.blur();
 		}
 	});
 	this.element.find("input[type=text]").focus();
-	return true;
 }
 
 /* MultipleChoiceCard creates a card with a list of radio buttons, labelled with Answers from YAML. */
@@ -344,8 +367,8 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 }
 Util.extend(Game.ListenerCard.MultipleChoiceCard, Game.Card);
 
-Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container, dfd) {
-	Game.Card.prototype.dealTo.call(this, container, dfd);
+Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container) {
+	Game.Card.prototype.dealTo.call(this, container);
 	var _this = this;
 	this.element.find("input[type=radio]").on("click", function (e) {
 		var clicked_radio_btn = _this.radio_btns[e.target.id];
@@ -354,14 +377,14 @@ Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container, dfd
 		var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
 		var answer = new Game.Answer(clicked_radio_btn.answer);
 		var score = correct ? value : neg_value;
-		_this.dfd.resolve(answer, score);
+		$(_this.element).trigger("listener.userInput", answer, score);
 	});
-	return true;
 }
 
 
 /* 
  * This card waits for a click on a link. 
+ * args passed as an array.
  */
 Game.ListenerCard.LinkCard = function (args) {
 	this.round = args.shift();
@@ -371,7 +394,7 @@ Game.ListenerCard.LinkCard = function (args) {
 }
 Util.extend(Game.ListenerCard.LinkCard, Game.Card);
 
-Game.ListenerCard.LinkCard.prototype.dealTo = function (container, dfd) {
+Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
 	var _this = this;
 	this.element.click(function (e) {
 		// disable the link after one click (maybe will want a double-click option at some point?)
@@ -382,9 +405,13 @@ Game.ListenerCard.LinkCard.prototype.dealTo = function (container, dfd) {
 		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
 		var answer = new Game.Answer(_this.answer);
 		var score = correct ? value : neg_value;
-		dfd.resolve(answer, score);
+		$(_this.element).trigger("listener.userInput", answer, score);
 	});
-	return true;
+}
+
+// default way to activate/deactivate card is to set disabled attr on any input(s) in the card.
+Game.Card.prototype.setActive = function (flag) {
+	$(this.element).find("a").prop( "disabled", !flag );
 }
 
 /* 
