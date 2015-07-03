@@ -79,22 +79,14 @@ Game.Card.prototype.find = function (selector) {
 }
 
 
-Game.Card.prototype.dealTo = function (container, dfd, position) {
+Game.Card.prototype.dealTo = function (container) {
 	// find or create a place in the game in which to put the cards.
 	var container_spec = container || this.spec.container || this.dealer.container;
 	this.container = $(container_spec);
 	if (this.container.length == 0) {
 		this.container = $("#game");
 	}
-	
-	this.dfd = dfd || $.Deferred();
-	
-	// other possible position options... maybe an integer...?
-	if (position === Game.Card.SEND_TO_BACK) {
-		$(this.container).prepend(this.element);
-	} else {
-		$(this.container).append(this.element);
-	}
+	$(this.container).append(this.element);
 }
 
 // what I tell the Reporter about myself.
@@ -139,14 +131,14 @@ Game.Card.Modal = function (spec) {
 	// create a card in the normal way.
 	Util.extend_properties(this, new Game.Card.SequenceStep(spec));
 	// add the bit where we wait for the user.
-	this.completion_dfd = $.Deferred();
-	this.completion_promise = this.completion_dfd.promise();
+	this.user_input_dfd = $.Deferred();
+	this.user_input_promise = this.user_input_dfd.promise();
 }
 Util.extend(Game.Card.Modal, Game.Card.SequenceStep);
 Game.Card.Modal.prototype = new Game.Card.SequenceStep(null); 
 
-Game.Card.Modal.prototype.dealTo = function (container, dfd) {
-	Game.Card.prototype.dealTo.call(this, container, dfd);
+Game.Card.Modal.prototype.dealTo = function (container) {
+	Game.Card.prototype.dealTo.call(this, container);
 	this.addOKButton();
 	return true;
 }
@@ -160,7 +152,7 @@ Game.Card.Modal.prototype.addOKButton = function () {
 	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
 		card.element.remove();
 		onclick_handler.call(card);
-		card.completion_dfd.resolve();
+		card.user_input_dfd.resolve();
 	});
 	ok_button.appendTo(this.element);
 };

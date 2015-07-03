@@ -135,18 +135,18 @@ Game.prototype.introduce = function () {
 	// we'll need to wait for user input. 
 	// each card should know what it needs to wait for before we can move on.
 	var user_input_promises = $.collect(intro_cards, function () {
-		return this.completion_promise || null;
+		return this.user_input_promise || null;
 	});
 	if (user_input_promises === []) {
-		user_input_promises.push(this.internal_clock.getPromise());
+		user_input_promises.push(this.internal_clock.nextTick());
 	}
 	// deliver just the intro cards. 
 	// the default IntroDealer will deal the Cards, one at-a-time, requiring click-through on each.
-	this.intro_dealer.deal(intro_cards).then(function () {
-		// when all user_input_promises are fulfilled, move on.
-		$.when.apply($, user_input_promises).then(function () {
-			_this.newRound();
-		});
+	this.intro_dealer.deal(intro_cards);
+	
+	// when all user_input_promises are fulfilled, move on.
+	$.when.apply($, user_input_promises).then(function () {
+		_this.newRound();
 	});
 };
 
@@ -181,7 +181,7 @@ Game.prototype.gameFeedback = function () {
 		css_class: "game_summary"
 	};
 	var feedback_card = Game.Card.create(feedback_spec);
-	feedback_card.dealTo();
+	feedback_card.dealTo(feedback_spec.container);
 	// add to the msg stream as well.
 	this.sendMessage(gameFeedbackMessage);
 };

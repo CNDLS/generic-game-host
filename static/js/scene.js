@@ -34,25 +34,10 @@ Game.SceneFactory = {
 	}
 }
 
-Game.Scene.Basic = function (backdrop_spec, set_piece_specs, game_or_round) {
-	Util.extend_properties(this, new Game.Dealer(game_or_round));
+Game.Scene.Basic = function (backdrop_spec, set_piece_specs, game) {
+	Util.extend_properties(this, new Game.Dealer(game));
 	this.backdrop = new Game.Card(backdrop_spec);
 	this.set_piece_specs = set_piece_specs;
-	
-	// keep references to game and round, if applicable.
-	switch (true) {
-		case (game_or_round instanceof Game):
-			this.round = null;
-			this.game = game_or_round;
-			this.container = this.game.container;
-			break;
-			
-		case (game_or_round instanceof Game.Round):
-			this.round == game_or_round;
-			this.game = game_or_round.game;
-			this.container = this.round.container;
-			break;
-	}
 	this.onstage = false; // we should be able to switch out scenes while saving their state.
 }
 Util.extend(Game.Scene.Basic, Game.Dealer);

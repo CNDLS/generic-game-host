@@ -1,0 +1,8 @@
+-- create/load card. create card Deferred.
+should deal card wait on card creation promise? Yes. Can't deal a card that couldn't be constructed.
+
+-- deal card. create/use dealer Deferred.
+So, request to deal cards happens, dealer waits for all cards to be available (loaded), then deal happens. There is a Deferred associated with the deal, as it may include some form of animation.
+
+-- (optionally) wait for user input. this is also a separate Deferred.
+On what circumstances do we create one of these? It seems as though it must be the responsibility of the dealer to create this. Is this really a fundamentally different thing than waiting for an animation on the deal? Yes, because you might want to do both.

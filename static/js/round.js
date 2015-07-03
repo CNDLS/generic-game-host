@@ -156,7 +156,7 @@ Game.Round.prototype.endPrompting = function () {
 	this.game.record({ event: "prompt given", prompt: this.prompter.report() });
 	var _this = this;
 	this.game.nextTick().then(function () {
-		// _this.listen();
+		_this.listen();
 	});
 }
 
@@ -164,7 +164,7 @@ Game.Round.prototype.onListenForPlayer = function () {
 	if (this.listener instanceof Game.Round.Listener) {
 		this.listener.init();
 		var endListening = this.endListening.bind(this);
-		this.listener.dealCards(endListening);
+		this.listener.deal().then(listen).then(endListening);
 		return StateMachine.ASYNC;
 	} // if I failed to create a listener, this will just transition us into the next state.
 };
@@ -196,7 +196,7 @@ Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, answer,
 	if (this.responder instanceof Game.Round.Responder) {
 		this.responder.init(answer, score);
 		var endResponding = this.endResponding.bind(this);
-		this.responder.dealCards(endResponding);
+		this.responder.deal().then(endResponding);
 		return StateMachine.ASYNC;
 	}
 };
