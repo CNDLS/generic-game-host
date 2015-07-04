@@ -266,12 +266,12 @@ Game.Round.Listener.prototype.listen = function () {
 	var card_elements = $(this.cards).collect(function () {
 		return this.element;
 	});
-	$(document).on("listener.userInput", function (evt, answer, score) {
+	$(document).on("listener.userInput", function (evt, data) {
 		// make any listener cards still onscreen unreceptive to user input (show them disabled).
 		// this is the default behavior; a listener would have to override if inputs should stay active
 		// past this point.
 		_this.deactivateCards();
-		user_input_dfd.resolve(answer, score);
+		user_input_dfd.resolve(data.answer, data.score);
 	});
 	return user_input_dfd.promise();
 }
@@ -405,7 +405,7 @@ Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
 		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
 		var answer = new Game.Answer(_this.answer);
 		var score = correct ? value : neg_value;
-		$(_this.element).trigger("listener.userInput", answer, score);
+		$(_this.element).trigger("listener.userInput", {answer: answer, score: score});
 	});
 }
 

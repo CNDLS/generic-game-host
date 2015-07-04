@@ -15,9 +15,6 @@
     
       <div class="right">
         <span class="replay"><a href="#" onclick="window.location.reload();"><img src="{{ STATIC_URL }}img/reload.png"/>replay</a></span>
-        {% if current_user.is_staff %}
-          <a href="{% url 'list' %}">list of games</a>
-        {% endif %}
         <a href="{% url 'logout' %}">logout</a>
       </div>
 

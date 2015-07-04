@@ -132,11 +132,11 @@ textarea#clock, textarea#scoreboard {
   color: #fff;
 }
 textarea#clock {
-  background-color: #ee4e00;
+  background-color: #d64700;
   overflow: hidden;
 }
 textarea#scoreboard {
-  background-color: #4eee00;
+  background-color: #3fbe00;
   overflow: hidden;
 }
 

@@ -166,10 +166,10 @@ Game.Round.prototype.onListenForPlayer = function () {
 		var _this = this;
 		this.listener.deal()
 		.then(function () {
-			_this.listener.listen()
-			.then(function () {
-				_this.endListening();
-			});
+			return _this.listener.listen();
+		})
+		.then(function (answer, score) {
+			_this.endListening(answer, score);
 		});
 		return StateMachine.ASYNC;
 	} // if I failed to create a listener, this will just transition us into the next state.
