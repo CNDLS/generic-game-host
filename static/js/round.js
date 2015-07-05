@@ -196,8 +196,18 @@ Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, answer,
 	this.game.addPoints(score);
 	if (this.responder instanceof Game.Round.Responder) {
 		this.responder.init(answer, score);
-		var endResponding = this.endResponding.bind(this);
-		this.responder.deal().then(endResponding);
+		
+		var user_input_promises = $.collect(this.responder.cards, function () {
+			return this.user_input_promise || null;
+		});
+		
+		this.responder.deal();
+	
+		// when all user_input_promises are fulfilled, move on.
+		var _this = this;
+		$.when.apply($, user_input_promises).then(function () {
+			_this.endResponding();
+		});
 		return StateMachine.ASYNC;
 	}
 };
@@ -232,17 +242,20 @@ Game.Round.prototype.cancelTransition = function () {
 
 Game.Round.prototype.onEnd = function (eventname, from, to, next_round) {
 	$.event.trigger("game.resetClock");
-	
-	// do any 'tear down' of the round. do also for ending/interrupting game?
-	if ((this.tear_down instanceof YAML) && GameFunctionType.resolve(this.tear_down)) {
-		var game_fn = GameFunctionType.construct(this.tear_down);
-		game_fn.evaluate();
-	} else if (typeof this.tear_down === "function") {
-		this.tear_down();
-	}
+	this.doTearDown();
 	var _this = this;
 	this.game.nextTick().then(function () {
 		_this.game.record({ event: "round transition", old_round: _this.played_round });
 		_this.game.newRound(next_round || _this.read("Next"));
 	});
 };
+
+Game.Round.prototype.doTearDown = function () {
+	// do any 'tear down' of the round. do also for ending/interrupting game.
+	if ((this.tear_down instanceof YAML) && GameFunctionType.resolve(this.tear_down)) {
+		var game_fn = GameFunctionType.construct(this.tear_down);
+		game_fn.evaluate();
+	} else if (typeof this.tear_down === "function") {
+		this.tear_down();
+	}
+}

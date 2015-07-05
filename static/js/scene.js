@@ -108,7 +108,9 @@ Game.Scene.Basic.prototype.trackRound = function (evt, state_info) {
 	// don't interrupt the game if there are any problems, as
 	// this is all for decoration.
 	try {
-		return (this[evt.namespace] || $.noop).bind(this)(evt, state_info);
+		if (typeof this[evt.namespace] === "function") {
+			return (this[evt.namespace]).bind(this)(evt, state_info);
+		}
 	} catch (e) {
 		console.error("Scene error in responding to Round state transition.", evt, e, e.stack);
 	}

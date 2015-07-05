@@ -137,9 +137,7 @@ Game.prototype.introduce = function () {
 	var user_input_promises = $.collect(intro_cards, function () {
 		return this.user_input_promise || null;
 	});
-	if (user_input_promises === []) {
-		user_input_promises.push(this.internal_clock.nextTick());
-	}
+	
 	// deliver just the intro cards. 
 	// the default IntroDealer will deal the Cards, one at-a-time, requiring click-through on each.
 	this.intro_dealer.deal(intro_cards);
@@ -237,7 +235,7 @@ Game.prototype.newRound = function (next_round) {
 	// advance to next round upon successfully reporting progress.
 	// if there's a communications failure, we'll at least know when it happened.
 	var game = this;
-	var game_is_over = ((this.round_nbr >= this.rounds.length) && !next_round);
+	var game_is_over = ((this.round_nbr >= this.rounds.length) && !next_round) || (next_round === -1);
 
 	this.checkIfUserWon();
 	game_is_over = game_is_over || this.user_won;
@@ -266,6 +264,8 @@ Game.prototype.newRound = function (next_round) {
 };
 
 Game.prototype.end = function() {
+	$.event.trigger("game.resetClock");
+	if (this.current_round) this.current_round.doTearDown();
 	this.gameFeedback();
 	this.allowReplay();
 }

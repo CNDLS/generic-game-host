@@ -123,8 +123,7 @@ Game.Dealer.prototype.discard = function (array_or_card) {
 	}
 	this.cards = $(this.cards).reject(function () {
 		if (array_of_cards.indexOf(this) > -1) {
-			// reject any pending dfd, so any cleanup can happen.
-			in_production_try(this, this.dfd.reject);
+			this.element.remove();
 			return true;
 		}
 		return false;
@@ -132,9 +131,8 @@ Game.Dealer.prototype.discard = function (array_or_card) {
 }
 // forget all my cards.
 Game.Dealer.prototype.discardAll = function () {
-	// reject any pending dfd's, so any cleanup can happen.
 	$.each(this.cards, function () {
-		in_production_try(this, this.dfd.reject);
+		this.element.remove();
 	});
 	this.cards = [];
 }
@@ -445,7 +443,7 @@ Game.Round.Responder = function (round, spec) {
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
 	Game.Round.Responder.DEFAULTS = {
-		FeedbackType: "Simple" // just a text/html message in a Card.
+		FeedbackType: "Simple" // just a text/html message in a Card. Changed to a Modal Card.
 	}
 }
 Util.extend(Game.Round.Responder, Game.Dealer);
@@ -480,7 +478,7 @@ Game.ResponderCard.Simple = function (args) {
 	var answer = args.shift();
 	var score = args.shift();
 	if (answer.feedback) {
-		Util.extend_properties(this, new Game.Card(answer.feedback));
+		Util.extend_properties(this, new Game.Card.Modal(answer.feedback));
 	}
 }
-Util.extend(Game.ResponderCard.Simple, Game.Card);
+Util.extend(Game.ResponderCard.Simple, Game.Card.Modal);
