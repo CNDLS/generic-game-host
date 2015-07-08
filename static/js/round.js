@@ -116,8 +116,12 @@ Game.Round.prototype.setup = function () {
 		// if scene has changed, put up the new one.
 		var reset_scene, prompt_without_scene;
 		try {
-			var prior_scene = this.game.scenes[this.game.prior_round_nbr];
-			reset_scene = (prior_scene.rounds.indexOf(this.game.current_round) === -1);
+			var prior_scene = this.game.scenes[this.game.prior_round_nbr - 1];
+			if (prior_scene === undefined) {
+				reset_scene = true;
+			} else {
+				reset_scene = (prior_scene.rounds.indexOf(this.nbr) === -1);
+			}
 		} catch (e) {
 			reset_scene = true;
 		}
@@ -172,7 +176,10 @@ Game.Round.prototype.onListenForPlayer = function () {
 			_this.endListening(answer, score);
 		});
 		return StateMachine.ASYNC;
-	} // if I failed to create a listener, this will just transition us into the next state.
+	} else {
+		// if I failed to create a listener, just transition to the round.
+		this.abort();
+	}
 };
 
 Game.Round.prototype.endListening = function (answer, score) {

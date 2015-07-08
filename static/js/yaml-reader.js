@@ -104,7 +104,6 @@ function YAML(parsed_data) {
 	// crawl through parsed_data & give all objects a custom get() function.
 	// for now, we're assuming they're all vanilla Objects.
 	for (var key in parsed_data) {
-		var constructor = parsed_data[key].constructor;
 		if ((parsed_data[key] instanceof Object) && !(parsed_data[key] instanceof Function)) {
 			parsed_data[key] = new YAML(parsed_data[key]);
 		}

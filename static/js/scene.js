@@ -27,7 +27,7 @@ Game.SceneFactory = {
 			// associate scene w the rounds it is used in.
 			scene.rounds = scene_spec.rounds || [];
 			if (scene.rounds === "all") {
-				scene.rounds = $(game.rounds).collect(function (i) { return i; });
+				scene.rounds = $(game.rounds).collect(function (i) { return i + 1; });
 			}
 		});
 		return scene;

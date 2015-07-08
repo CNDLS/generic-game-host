@@ -203,8 +203,8 @@ Game.Round.Prompter = function (round, spec) {
 	// deliver the prompt card(s) from the current Round spec.
 	var _this = this;
 	var prompts = round.read("Prompt");
-	if ( !(prompts instanceof Array) ){ prompts = [prompts]; }
-	this.cards = $.map(prompts, function (prompt) {
+	if ( !(prompts instanceof Array) ){ prompts = $.makeArray(prompts); }
+	this.cards = $.map(prompts, function (prompt, i) {
 		var prompt_card_type = prompt.prompt_type || Game.Round.Prompter.DEFAULTS.Type;
 		return Game.DealersCardFactory.create("PromptCard", prompt_card_type, _this, prompt);
 	});
@@ -217,6 +217,13 @@ Game.PromptCard.Simple = function (args) {
 	Util.extend_properties(this, new Game.Card(spec));
 }
 Util.extend(Game.PromptCard.Simple, Game.Card);
+
+
+Game.PromptCard.Modal = function (args) {
+	var spec = args.shift();
+	Util.extend_properties(this, new Game.Card.Modal(spec));
+}
+Util.extend(Game.PromptCard.Modal, Game.Card.Modal);
 
 
 /* 

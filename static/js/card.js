@@ -154,9 +154,9 @@ Game.Card.Modal.prototype.addOKButton = function () {
 	var onclick_handler = this.spec['okClick'] || $.noop;
 	
 	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
+		card.user_input_dfd.resolve();
 		card.element.remove();
 		onclick_handler.call(card);
-		card.user_input_dfd.resolve();
 	});
 	ok_button.appendTo(this.element);
 };

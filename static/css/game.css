@@ -330,62 +330,40 @@ table#detail td {
   display: none;
 }
 
+.card.modal {
+  position: relative;
+  display: block;
+}
+
 .card button {
-    padding: 0.5em 1.5em;
-}
-
-.intro.card {
-  height: 300px;
-  padding: 1em 6.5em 0em 6.5em;
-}
-.intro.card {
-  height: 300px;
-  max-width: 500px;
-  padding: 1em 6.5em 0em 6.5em;
-}
-
-.intro.card .front{
-  color: white;
-  font-size: 1.25em;
-}
-
-.intro.card h2 {
-  margin: 0;
-  font-size: 1.25em;
-}
-.intro.card ul {
-  margin-top: 0.25em;
-}
-
-.intro.card ul li {
-  padding: 0.25em 0;
-  letter-spacing: 0.125em;
-}
-
-.intro.card .front > a {
+  padding: 0.5em 1.5em;
+  margin: 0.25em 0.5em;
   font-size: 1em;
-  color: white;
-  text-align: center;
-  text-decoration: none;
-  border: 1px solid white;
-  padding: 0 1em;
-  width: 100px;
-  display:block;
-  margin: 0.5em auto;
+  display: block;
+  float: right;
+  background: #efefef;
+  border: 1px solid #eee;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
 }
 
-.intro.card .front > a:hover {
-  color: #3366aa;
-  background-color: rgba(255,255,255,0.3);
+.card button:hover {
+  background: #e5e5e5;
 }
 
-.intro.card .front .setup {
-  font-size: 1.25em;
-  padding: 0;
+.simple.responder.card {
+  margin: 0.5em;
+  padding: 1.5em;
+  max-width: 45vw;
+  font-size: 1.5em;
+  -webkit-box-shadow: 0px 3px 14px 0px rgba(153,153,153,0.63);
+  -moz-box-shadow: 0px 3px 14px 0px rgba(153,153,153,0.63);
+  box-shadow: 0px 3px 14px 0px rgba(153,153,153,0.63);
 }
-
-.intro.card .front .setup hr {
-  opacity: 0.3;
+.simple.responder.card button {
+  font-size: 0.75em;
+  margin: 0.5em;
 }
 
 .gallery {
