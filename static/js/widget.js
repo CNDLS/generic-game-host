@@ -76,10 +76,11 @@ Game.Widgets.Scoreboard = function (game) {
 	this.refresh();
 	
 	// listen for addPoints events from the game.
-	$(document).on("game.addPoints", this.add.bind(this));
+	$(document).on("game.addPoints", this.addPoints.bind(this));
+	$(document).on("game.setPoints", this.setPoints.bind(this));
 };
 
-Game.Widgets.Scoreboard.prototype.add = function (e, points) {
+Game.Widgets.Scoreboard.prototype.addPoints = function (e, points) {
 	if (typeof points === "number") {
 		this.points += points;
 		this.refresh();
@@ -87,9 +88,17 @@ Game.Widgets.Scoreboard.prototype.add = function (e, points) {
 	return this.points;
 };
 
-Game.Widgets.Scoreboard.prototype.subtract = function (points) {
+Game.Widgets.Scoreboard.prototype.subtractPoints = function (points) {
 	this.points -= points;
 	this.refresh();
+	return this.points;
+};
+
+Game.Widgets.Scoreboard.prototype.setPoints = function (e, points) {
+	if (typeof points === "number") {
+		this.points = points;
+		this.refresh();
+	}
 	return this.points;
 };
 

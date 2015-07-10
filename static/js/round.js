@@ -253,6 +253,9 @@ Game.Round.prototype.onEnd = function (eventname, from, to, next_round) {
 	var _this = this;
 	this.game.nextTick().then(function () {
 		_this.game.record({ event: "round transition", old_round: _this.played_round });
+		// if a next_round is passed in, use that, or
+		// if Round YAML specifies a "Next" round to go to, use that, or
+		// the game will just read the next one in the list, or will conclude if there is none.
 		_this.game.newRound(next_round || _this.read("Next"));
 	});
 };

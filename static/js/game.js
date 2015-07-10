@@ -157,6 +157,11 @@ Game.prototype.addPoints = function (points) {
 	$.event.trigger("game.addPoints", [points]);
 };
 
+Game.prototype.setPoints = function (points) {
+	this.current_score = points;
+	$.event.trigger("game.setPoints", [points]);
+};
+
 Game.prototype.checkIfUserWon = function () {
 	this.user_won = false;
 	if (Util.isNumeric(this.winning_score) && (this.current_score >= this.winning_score)) {

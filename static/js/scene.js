@@ -83,7 +83,7 @@ Game.Scene.Basic.prototype.setup = function (round) {
 			_this.deal(_this.set_pieces, _this.backdrop.element).then(function() {
 				// once all the Cards are dealt, call finalize(), 
 				// so custom scripts will have access to them all.
-				_this.finalize();
+				_this.finalize(round);
 				_this.onstage = true;
 				// all round to move on.
 				dfd.resolve();
