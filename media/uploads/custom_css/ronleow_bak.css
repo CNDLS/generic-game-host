@@ -1,0 +1,251 @@
+body {
+  position: relative;
+}
+
+#content {
+  position: relative;
+}
+
+#game {
+	clear: both;
+  position: relative;
+}
+
+pre.scroll {
+    letter-spacing: 0.025em;
+    color: #8B4513;
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-style: italic;
+    font-size: 1.25em;
+    background: #FDF5E6;
+    padding: 1.5em 1em 2em 1em;
+    width: 35em;
+    border: 3px solid #BC8F8F;
+}
+
+.backdrop.lake {
+    height: 25vw;
+    width: 95vw;
+    background: url("../custom_img/lake-bg_w900.png") no-repeat;
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: relative;
+    margin: 0 auto 1.2vh;
+}
+
+.boat-container {
+    position: relative;
+    top: 67%;
+    left: 16%;
+    width: 57.5vw;
+}
+
+.boat {
+    position: relative;
+    width: 8vw;
+    height: 2.2vw;
+    background-image: url("../custom_img/boat.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    left: 0px;
+}
+
+.boat.fast {
+    background-image: url("../custom_img/boat-fast.png");
+}
+
+.gauge {
+  background-image: url("../custom_img/gauge_bg.png");
+  width: 5vw;
+  height: 5vw;
+  bottom: -16vw;
+  left: 2vw;
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: relative;
+}
+.needle {
+  background-image: url("../custom_img/needle.png");
+  width: 0.5vw;
+  height: 2.75vw;
+  top: 0.5vh;
+  left: 2.19vw;
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.needle.pulse {
+    -webkit-animation-direction: alternate; /* Chrome, Safari, Opera */
+    -webkit-animation-iteration-count: 2;
+    -webkit-animation-duration: 0.8s;
+    -webkit-animation-timing-function: linear; 
+    -webkit-animation-name: pulse; 
+    -webkit-transform-origin: 50% 95%;
+    
+    -moz-animation-direction: alternate; /* FF */
+    -moz-animation-iteration-count: 2;
+    -moz-animation-duration: 0.8s;
+    -moz-animation-timing-function: linear; 
+    -moz-animation-name: pulse; 
+    -moz-transform-origin: 50% 95%;
+    
+    -ms-animation-direction: alternate; /* IE */
+    -ms-animation-iteration-count: 2;
+    -ms-animation-duration: 0.8s;
+    -ms-animation-timing-function: linear; 
+    -ms-animation-name: pulse; 
+    -ms-transform-origin: 50% 95%;
+    
+    animation-direction: alternate;
+    animation-iteration-count: 2;
+    animation-duration: 0.8s;
+    animation-timing-function: linear;
+    animation-name: pulse; 
+    transform-origin: 50% 95%;
+}
+
+@-webkit-keyframes pulse { 
+  from {  
+       -webkit-transform: rotate(0deg); 
+   } to { 
+       -webkit-transform: rotate(52deg); 
+   }
+} 
+@-moz-keyframes pulse { 
+  from { 
+       -moz-transform: rotate(0deg); 
+   } to { 
+       -moz-transform: rotate(52deg); 
+   }
+}
+@-ms-keyframes pulse { 
+  from { 
+       -ms-transform: rotate(0deg); 
+   } to { 
+       -ms-transform: rotate(52deg); 
+   }
+} 
+keyframes pulse { 
+  from { 
+       transform: rotate(0deg); 
+   } to { 
+       transform: rotate(52deg); 
+   }
+} 
+
+.gas_tank {
+  display:none;
+  background-image: url("../custom_img/gas_tank.png");
+  width: 2.5vw;
+  height: 2vw;
+  bottom: -15vw;
+  left: 7vw;
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+p.intro {
+  font-size: 1.5em;
+  padding: 0.5em 1em;
+  background: white;
+  border: 2px solid #999;
+}
+
+.card.prompt {
+  font-size: 1.75vw;
+  width: 90vw;
+  margin-left: 1.25vw;
+  left: -1000;
+}
+
+.card.prompt a {
+  text-decoration: none;
+  font-size: 1.1em;
+}
+
+a.card.link_card {
+  padding: 0 0.25em;
+  margin: 0 0.125em;
+}
+a.card.link_card:hover {
+  background-color: rgba(255,255,255,0.125);
+}
+
+.multiple_choice_card,
+.multiple_choice_card li input {
+  font-size: 1.5em;
+}
+.multiple_choice_card li label {
+  padding-left: 0.25em;
+}
+.multiple_choice_card li {
+  list-style-type: none;
+  margin-bottom: 0.5em;
+}
+
+.question_prompt,
+.answers {
+    position: relative;
+    font-size: 1.5em;
+    top: 400px;
+    left: 45%;  
+}
+
+/* adding a simple animation to the old man's questions. */
+.card.prompt { 
+    -webkit-animation-delay: 0.25s; /* Chrome, Safari, Opera */
+    animation-delay: 0.25s;
+    -webkit-animation-duration: 0.5s; 
+    animation-duration: 0.5s; 
+    -webkit-animation-fill-mode: both; 
+    animation-fill-mode: both; 
+    -webkit-animation-timing-function: ease-in; 
+    animation-timing-function: ease-in; 
+} 
+
+@-webkit-keyframes bounceIn { 
+    0% { 
+        opacity: 0; 
+        -webkit-transform: scale(.3); 
+    } 
+
+    50% { 
+        opacity: 1; 
+        -webkit-transform: scale(1.05); 
+    } 
+
+    70% { 
+        -webkit-transform: scale(.9); 
+    } 
+
+    100% { 
+         -webkit-transform: scale(1); 
+    } 
+} 
+
+@keyframes bounceIn { 
+    0% { 
+        opacity: 0; 
+        transform: scale(.3); 
+    } 
+
+    50% { 
+        opacity: 1; 
+        transform: scale(1.05); 
+    } 
+
+    70% { 
+        transform: scale(.9); 
+    } 
+
+    100% { 
+        transform: scale(1); 
+    } 
+} 
+
+.card.prompt { 
+    -webkit-animation-name: bounceIn; 
+    animation-name: bounceIn; 
+}

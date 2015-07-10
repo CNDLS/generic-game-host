@@ -1,0 +1,235 @@
+/* Styles for the Demo game. */
+
+#game {
+    clear:both;
+    margin-top: 72px;
+}
+
+pre.scroll {
+  letter-spacing: 0.025em;
+  color: #8B4513;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-style: italic;
+  font-size: 1.75em;
+  background: #FDF5E6;
+  padding: 1.5em 1em 2em 1em;
+  width: 38em;
+  border: 3px solid #A87322;
+}
+
+ul.backdrop.gorge {
+  height: 400px;
+  background: rgba(0,48,128,0.25) 0 0 no-repeat url("../custom_img/gorge_of_eternal_peril.png");
+  background-size: contain;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+/*  z-index: -1;*/
+  list-style: none;
+  list-style-position: inside;
+}
+li.set_piece {
+  position: relative;
+  bottom: 0;
+  left: 512px;
+  top: 2px;
+  float: left;
+  height: 100px;
+  width: 50px;
+  background-size: contain;
+}
+li.knight, li.king {
+    background-image: url("../custom_img/man.png");
+    background-repeat: no-repeat;
+    top: 32px;
+}
+li.walker {
+  background-image: url("../custom_img/walker.png");
+  background-size: contain;
+  background-position-x: -1px;
+  background-position-y: 19px;
+  position: absolute;
+  left: 567px;
+  top: -17px;
+}
+li.falling {
+  position: absolute;
+  top: -100;
+  left: 400px;
+  background-image: url("../custom_img/slip-man-hi.png");
+  background-size: contain;
+}
+li.king:after {
+  content: url("../custom_img/crown.png");
+  left: 17px;
+  top: -7px;
+  display: block;
+  position: relative;
+}
+li.old_man {
+    background-image: url("../custom_img/old_man.png");
+    background-repeat: no-repeat;
+    height: 75px;
+    margin-top: 25px;
+    margin-right: 65px;
+}
+
+
+#cards {
+    padding: 24px;
+    float:left;
+    top: 2px;
+    right: 12px;
+}
+.prompt.card.simple, .responder.card.simple {
+    position: relative;
+    right: 98px;
+    top: -70px;
+    font-size: 18px;
+    min-width: 220px;
+    max-width: 240px;
+    padding: .5em 1em;
+    background: #FFFFFF;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    border: #BEBDBE solid 4px;
+}
+
+.prompt.card.simple:after, .responder.card.simple:after {
+    content: '';
+    position: absolute;
+    border-style: solid;
+    border-width: 15px 0 0 15px;
+    border-color: #FFFFFF transparent;
+    display: block;
+    width: 0;
+    z-index: 1;
+    bottom: -14px;
+    left: 92px;
+}
+
+.prompt.card.simple:before, .responder.card.simple:before {
+    content: '';
+    position: absolute;
+    border-style: solid;
+    border-width: 20px 0 0 21px;
+    border-color: #BEBDBE transparent;
+    display: block;
+    width: 0;
+    bottom: -20px;
+    left: 88px;
+}
+.responder.card.simple.clickable {
+    cursor: pointer;
+    color: #15CCC2;
+    font-weight: bold;
+    border-color: black;
+    border-style: double;
+}
+.responder.card.simple.clickable:before {
+    border-color: black transparent;
+}
+.responder.card.simple.clickable:after {
+    border-color: white transparent;
+    border-width: 15px 0 0 17px;
+    bottom: -15px;
+    left: 90px;
+}
+
+.prompt.card button {
+  position: relative;
+  right: 0.25em;
+}
+
+.listener.card {
+    max-width: 240px;
+    padding: .5em 1em;
+    background: #FFFFFF;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    border: #BEBDBE solid 2px;
+}
+
+.listener.card.free_response_card input {
+    width: 100%;
+}
+
+.listener.card.multiple_choice_card li {
+    list-style: none;
+    margin: 3px 0;
+}
+.listener.card.multiple_choice_card li label {
+    margin-left: 5px;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+li.answers {
+  position: relative;
+  width: 244px;
+  clear: both;
+  float: none;
+  left: 624px;
+  top: 40px;
+}
+
+/* adding a simple animation to the old man's questions. */
+.card.prompt { 
+    -webkit-animation-delay: 0.25s; /* Chrome, Safari, Opera */
+    animation-delay: 0.25s;
+    -webkit-animation-duration: 0.5s; 
+    animation-duration: 0.5s; 
+    -webkit-animation-fill-mode: both; 
+    animation-fill-mode: both; 
+    -webkit-animation-timing-function: ease-in; 
+    animation-timing-function: ease-in; 
+} 
+
+@-webkit-keyframes bounceIn { 
+    0% { 
+        opacity: 0; 
+        -webkit-transform: scale(.3); 
+    } 
+
+    50% { 
+        opacity: 1; 
+        -webkit-transform: scale(1.05); 
+    } 
+
+    70% { 
+        -webkit-transform: scale(.9); 
+    } 
+
+    100% { 
+         -webkit-transform: scale(1); 
+    } 
+} 
+
+@keyframes bounceIn { 
+    0% { 
+        opacity: 0; 
+        transform: scale(.3); 
+    } 
+
+    50% { 
+        opacity: 1; 
+        transform: scale(1.05); 
+    } 
+
+    70% { 
+        transform: scale(.9); 
+    } 
+
+    100% { 
+        transform: scale(1); 
+    } 
+} 
+
+.card.prompt { 
+    -webkit-animation-name: bounceIn; 
+    animation-name: bounceIn; 
+}

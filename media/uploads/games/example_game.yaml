@@ -1,0 +1,75 @@
+Title: Gorge of Eternal Peril
+Winning: TheKingGotAcross
+Scenes:
+  - scene_type: Gorge
+    rounds: all
+    backdrop: ul
+    set_pieces:
+      - li.old_man
+      - li.knight
+      - li.knight
+      - li.king
+      - li.answers
+Widgets:
+  - CountdownClock
+  - Scoreboard
+Templates:
+  - &BASE_ROUND
+    Prompter:
+      container: li.old_man
+    Listener: 
+      container: li.answers
+    Responder:
+      container: li.old_man
+    Teardown:
+      call: clearCards
+      pass: 
+        - li.old_man
+  - &MULTIPLE_CHOICE_ROUND
+    << : *BASE_ROUND
+    ResponseTypes: MultipleChoiceCard
+    MaxTime: 50
+Intro:
+  content:
+    h2: Scene 87
+    pre.scroll: |
+      You are a knight of the Round Table. You arrive at a bridge over a nasty gorge. 
+      Before the bridge, a vile old man asks you questions. 
+      If you answer incorrectly, you are doomed.
+Rounds:
+  - &START
+    << : *BASE_ROUND
+    Prompt: What is your name?
+    ResponseTypes: FreeResponseCard
+    MaxTime: none
+  - << : *MULTIPLE_CHOICE_ROUND
+    Prompt: What is your quest?
+    Answers:
+      - To seek lunch.
+      - Not to get killed.
+      - content: To seek the Holy Grail.
+        correct: true
+  - !do
+    call: withCard
+    pass:
+      - ul.gorge li:nth-child(2)
+      - li.king
+      - << : *MULTIPLE_CHOICE_ROUND
+        Prompt: What is the airspeed velocity of an unladen swallow?
+        Answers:
+          - Huh?
+          - content: "What do you mean, African or European?"
+            correct: true
+            feedback: "What -- I don't know!"
+      - << : *MULTIPLE_CHOICE_ROUND
+        Prompt: What is your favorite color?
+        Answers:
+          - "Blue -- no, Green!"
+          - content: Blue!
+            correct: true
+            feedback: Right. Off you go.
+        Teardown:
+          call: clearCards
+          pass: 
+            - "li.answers, li.old_man"
+        Next: *START

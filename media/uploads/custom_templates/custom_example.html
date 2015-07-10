@@ -1,0 +1,35 @@
+<script type="text/javascript">
+  var customization = {
+			// add any variables unique to your game.
+		  messenger: $("#messages"),
+			// add functions unique to your game. these will get called from !my declarations in the YAML file.
+			GetFinalQuestion: function(){
+				var pick = Math.floor(Math.random() * 3); // will be 0, 1, or 2
+				var question, answers;
+				if (pick % 3) { // 2/3 of the time, on average.
+					return {
+						Prompt: "What is your favorite color?",
+						ResponseType: "SelectResponse",
+						Answers: [
+											{ text: "Blue!", 
+												correct: true,
+												response: "Right. Off you go."
+											},
+											{ text: "Blue -- no, Green!" }
+										 ]
+					}
+				} else {
+					return {
+						Prompt: "What is the airspeed velocity of an unladen swallow?",
+						ResponseType: "SelectResponse",
+						Answers: [
+											{ text: "What do you mean, African or European?", 
+												correct: true,
+												response: "What -- I don't know!"
+											}
+										 ]
+					}
+				}
+			}
+		}
+</script>
