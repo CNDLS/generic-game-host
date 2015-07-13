@@ -123,7 +123,7 @@ Game.Dealer.prototype.discard = function (array_or_card) {
 	}
 	this.cards = $(this.cards).reject(function () {
 		if (array_of_cards.indexOf(this) > -1) {
-			this.element.remove();
+			this.remove();
 			return true;
 		}
 		return false;
@@ -268,15 +268,14 @@ Game.Round.Listener.prototype.listen = function () {
 	var user_input_dfd = $.Deferred();
 	// default is to respond to first user action.
 	var _this = this;
-	var card_elements = $(this.cards).collect(function () {
-		return this.element;
-	});
-	$(document).on("listener.userInput", function (evt, data) {
-		// make any listener cards still onscreen unreceptive to user input (show them disabled).
-		// this is the default behavior; a listener would have to override if inputs should stay active
-		// past this point.
-		_this.deactivateCards();
-		user_input_dfd.resolve(data.answer, data.score);
+	var card_elements = $(this.cards).each(function () {
+		this.element.on("listener.userInput", function (evt, data) {
+			// make any listener cards still onscreen unreceptive to user input (show them disabled).
+			// this is the default behavior; a listener would have to override if inputs should stay active
+			// past this point.
+			_this.deactivateCards();
+			user_input_dfd.resolve(data.answer, data.score);
+		});
 	});
 	return user_input_dfd.promise();
 }
@@ -410,7 +409,7 @@ Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
 		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
 		var answer = new Game.Answer(_this.answer);
 		var score = correct ? value : neg_value;
-		$(_this.element).trigger("listener.userInput", {answer: answer, score: score});
+		_this.element.trigger("listener.userInput", {answer: answer, score: score});
 	});
 }
 

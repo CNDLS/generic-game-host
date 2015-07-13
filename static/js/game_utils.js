@@ -28,17 +28,24 @@ $.extend(Game, {
 		}
 	},
 	
-	withCard: function (selector_to_query, test_selector, return_value, default_value) {
-		if ($(selector_to_query).is(test_selector)) {
+	withCard: function (queried_selector, test_selector, return_value, default_value) {
+		// do these two different selectors resolve to the same set of elements in jQuery?
+		// eg; is first child element yield an element that has some particular id/class combination?
+		if ($(queried_selector).is(test_selector)) {
 			return return_value;
 		} else {
 			return default_value;
 		}
 	},
 	
+	// *** NOTE: this depends on Card having a remove() method.
 	clearCards: function (selector, card_classnames) {
 		// clear all selected cards.
 		card_classnames = (card_classnames || "") + ".card";
-		$(selector || "*").find(card_classnames).remove();
+		$(selector || "*").find(card_classnames).each(function () {
+			// fallback is to just remove the element.
+			var card = $(this).data().card || $(this);
+			card.remove();
+		});
 	}
 });

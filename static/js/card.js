@@ -64,7 +64,10 @@ Game.Card = function(spec) {
 		}
 	}
 	
-	this.element.addClass("card");
+	// add the generic card class.
+	// keep track of this Card via the jQuery data for the element.
+	// this will work, even if we use another jQuery selector to select this one element.
+	this.element.addClass("card").data("card", this);
 }
 
 Game.Card.prototype.style = function (css_classes) {
@@ -78,9 +81,10 @@ Game.Card.prototype.find = function (selector) {
 	return this.element.find(selector);
 }
 
-// default way to activate/deactivate card is to set disabled attr on any input(s) in the card.
+// default way to activate/deactivate card is to set disabled attr on any input(s) and/or link(s) in the card.
+// we also set disabled on the card, in case it IS the interactive element, or if we want to do css on the card.
 Game.Card.prototype.setActive = function (flag) {
-	$(this.element).find("input").prop( "disabled", !flag );
+	$(this.element).find("input, a").addBack().prop( "disabled", !flag );
 }
 
 Game.Card.prototype.dealTo = function (container) {
@@ -91,6 +95,20 @@ Game.Card.prototype.dealTo = function (container) {
 		this.container = $("#game");
 	}
 	$(this.container).append(this.element);
+}
+
+Game.Card.prototype.remove = function () {
+	this.unbindEvents();
+	this.element.remove();
+}
+
+Game.Card.prototype.unbindEvents = function (in_event_names) {
+	// remove passed-in (or any) events bound to the card element, or any nested input or link elements.
+	var interactive_elements = this.element.find("input, a").addBack();
+	$(interactive_elements).each(function () {
+		var event_names = in_event_names || ( Object.keys($._data(this, "events") || {}).join(" ") );
+		$(this).off(event_names);
+	});
 }
 
 // what I tell the Reporter about myself.
@@ -155,7 +173,7 @@ Game.Card.Modal.prototype.addOKButton = function () {
 	
 	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
 		card.user_input_dfd.resolve();
-		card.element.remove();
+		card.remove();
 		onclick_handler.call(card);
 	});
 	ok_button.appendTo(this.element);
