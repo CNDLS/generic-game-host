@@ -4,7 +4,7 @@
 *.pyc
 host/settings.py
 /media/*
-!/media/uploads
+# !/media/uploads
 wsgi
 static/css/custom.css
 static/admin
