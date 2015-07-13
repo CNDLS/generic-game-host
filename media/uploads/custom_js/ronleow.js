@@ -16,12 +16,17 @@ Game.Scene.new(Game.Scene.Basic, "Lake",
 		this.last_regular_round_nbr = 20;
 		
 		// add a cheat key.
+		var _this = this;
 		$(document).keypress(function (evt) {
 			switch (evt.charCode) {
 				case 35: // # sign.
-					// jump to round 19 (18th index).
-					round.abort(round.game.rounds[18]);
-					round.game.setPoints(18);
+					// jump to round 18 (17th index).
+					round.abort(round.game.rounds[17], Game.clearCards);
+					round.game.round_nbr = round.nbr = 18;
+					round.game.setPoints(17);
+					_this.addGas(17).then(function () {
+						_this.gas_tank.hide();
+					});
 			}
 		})
 	},
@@ -32,7 +37,7 @@ Game.Scene.new(Game.Scene.Basic, "Lake",
 		var responder = round.responder;
 		var answer = responder.answer;
 		var score = responder.score;
-		var current_score = game.current_score; // + 17 Temp!!!
+		var current_score = game.current_score || 0;
 		
 
 		// bind animation functions to this object (may be used in callbacks).
@@ -45,10 +50,9 @@ Game.Scene.new(Game.Scene.Basic, "Lake",
 		// give the boat gas when there is a correct answer.
 		// this happens regardless of round (even if bonus round).
 		// return a promise, because other actions happen once that's done.
-		var add_gas_promise;
+		var add_gas_promise = game.internal_clock.nextTick();
 		switch(score) {
 			case 0:
-				add_gas_promise = game.internal_clock.nextTick();
 				console.log("wrong answer");
 				break;
 				
@@ -101,7 +105,7 @@ Game.Scene.new(Game.Scene.Basic, "Lake",
 	 *** we make them methods of this Scene object, so we always have access to the set pieces.
 	 ***/
 	
-	addGas: function (fill_er_up) {
+	addGas: function (fill_to) {
 		var current_transform, current_rotation, step;
 		var _this = this;
 		
@@ -119,9 +123,11 @@ Game.Scene.new(Game.Scene.Basic, "Lake",
 			// convert matched rotation to a float.
 			current_rotation = parseFloat(current_rotation[1]);
 			step = 4.5;
+			// if fill_to, fill to that number of steps
+			var final_r = fill_to ? (fill_to * step) - 45 : current_rotation + step;
 			
 			var dfd = $.Deferred();
-			$({ r: current_rotation }).delay(250).animate({ r: current_rotation + step }, 
+			$({ r: current_rotation }).delay(250).animate({ r: final_r }, 
 				{ duration: 1000, 
 					step: function (now) {
 				  	_this.needle.attr("transform", "rotate(" + now + ",210,312)");
@@ -151,8 +157,8 @@ Game.Scene.new(Game.Scene.Basic, "Lake",
 		var move_increment = (this.boatContainer.width() - this.boat.width()) / 20;
 		var boat_end_pos = (this.game.current_score) ? (move_increment * this.game.current_score) : boat_nudge;
 		var boat_speed = move_increment * 20;
-		var boat_min_speed = 300; // ticks
-		var boat_run_duration = (boat_speed * this.game.current_score) + boat_min_speed;
+		var boat_min_duration = 400; // ticks
+		var boat_run_duration = (boat_speed * this.game.current_score) + boat_min_duration;
 		
 		this.boat
 		.delay(500)
@@ -189,13 +195,21 @@ Game.Scene.new(Game.Scene.Basic, "Lake",
 		
 		var boat_sink_pos = this.boat.position();
 		var swim_duration = boat_sink_pos.left * 20;
+		// if there were no correct answers, boat_sink_pos.left is 37.5, and swim_duration is 750.
 		
 		this.boat.remove();
 		this.boatContainer.append(this.swimmer)
 		this.swimmer.css({ left: boat_sink_pos.left, top: boat_sink_pos.top });
 		this.swimmer.show();
-		this.swimmer.animate({ top: 10 }, 250 ); // bring swimmer partially to the surface.
-		this.swimmer.animate({ left: 20 }, swim_duration, function () { dfd.resolve(); } );
+		
+		if (swim_duration > 750) {
+			this.swimmer.animate({ top: 10 }, 200 ); // bring swimmer partially to the surface.
+			this.swimmer.animate({ left: 20 }, swim_duration, function () { dfd.resolve(); } );
+		} else {
+			// if there is not enough room for the swimmer to swim, just bring him to the surface and then move on.
+			this.swimmer.animate({ top: 10 }, 200, function () { dfd.resolve(); } );
+		}
+		
 		
 		// fade to black, so we don't have to deal with the swimmer coming out of the water.
 		var fadeout_delay = (swim_duration >= 6000) ? (swim_duration - 6000) : 0;
