@@ -53,6 +53,7 @@ Game.Dealer.prototype.deal = function (cards_to_be_dealt, container, dealing_dfd
 		}
 	});
 	
+	// filter out any null references in the array.
   for (var i = 0; i < card_load_promises.length; i++) {
     if (card_load_promises[i] == undefined) {         
       card_load_promises.splice(i, 1);
@@ -92,6 +93,7 @@ Game.Dealer.prototype.dealCards = function (cards_to_be_dealt, container, dealin
 		( card.dealTo(container) ) ? $.noop() : dealing_dfd.resolve();
 		return dealing_dfd.promise();
 	});
+	
 	// strip out duplicates.
 	deal_promises = Array.getUnique(deal_promises);
 	
@@ -201,9 +203,15 @@ Game.Dealer.prototype.waitForEachUserInput = function () {
 			return dealer.deal(card);
 		})
 	});
-	// return the promise that will get fulfilled when the user interacts with the last Card.
-	var last_card = this.cards[this.cards.length-1];
-	return last_card.user_input_dfd.promise();
+	
+	if (this.cards.length) {
+		// return the promise that will get fulfilled when the user interacts with the last Card.
+		var last_card = this.cards[this.cards.length-1];
+		return last_card.user_input_dfd.promise();
+	} else {
+		// return a generic promise.
+		return dealer.game.internal_clock.nextTick();
+	}
 }
 
 
@@ -342,7 +350,7 @@ Game.Round.Prompter = function (round, spec) {
 		AcceptUserInput: "none"
 	}
 	
-	// by default, we just put up a Prompt; user inputs that will give answers are owned by the Listener.
+	// by default, we just put up a Prompt; user inputs that will give answers are owned by the Prompter.
 	this.accept_user_input = round.read("AcceptUserInput", Game.Round.Prompter.DEFAULTS.AcceptUserInput);
 	
 	// deliver the prompt card(s) from the current Round spec.
@@ -588,8 +596,12 @@ Game.Round.Responder = function (round, spec) {
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
 	Game.Round.Responder.DEFAULTS = {
-		FeedbackType: "Simple" // just a text/html message in a Card. Changed to a Modal Card.
+		FeedbackType: "Simple", // require click on this -- its a Modal Card.
+		AcceptUserInput: "each" // deliver Modal Cards one at-a-time.
 	}
+	
+	// by default, we put up a Modal Feedback.
+	this.accept_user_input = round.read("AcceptUserInput", Game.Round.Responder.DEFAULTS.AcceptUserInput);
 }
 Util.extend(Game.Round.Responder, Game.Dealer);
 
@@ -621,7 +633,10 @@ Game.Round.Responder.prototype.init = function (answer, score) {
 
 
 Game.Round.Responder.prototype.respond = function () {
-	return this.deal();  // just a wrapper for pretty syntax. And a place to add stuff if nec.
+	var _this = this;
+	return this.deal().then(function () {
+		return _this.waitForUserInput(_this.accept_user_input);
+	});
 }
 
 

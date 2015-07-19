@@ -134,34 +134,18 @@ Game.Card.create = function (spec) {
 
 
 /* 
- * Game.Card.SequenceStep
- * Cards which are a part of a sequence of Cards.
- * When a Dealer encounters a SequenceStep Card, 
- * it halts dealing until the current list of promises is resolved,
- * then it deals cards again, until all are dealt 
- * or until the Dealer reaches another SequenceStep Card.
- */
-Game.Card.SequenceStep = function (spec) {
-	// create a card in the normal way.
-	Util.extend_properties(this, new Game.Card(spec));
-}
-Util.extend(Game.Card.SequenceStep, Game.Card);
-Game.Card.SequenceStep.prototype = new Game.Card(null); 
-
-
-/* 
  * Game.Card.Modal
  * Cards which 'stop the action' & require a user response.
  */
 Game.Card.Modal = function (spec) {
 	// create a card in the normal way.
-	Util.extend_properties(this, new Game.Card.SequenceStep(spec));
+	Util.extend_properties(this, new Game.Card(spec));
 	// add the bit where we wait for the user.
 	this.user_input_dfd = $.Deferred();
 	this.user_input_promise = this.user_input_dfd.promise();
 }
-Util.extend(Game.Card.Modal, Game.Card.SequenceStep);
-Game.Card.Modal.prototype = new Game.Card.SequenceStep(null); 
+Util.extend(Game.Card.Modal, Game.Card);
+Game.Card.Modal.prototype = new Game.Card(null); 
 
 Game.Card.Modal.prototype.dealTo = function (container) {
 	Game.Card.prototype.dealTo.call(this, container);
@@ -172,8 +156,14 @@ Game.Card.Modal.prototype.dealTo = function (container) {
 Game.Card.Modal.prototype.addOKButton = function () {
 	// once the user clicks to continue, we can move onto the game.
 	// for now, we"re going to stick to the notion that all intros require a click to continue.
+	if (this.element.find("button.continue").length > 0) { 
+		return;
+	}
 	var _this = this;
-	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
+	var ok_button = $(document.createElement("button"))
+										.attr("href", "#")
+										.addClass("continue")
+										.html("Continue").click(function () {
 		_this.user_input_dfd.resolve();
 		_this.remove();
 	});

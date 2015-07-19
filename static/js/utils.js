@@ -89,8 +89,8 @@ Object.hasFunction = function (obj, fname) {
 // return an array with no duplicates.
 Array.getUnique = function(arr){
    var u = {}, a = [];
-   for(var i = 0, l = arr.length; i < l; ++i){
-      if(u.hasOwnProperty(arr[i])) {
+   for (var i = 0, l = arr.length; i < l; ++i) {
+      if (u.hasOwnProperty(arr[i])) {
          continue;
       }
       a.push(arr[i]);

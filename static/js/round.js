@@ -159,10 +159,7 @@ Game.Round.prototype.onPromptPlayer = function () {
 
 Game.Round.prototype.endPrompting = function () {
 	this.game.record({ event: "prompt given", prompt: this.prompter.report() });
-	var _this = this;
-	this.game.nextTick().then(function () {
-		_this.listen();
-	});
+	this.listen();
 }
 
 Game.Round.prototype.onListenForPlayer = function () {
@@ -207,10 +204,7 @@ Game.Round.prototype.endListening = function (answer, score) {
 
 	this.game.addPoints(score);
 	this.game.record({ event: "user answers", answer: user_answer });
-	var _this = this;
-	this.game.nextTick().then(function () {
-		_this.respond(answer, score);
-	});
+	this.respond(answer, score);
 }
 
 Game.Round.prototype.onRespondToPlayer = function (eventname, from, to, answer, score) {
