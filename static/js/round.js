@@ -58,10 +58,7 @@ Game.Round = function (game, round_spec) {
 		var from = args.shift();
 		var to = args.shift();
 		var event_info = { round: this, name: name, from: from, to: to, args: args, continue: true };
-		$.event.trigger("Round.leave" + from, event_info);
-		console.log(from)
-		if (from == "Evaluate")
-			debugger;
+		var evt_rtn = $.event.trigger("Round.leave" + from, event_info);
 		return (event_info.continue) ? null : StateMachine.ASYNC;
 	};
 
@@ -207,7 +204,8 @@ Game.Round.prototype.endListening = function (answer, score) {
 	} catch (e) {
 		console.log("failed to get answer from user.", e.stack);
 	}
-	
+
+	this.game.addPoints(score);
 	this.game.record({ event: "user answers", answer: user_answer });
 	var _this = this;
 	this.game.nextTick().then(function () {
@@ -216,7 +214,6 @@ Game.Round.prototype.endListening = function (answer, score) {
 }
 
 Game.Round.prototype.onRespondToPlayer = function (eventname, from, to, answer, score) {
-	this.game.addPoints(score);
 	if (this.responder instanceof Game.Round.Responder) {
 		this.responder.init(answer, score);
 		// wait for any user actions that may be required

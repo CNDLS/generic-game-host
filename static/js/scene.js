@@ -49,7 +49,10 @@ Game.Scene.Basic.prototype.init = function (events) {
 	var round_events = $.collect(events, function () {
 		return "Round.leave" + this.from + " Round.enter" + this.to;
 	}).getUnique().join(" ");
-	$(document).on(round_events, this.trackRound.bind(this));
+	var _this = this;
+	$(document).on(round_events, function (evt, state_info) {
+		return _this.trackRound(evt, state_info)
+	});
 }
 
 
