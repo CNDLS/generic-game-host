@@ -87,14 +87,14 @@ Object.hasFunction = function (obj, fname) {
 }
 
 // return an array with no duplicates.
-Array.getUnique = function(){
+Array.getUnique = function(arr){
    var u = {}, a = [];
-   for(var i = 0, l = this.length; i < l; ++i){
-      if(u.hasOwnProperty(this[i])) {
+   for(var i = 0, l = arr.length; i < l; ++i){
+      if(u.hasOwnProperty(arr[i])) {
          continue;
       }
-      a.push(this[i]);
-      u[this[i]] = 1;
+      a.push(arr[i]);
+      u[arr[i]] = 1;
    }
    return a;
 }
