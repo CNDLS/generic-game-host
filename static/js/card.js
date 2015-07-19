@@ -39,6 +39,10 @@ Game.Card = function(spec) {
 		&& ($(spec).attr("data-keep-in-dom") === "true") ) {
 		this.element = $(spec);
 	} else {
+		// remove 'type' from spec
+		var card_type = spec.type || "";
+		delete spec.type
+		
 		var card_scaffold = $(document.createElement("div"));
 		var rendered_element = card_scaffold.render(spec.content || spec);
 		this.load_promise = rendered_element.data().promise;
@@ -67,7 +71,7 @@ Game.Card = function(spec) {
 	// add the generic card class.
 	// keep track of this Card via the jQuery data for the element.
 	// this will work, even if we use another jQuery selector to select this one element.
-	this.element.addClass("card").data("card", this);
+	this.element.addClass("card " + card_type).data("card", this);
 }
 
 Game.Card.prototype.style = function (css_classes) {
@@ -168,13 +172,10 @@ Game.Card.Modal.prototype.dealTo = function (container) {
 Game.Card.Modal.prototype.addOKButton = function () {
 	// once the user clicks to continue, we can move onto the game.
 	// for now, we"re going to stick to the notion that all intros require a click to continue.
-	var card = this;
-	var onclick_handler = this.spec['okClick'] || $.noop;
-	
+	var _this = this;
 	var ok_button = $(document.createElement("button")).attr("href", "#").html("Continue").click(function () {
-		card.user_input_dfd.resolve();
-		card.remove();
-		onclick_handler.call(card);
+		_this.user_input_dfd.resolve();
+		_this.remove();
 	});
 	ok_button.appendTo(this.element);
 };

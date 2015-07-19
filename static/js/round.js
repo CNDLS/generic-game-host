@@ -59,6 +59,9 @@ Game.Round = function (game, round_spec) {
 		var to = args.shift();
 		var event_info = { round: this, name: name, from: from, to: to, args: args, continue: true };
 		$.event.trigger("Round.leave" + from, event_info);
+		console.log(from)
+		if (from == "Evaluate")
+			debugger;
 		return (event_info.continue) ? null : StateMachine.ASYNC;
 	};
 
@@ -80,12 +83,12 @@ Game.Round = function (game, round_spec) {
 
 Game.Round.Events = 	// the available states, and the events that transition between them.
 	[
-		{ name: "prompt",		from: "none",									to: "GivePrompt" },
-		{ name: "listen",		from: "GivePrompt",								to: "ListenForPlayer" },
-		{ name: "evaluate",		from: "ListenForPlayer",						to: "EvaluateResponse" },
-		{ name: "timeout",		from: "ListenForPlayer",						to: "EvaluateResponse" },
-		{ name: "advance",		from: "EvaluateResponse",						to: "End" },
-		{ name: "abort",		from: StateMachine.WILDCARD,					to: "End" }
+		{ name: "prompt",			from: "none",												to: "PromptPlayer" },
+		{ name: "listen",			from: "PromptPlayer",								to: "ListenForPlayer" },
+		{ name: "respond",		from: "ListenForPlayer",						to: "RespondToPlayer" },
+		{ name: "timeout",		from: "ListenForPlayer",						to: "RespondToPlayer" },
+		{ name: "advance",		from: "RespondToPlayer",						to: "End" },
+		{ name: "abort",			from: StateMachine.WILDCARD,				to: "End" }
 	];
 
 Game.Round.DEFAULTS = {
@@ -147,16 +150,17 @@ Game.Round.prototype.setup = function () {
 	}
 };
 
-Game.Round.prototype.onGivePrompt = function () {
+Game.Round.prototype.onPromptPlayer = function () {
 	if (this.prompter instanceof Game.Round.Prompter) {
 		this.prompter.init();
-		this.prompter.deal().then(this.endPrompting.bind(this));
+		// wait for any user actions that may be required
+		// to complete the prompt (eg; clicking through multiple Modal cards).
+		this.prompter.prompt().then(this.endPrompting.bind(this));
 		return StateMachine.ASYNC;
 	} // if prompter fails, this will just transition us into the next state.
 };
 
 Game.Round.prototype.endPrompting = function () {
-	$.event.trigger("game.startClock", this.max_time || undefined);
 	this.game.record({ event: "prompt given", prompt: this.prompter.report() });
 	var _this = this;
 	this.game.nextTick().then(function () {
@@ -170,16 +174,28 @@ Game.Round.prototype.onListenForPlayer = function () {
 		var _this = this;
 		this.listener.deal()
 		.then(function () {
+			_this.game.record({ event: "start listening", prompt: _this.listener.report() });
+			$.event.trigger("game.startClock", this.max_time || undefined);
 			return _this.listener.listen();
 		})
-		.then(function (answer, score) {
-			_this.endListening(answer, score);
+		.then(function (data) {
+			// collect an array of data into a single, concatenated answer and an array of scores.
+			if (data instanceof Array) {
+				var collected_answer_content = $(data).collect(function () {
+					return this.answer.content;
+				});
+				var collected_scores = $(data).collect(function () {
+					return this.score;
+				});
+				data = { answer: new Answer(collected_answer_content), score: collected_scores }
+			}
+			_this.endListening(data.answer, data.score);
 		});
-		return StateMachine.ASYNC;
 	} else {
 		// if I failed to create a listener, just transition to the round.
 		this.abort();
 	}
+	return StateMachine.ASYNC;
 };
 
 Game.Round.prototype.endListening = function (answer, score) {
@@ -195,26 +211,17 @@ Game.Round.prototype.endListening = function (answer, score) {
 	this.game.record({ event: "user answers", answer: user_answer });
 	var _this = this;
 	this.game.nextTick().then(function () {
-		_this.evaluate(answer, score);
+		_this.respond(answer, score);
 	});
 }
 
-Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, answer, score) {
+Game.Round.prototype.onRespondToPlayer = function (eventname, from, to, answer, score) {
 	this.game.addPoints(score);
 	if (this.responder instanceof Game.Round.Responder) {
 		this.responder.init(answer, score);
-		
-		var user_input_promises = $.collect(this.responder.cards, function () {
-			return this.user_input_promise || null;
-		});
-		
-		this.responder.deal();
-	
-		// when all user_input_promises are fulfilled, move on.
-		var _this = this;
-		$.when.apply($, user_input_promises).then(function () {
-			_this.endResponding();
-		});
+		// wait for any user actions that may be required
+		// to complete the prompt (eg; clicking through multiple Modal cards).
+		this.responder.respond().then(this.endResponding.bind(this));
 		return StateMachine.ASYNC;
 	}
 };
@@ -222,10 +229,7 @@ Game.Round.prototype.onEvaluateResponse = function (eventname, from, to, answer,
 Game.Round.prototype.endResponding = function () {
 	// record game's response to user.
 	this.game.record({ event: "game responds", response: this.responder.report() });
-	var _this = this;
-	this.game.nextTick().then(function () {
-		_this.advance();
-	});
+	this.advance();
 }
 
 Game.Round.prototype.onbeforetimeout = function () {

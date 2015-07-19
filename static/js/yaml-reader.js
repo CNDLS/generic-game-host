@@ -171,15 +171,17 @@ YAML.prototype.equals = function (obj) {
 	if (obj['constructor'] && (obj['constructor'] !== this.constructor)) {
 		return false;
 	}
-	// loop through my members; check against m.
+	// loop through my members; check against each member.
+	// try out members being equal; any failure of this[m].equals(obj[m]) will negate that.
+	var members_are_equal = true;
 	for (var m in this) {
 		if (this[m] instanceof YAML) {
-			return (this[m].equals(obj[m]));
+			members_are_equal = members_are_equal && (this[m].equals(obj[m]));
 		} else if (this[m] !== obj[m]) {
 			return false;
 		}
 	}
-	return true;
+	return members_are_equal;
 }
 
 // don't show custom functions when the object is listed.

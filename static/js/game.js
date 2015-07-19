@@ -84,7 +84,7 @@ Game.DEFAULTS = {
 	Scenes: [],
 	Widgets: [],
 	Reporter: "Reporter",
-	IntroDealer: "Dealer",
+	IntroDealer: "IntroDealer",
 	Rounds: [],
 	Utilities: {},
 	Intro: "Welcome to the game!",
@@ -128,22 +128,14 @@ Game.prototype.introduce = function () {
 			intro_spec = { content: intro_spec };
 		}
 		// by default, use Game.Card.Modal to define the card.
+		// here, the default type "Modal" will be overwritten by any type in the intro_spec.
 		intro_spec = $.extend({ type: "Modal" }, intro_spec);
 		return _this.intro_dealer.addCard(intro_spec);
 	});
 	
-	// we'll need to wait for user input. 
-	// each card should know what it needs to wait for before we can move on.
-	var user_input_promises = $.collect(intro_cards, function () {
-		return this.user_input_promise || null;
-	});
-	
-	// deliver just the intro cards. 
 	// the default IntroDealer will deal the Cards, one at-a-time, requiring click-through on each.
-	this.intro_dealer.deal(intro_cards);
-	
-	// when all user_input_promises are fulfilled, move on.
-	$.when.apply($, user_input_promises).then(function () {
+	this.intro_dealer.introduce()
+	.then(function () {
 		_this.newRound();
 	});
 };

@@ -31,9 +31,11 @@ Game.Dealer = function (game_or_round, container) {
 	Game.Dealer.NO_DEAL = [];
 }
 
+
 Game.Dealer.prototype.init = function () {
 	// stub.
 }
+
 
 // this function examines all the cards to be dealt, and waits until they are all loaded before executing dealCards().
 // it passes back the promise from dealCards to the original caller.
@@ -67,7 +69,8 @@ Game.Dealer.prototype.deal = function (cards_to_be_dealt, container, dealing_dfd
 	});
 	return dfd.promise();
 }
-	
+
+
 // default action for dealing cards is just to put them onscreen,
 // and then resolve the promise right away.
 Game.Dealer.prototype.dealCards = function (cards_to_be_dealt, container, dealing_dfd) {
@@ -90,9 +93,10 @@ Game.Dealer.prototype.dealCards = function (cards_to_be_dealt, container, dealin
 		return dealing_dfd.promise();
 	}).getUnique();
 	
-	// weird construction lets us put our array of promises into params of $.when().
+	// $.when.apply() lets us put our array of promises into params of $.when().
 	return $.when.apply($, this.deal_promises);
 }
+
 
 Game.Dealer.prototype.addCard = function (card_or_spec) {
 	var card = card_or_spec;
@@ -102,6 +106,7 @@ Game.Dealer.prototype.addCard = function (card_or_spec) {
 	this.cards.push(card);
 	return card;
 }
+
 
 Game.Dealer.prototype.addPromise = function (dfd_promise, new_successFn) {
 	if (this.master_promise && this.master_promise.state() === "resolved") {
@@ -114,6 +119,111 @@ Game.Dealer.prototype.addPromise = function (dfd_promise, new_successFn) {
 		this.master_promise = $.when.apply($, this.deal_promises).then(new_successFn);
 	}
 }
+
+
+Game.Dealer.prototype.activateCards = function () {
+	$.each(this.cards, function () {
+		this.setActive(true);
+	});
+}
+
+
+Game.Dealer.prototype.deactivateCards = function () {
+	$.each(this.cards, function () {
+		this.setActive(false);
+	});
+}
+
+
+/* 
+ * Some ways of waiting for the user to interact with Cards.
+ */
+Game.Dealer.prototype.waitForUserInput = function () {
+	switch (this.accept_user_input) {
+		case "any":
+			return this.waitForAnyUserInput();
+			break;
+			
+		case "each":
+			return this.waitForEachUserInput();
+			break;
+			
+		case "all":
+			return this.waitForAllUserInput();
+			break;
+			
+		case "none":
+			return this.game.internal_clock.nextTick();
+			break;
+			
+		default:
+			console.warn("Unknown 'accept user input' option:" + this.accept_user_input);
+			return this.game.internal_clock.nextTick();
+			break;
+	}
+}
+
+
+Game.Dealer.prototype.waitForAnyUserInput = function () {
+	var user_input_dfd = $.Deferred();
+	// react to first user action.
+	var _this = this;
+	$(this.cards).each(function () {
+		this.element.on("Card.userInput", function (evt, data) {
+			// make any listener cards still onscreen unreceptive to user input (show them disabled).
+			// this is the default behavior; a listener would have to override if inputs should stay active
+			// past this point.
+			_this.deactivateCards();
+			user_input_dfd.resolve(data);
+		});
+	});
+	return user_input_dfd.promise();
+}
+
+
+// this refers to presenting one card at-a-time to the user,
+// and advancing through each one upon some interaction from the user.
+// NOTEs: 
+// - deals each of the cards upon resolution of prior card's interaction promise.
+// - consumes this.cards, so the list will be empty. any cards added after are not dealt by this.
+Game.Dealer.prototype.waitForEachUserInput = function () {
+	var dealer = this;
+	var p = dealer.game.internal_clock.nextTick();
+	$(this.cards).each(function (i) {
+		var card = this;
+		if (i > 0) {
+			var prior_card = dealer.cards[i-1];
+			p = prior_card.user_input_dfd.promise()
+		}
+		p.then(function () {
+			return dealer.deal(card);
+		})
+	});
+	// return the promise that will get fulfilled when the user interacts with the last Card.
+	var last_card = this.cards[this.cards.length-1];
+	return last_card.user_input_dfd.promise();
+}
+
+
+Game.Dealer.prototype.waitForAllUserInput = function () {
+	var user_input_dfd = $.Deferred();
+	// react only after user acts on all available cards.
+	var _this = this;
+	var collected_data = [];
+	$(this.cards).each(function () {
+		this.element.on("Card.userInput", function (evt, data) {
+			// make this listener card unreceptive to user input (show it disabled).
+			this.setActive(false);
+			// collect all answers and scores
+			collected_data.push(data);
+			if (collected_data.length === card_elements.length) {
+				user_input_dfd.resolve(collected_data);
+			}
+		});
+	});
+	return user_input_dfd.promise();
+}
+
 
 // remove one or more cards from my 'deck'.
 Game.Dealer.prototype.discard = function (array_or_card) {
@@ -129,6 +239,8 @@ Game.Dealer.prototype.discard = function (array_or_card) {
 		return false;
 	});
 }
+
+
 // forget all my cards.
 Game.Dealer.prototype.discardAll = function () {
 	$.each(this.cards, function () {
@@ -136,6 +248,8 @@ Game.Dealer.prototype.discardAll = function () {
 	});
 	this.cards = [];
 }
+
+
 // what I tell the Reporter about myself.
 Game.Dealer.prototype.report = function () {
 	return $(this.cards).collect(function () {
@@ -149,6 +263,7 @@ Game.Dealer.prototype.report = function () {
 Game.PromptCard = {};
 Game.ListenerCard = {};
 Game.ResponderCard = {};
+
 
 // a factory for creating cards for the various dealers.
 Game.DealersCardFactory = {
@@ -188,6 +303,30 @@ Game.DealersCardFactory = {
 }
 
 
+
+/* 
+ * Game.IntroDealer sets up the game & gives UI instructions.
+ */
+Game.IntroDealer = function (game, container) {
+	Util.extend_properties(this, new Game.Dealer(game, container));
+	
+	Game.IntroDealer.DEFAULTS = {
+		Type: "Modal", // a click-through Card.
+		AcceptUserInput: "each" // deliver Modal Cards one at-a-time.
+	}
+}
+Util.extend(Game.IntroDealer, Game.Dealer);
+
+Game.IntroDealer.prototype.introduce = function () {
+	return this.waitForEachUserInput();
+}
+
+
+
+/* 
+ * ROUND DEALERS -- PROMPTER, LISTENER, RESPONDER.
+ */
+
 /* 
  * Prompter handles setting up a Round.
  * It provides whatever information a Player needs to play the round.
@@ -197,7 +336,8 @@ Game.Round.Prompter = function (round, spec) {
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
 	Game.Round.Prompter.DEFAULTS = {
-		Type: "Simple" // just a text/html message in a Card.
+		Type: "Simple", // just a text/html message in a Card.
+		AcceptUserInput: "none"
 	}
 
 	// deliver the prompt card(s) from the current Round spec.
@@ -210,6 +350,11 @@ Game.Round.Prompter = function (round, spec) {
 	});
 }
 Util.extend(Game.Round.Prompter, Game.Dealer);
+
+
+Game.Round.Prompter.prototype.prompt = function () {
+	return this.deal();  // just a wrapper for pretty syntax. And a place to add stuff if nec.
+}
 
 
 Game.PromptCard.Simple = function (args) {
@@ -233,27 +378,31 @@ Util.extend(Game.PromptCard.Modal, Game.Card.Modal);
  * Basic response widget types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
  * Other types can be defined in a game_utils.js file for a particular instance. 
  */
-Game.Round.Listener = function (round, spec, response_types) {
+Game.Round.Listener = function (round, spec, user_input_types, accept_user_input) {
 	var container = (spec && spec.container) ? spec.container : round.container;
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
 	Game.Round.Listener.DEFAULTS = {
-		Type: "MultipleChoiceCard"
+		UserInputType: "MultipleChoice",
+		AcceptUserInput: "any"
 	}
-	// get response types and insure it is an array.
-	response_types = response_types || [];
-	response_types = round.read("ResponseTypes", response_types);
-	if (typeof response_types === "string") {
-		response_types = [response_types];
+	// get *user* response types and insure it is an array.
+	user_input_types = user_input_types || [];
+	user_input_types = round.read("UserInputTypes", user_input_types);
+	if (typeof user_input_types === "string") {
+		user_input_types = [user_input_types];
 	}
-	// assemble cards made by all the response types into my cards array.
+	// specify how user input will be interpreted (first answer taken, user must interact with all cards, etc.)
+	this.accept_user_input = accept_user_input || Game.Round.Listener.DEFAULTS.AcceptUserInput;
+	// assemble cards made by all the user_input_types into my cards array.
 	var _this = this;
-	this.cards = $.map(response_types, function (response_type) {
-		var listener_card_type = response_type || Game.Round.Listener.DEFAULTS.Type;
+	this.cards = $.map(user_input_types, function (user_input_type) {
+		var listener_card_type = (user_input_type || Game.Round.Listener.DEFAULTS.UserInputType) + "Card";
 		return Game.DealersCardFactory.create("ListenerCard", listener_card_type, _this, round);
 	});
 }
 Util.extend(Game.Round.Listener, Game.Dealer);
+
 
 // The Listener should deal cards that are initially in a disabled state. They will be enabled upon listen().
 Game.Round.Listener.prototype.deal = function (cards_to_be_dealt, container, dealing_dfd) {
@@ -261,36 +410,14 @@ Game.Round.Listener.prototype.deal = function (cards_to_be_dealt, container, dea
 	return Game.Dealer.prototype.deal.call(this, cards_to_be_dealt, container, dealing_dfd);
 }
 
+
 // Activate cards. Create a Deferred object. and pass it to each card.
 // They decide how to resolve it (perhaps in combination)?
 Game.Round.Listener.prototype.listen = function () {
 	this.activateCards();
-	var user_input_dfd = $.Deferred();
-	// default is to respond to first user action.
-	var _this = this;
-	var card_elements = $(this.cards).each(function () {
-		this.element.on("listener.userInput", function (evt, data) {
-			// make any listener cards still onscreen unreceptive to user input (show them disabled).
-			// this is the default behavior; a listener would have to override if inputs should stay active
-			// past this point.
-			_this.deactivateCards();
-			user_input_dfd.resolve(data.answer, data.score);
-		});
-	});
-	return user_input_dfd.promise();
+	return this.waitForUserInput();
 }
 
-Game.Round.Listener.prototype.activateCards = function () {
-	$.each(this.cards, function () {
-		this.setActive(true);
-	});
-}
-
-Game.Round.Listener.prototype.deactivateCards = function () {
-	$.each(this.cards, function () {
-		this.setActive(false);
-	});
-}
 
 /*
  * PromptLinkListener -- listens for clicks on links embedded in the Prompt card(s).
@@ -322,6 +449,7 @@ Game.Round.PromptLinkListener = function (round, spec) {
 }
 Util.extend(Game.Round.PromptLinkListener, Game.Round.Listener);
 
+
 /* Each ListenerCard will capture input form the user(s).
  * Upon receiving user input, the card resolves the Listener's Deferred,
  * passing one of the Answer objects created from the YAML spec for this Round.
@@ -334,6 +462,7 @@ Game.ListenerCard.FreeResponseCard = function (args) {
 }
 Util.extend(Game.ListenerCard.FreeResponseCard, Game.Card);
 
+
 Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container) {
 	Game.Card.prototype.dealTo.call(this, container);
 	var _this = this;
@@ -341,12 +470,13 @@ Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container) {
         if (e.keyCode === 13) {
 			var answer = new Game.Answer(e.target.value);
 			var score = 1; // any response is accepted.
-			$(_this.element).trigger("listener.userInput", answer, score);
+			$(_this.element).trigger("Card.userInput", answer, score);
 			e.target.blur();
 		}
 	});
 	this.element.find("input[type=text]").focus();
 }
+
 
 /* MultipleChoiceCard creates a card with a list of radio buttons, labelled with Answers from YAML. */
 Game.ListenerCard.MultipleChoiceCard = function (args) {
@@ -371,6 +501,7 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 }
 Util.extend(Game.ListenerCard.MultipleChoiceCard, Game.Card);
 
+
 Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container) {
 	Game.Card.prototype.dealTo.call(this, container);
 	var _this = this;
@@ -381,7 +512,7 @@ Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container) {
 		var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
 		var answer = new Game.Answer(clicked_radio_btn.answer);
 		var score = correct ? value : neg_value;
-		$(_this.element).trigger("listener.userInput", answer, score);
+		$(_this.element).trigger("Card.userInput", answer, score);
 	});
 }
 
@@ -398,6 +529,7 @@ Game.ListenerCard.LinkCard = function (args) {
 }
 Util.extend(Game.ListenerCard.LinkCard, Game.Card);
 
+
 Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
 	var _this = this;
 	this.element.click(function (e) {
@@ -409,14 +541,10 @@ Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
 		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
 		var answer = new Game.Answer(_this.answer);
 		var score = correct ? value : neg_value;
-		_this.element.trigger("listener.userInput", {answer: answer, score: score});
+		_this.element.trigger("Card.userInput", {answer: answer, score: score});
 	});
 }
 
-// default way to activate/deactivate card is to set disabled attr on any input(s) in the card.
-Game.Card.prototype.setActive = function (flag) {
-	$(this.element).find("a").prop( "disabled", !flag );
-}
 
 /* 
  * Answers are how the user's actions are communicated to the program. 
@@ -433,6 +561,7 @@ Game.Answer = function (spec) {
 	}
 	$.extend(this, spec);
 }
+
 
 Game.Answer.prototype.getContents = function () {
 	return this.content;
@@ -453,6 +582,7 @@ Game.Round.Responder = function (round, spec) {
 	}
 }
 Util.extend(Game.Round.Responder, Game.Dealer);
+
 
 Game.Round.Responder.prototype.init = function (answer, score) {
 	// hang onto answer & score, so they are available to listeners of Round events.
@@ -478,6 +608,13 @@ Game.Round.Responder.prototype.init = function (answer, score) {
 		return Game.DealersCardFactory.create("ResponderCard", feedback_type, _this, _this.round, answer, score);
 	});
 }
+
+
+Game.Round.Responder.prototype.respond = function () {
+	return this.deal();  // just a wrapper for pretty syntax. And a place to add stuff if nec.
+}
+
+
 
 Game.ResponderCard.Simple = function (args) {
 	var round = args.shift();
