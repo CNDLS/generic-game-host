@@ -91,7 +91,9 @@ Game.Dealer.prototype.dealCards = function (cards_to_be_dealt, container, dealin
 		// Cards that wait for user input once they've been dealt should do so via a different dfd.
 		( card.dealTo(container) ) ? $.noop() : dealing_dfd.resolve();
 		return dealing_dfd.promise();
-	}).getUnique();
+	});
+	// strip out duplicates.
+	deal_promises = Array.getUnique(deal_promises);
 	
 	// $.when.apply() lets us put our array of promises into params of $.when().
 	return $.when.apply($, this.deal_promises);
@@ -339,7 +341,10 @@ Game.Round.Prompter = function (round, spec) {
 		Type: "Simple", // just a text/html message in a Card.
 		AcceptUserInput: "none"
 	}
-
+	
+	// by default, we just put up a Prompt; user inputs that will give answers are owned by the Listener.
+	this.accept_user_input = round.read("AcceptUserInput", Game.Round.Prompter.DEFAULTS.AcceptUserInput);
+	
 	// deliver the prompt card(s) from the current Round spec.
 	var _this = this;
 	var prompts = round.read("Prompt");
@@ -353,7 +358,10 @@ Util.extend(Game.Round.Prompter, Game.Dealer);
 
 
 Game.Round.Prompter.prototype.prompt = function () {
-	return this.deal();  // just a wrapper for pretty syntax. And a place to add stuff if nec.
+	var _this = this;
+	return this.deal().then(function () {
+		_this.waitForUserInput(_this.accept_user_input);
+	});
 }
 
 
@@ -378,22 +386,22 @@ Util.extend(Game.PromptCard.Modal, Game.Card.Modal);
  * Basic response widget types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
  * Other types can be defined in a game_utils.js file for a particular instance. 
  */
-Game.Round.Listener = function (round, spec, user_input_types, accept_user_input) {
+Game.Round.Listener = function (round, spec) {
 	var container = (spec && spec.container) ? spec.container : round.container;
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
 	Game.Round.Listener.DEFAULTS = {
-		UserInputType: "MultipleChoice",
+		UserInputTypes: ["MultipleChoice"],
 		AcceptUserInput: "any"
 	}
 	// get *user* response types and insure it is an array.
-	user_input_types = user_input_types || [];
-	user_input_types = round.read("UserInputTypes", user_input_types);
+	var user_input_types = spec.user_input_types|| round.read("UserInputTypes", Game.Round.Listener.DEFAULTS.UserInputTypes);
 	if (typeof user_input_types === "string") {
 		user_input_types = [user_input_types];
 	}
 	// specify how user input will be interpreted (first answer taken, user must interact with all cards, etc.)
-	this.accept_user_input = accept_user_input || Game.Round.Listener.DEFAULTS.AcceptUserInput;
+	this.accept_user_input = round.read("AcceptUserInput", Game.Round.Listener.DEFAULTS.AcceptUserInput);
+	
 	// assemble cards made by all the user_input_types into my cards array.
 	var _this = this;
 	this.cards = $.map(user_input_types, function (user_input_type) {
@@ -423,6 +431,8 @@ Game.Round.Listener.prototype.listen = function () {
  * PromptLinkListener -- listens for clicks on links embedded in the Prompt card(s).
  */
 Game.Round.PromptLinkListener = function (round, spec) {
+	spec = spec || {};
+	spec.user_input_types = []; // we don't want any Listener Cards created; we just use the links in the Prompt(s).
 	Util.extend_properties(this, new Game.Round.Listener(round, spec));
 	// I don't need a ResponseType -- by default, I just scan
 	// the Prompt for links, and call those my cards. I attach a click

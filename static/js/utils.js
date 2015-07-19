@@ -72,6 +72,7 @@ String.prototype.past_tense = function () {
 	}
 };
 
+
 // test string to see if it contains html tags & is formatted correctly.
 /*** requires jQuery ***/
 String.prototype.is_valid_html = function () {
@@ -81,8 +82,12 @@ String.prototype.is_valid_html = function () {
 }
 
 
-// return an arraty with no duplicates.
-Array.prototype.getUnique = function(){
+Object.hasFunction = function (obj, fname) {
+	return (obj.constructor.hasOwnProperty(fname) && typeof obj.constructor[fname] === "function");
+}
+
+// return an array with no duplicates.
+Array.getUnique = function(){
    var u = {}, a = [];
    for(var i = 0, l = this.length; i < l; ++i){
       if(u.hasOwnProperty(this[i])) {

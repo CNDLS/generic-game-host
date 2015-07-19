@@ -48,7 +48,10 @@ Game.Scene.Basic.prototype.init = function (events) {
 	// *** insure that only one listener gets created for each enter and leave event.
 	var round_events = $.collect(events, function () {
 		return "Round.leave" + this.from + " Round.enter" + this.to;
-	}).getUnique().join(" ");
+	});
+	// strip out duplicates and put into a space-delimited string.
+	round_events = Array.getUnique(round_events).join(" ");
+	
 	var _this = this;
 	$(document).on(round_events, function (evt, state_info) {
 		return _this.trackRound(evt, state_info)

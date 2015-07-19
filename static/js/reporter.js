@@ -14,7 +14,8 @@ function guid () {
 	return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
 }
 
-Game.Reporter = function () {
+Game.Reporter = function (game) {
+	this.game = game;
 	this.user_data = [];
 	this.sessionID = guid();
 };

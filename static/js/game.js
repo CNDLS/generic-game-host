@@ -199,19 +199,25 @@ Game.prototype.read = function (field_name /* , default_value */ ) {
 	if (rtn_val === undefined && (typeof defaults[field_name] !== "undefined")) {
 		rtn_val = defaults[field_name];
 	}
+	// NOTE: Keep track of ordering -- are we always falling back on defaults correctly?
 	if (rtn_val === undefined) {
 		// console.log("Cannot provide a '" + field_name + "' from Game spec or defaults.");
-	}
-	// if rtn_val is the name of something that is defined on the Game, Game.Round, etc. object, use that.
-	if (this.constructor.hasOwnProperty(rtn_val)) {
-		rtn_val = this.constructor[rtn_val];
-	} else if ((rtn_val instanceof YAML) 
-				&& this.constructor.hasOwnProperty(field_name)
-				&& typeof this.constructor[field_name] === "function") {
-		// if it is YAML for something that can be created on the Game or Game.Round, create the object for it.
-		// (eg; field_name is "Prompter").
-		rtn_val = new this.constructor[field_name](this, rtn_val);
-	}
+		// not really helpful in most cases, as it's not clear whether field_name represents a nec. var.
+	} else if (rtn_val instanceof YAML) {
+		if (rtn_val.hasOwnProperty("type") && Object.hasFunction(this, rtn_val.type)) {
+			// call constructor (value of type must be a function defined on this), and pass remaining values.
+			var rtn_val_constructor = this.constructor[rtn_val.type];
+			delete rtn_val.type;
+			rtn_val = new rtn_val_constructor(this, rtn_val);
+		} else if (Object.hasFunction(this, field_name)) {
+			// if it is YAML for something that can be created on the Game or Game.Round, create the object for it.
+			// (eg; field_name is "Prompter").
+			rtn_val = new this.constructor[field_name](this, rtn_val);
+		} 
+	} else if (this.constructor.hasOwnProperty(rtn_val)) {
+		// if rtn_val is the name of something that is defined on the Game, Game.Round, etc. object, use that.
+		rtn_val = new this.constructor[rtn_val](this);
+	} 
 	// if rtn_val is a function, instantiate it, passing in the Game object.
 	if (typeof rtn_val === "function") { 
 		rtn_val = new rtn_val(this); 
