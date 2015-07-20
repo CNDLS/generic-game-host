@@ -36,7 +36,7 @@ Game.Card = function(spec) {
 	
 	// we want to always have a single HTML element to represent each Card.
 	if ( ((spec instanceof HTMLElement) || (spec instanceof jQuery)) 
-		&& ($(spec).attr("data-keep-in-dom") === "true") ) {
+		&& ($(spec).attr("data-keep-in-dom") === "true")) {
 		this.element = $(spec);
 	} else {
 		// remove 'type' from spec

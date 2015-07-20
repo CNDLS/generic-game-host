@@ -451,7 +451,7 @@ Game.Round.PromptLinkListener = function (round, spec) {
 	var _this = this;
 	var prompt_links = [];
 	$(round.prompter.cards).each(function () {
-		$.merge(prompt_links, this.find("a"));
+		$.merge(prompt_links, this.element.find("a"));
 	});
 	$.each(round.answers, function (i, answer_spec) {
 		var link_id = "prompt_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.

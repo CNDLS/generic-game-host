@@ -251,8 +251,8 @@ Game.prototype.newRound = function (next_round) {
 				game.prior_round_nbr = game.round_nbr;
 				
 				if (next_round instanceof YAML) {
-					game.current_round = new Game.Round(game, next_round);
 					game.round_nbr = game.rounds.indexOf(next_round) + 1;
+					game.current_round = new Game.Round(game, next_round);
 				} else {
 					++game.round_nbr;
 					game.current_round = new Game.Round(game, game.rounds.get(game.round_nbr - 1));

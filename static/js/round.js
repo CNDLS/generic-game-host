@@ -159,7 +159,10 @@ Game.Round.prototype.onPromptPlayer = function () {
 
 Game.Round.prototype.endPrompting = function () {
 	this.game.record({ event: "prompt given", prompt: this.prompter.report() });
-	this.listen();
+	var _this = this;
+	this.game.nextTick().then(function () {
+		_this.listen();
+	});
 }
 
 Game.Round.prototype.onListenForPlayer = function () {
