@@ -141,7 +141,7 @@ Game.prototype.introduce = function () {
 };
 
 Game.prototype.timeoutRound = function () {
-	this.current_round.timeout();
+	this.current_round.timeout(new Game.Answer(), 0);
 };
 
 Game.prototype.addPoints = function (points) {

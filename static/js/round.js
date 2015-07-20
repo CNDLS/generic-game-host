@@ -172,7 +172,7 @@ Game.Round.prototype.onListenForPlayer = function () {
 		this.listener.deal()
 		.then(function () {
 			_this.game.record({ event: "start listening", prompt: _this.listener.report() });
-			$.event.trigger("game.startClock", this.max_time || undefined);
+			$.event.trigger("game.startClock", _this.max_time || undefined);
 			return _this.listener.listen();
 		})
 		.then(function (data) {

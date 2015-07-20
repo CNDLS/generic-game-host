@@ -342,6 +342,7 @@ Game.IntroDealer.prototype.introduce = function () {
  * It provides whatever information a Player needs to play the round.
  */
 Game.Round.Prompter = function (round, spec) {
+	spec = spec || {};
 	var container = (spec && spec.container) ? spec.container : round.container;
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
@@ -351,7 +352,7 @@ Game.Round.Prompter = function (round, spec) {
 	}
 	
 	// by default, we just put up a Prompt; user inputs that will give answers are owned by the Prompter.
-	this.accept_user_input = round.read("AcceptUserInput", Game.Round.Prompter.DEFAULTS.AcceptUserInput);
+	this.accept_user_input = spec.accept_user_input || Game.Round.Prompter.DEFAULTS.AcceptUserInput;
 	
 	// deliver the prompt card(s) from the current Round spec.
 	var _this = this;
@@ -368,7 +369,7 @@ Util.extend(Game.Round.Prompter, Game.Dealer);
 Game.Round.Prompter.prototype.prompt = function () {
 	var _this = this;
 	return this.deal().then(function () {
-		_this.waitForUserInput(_this.accept_user_input);
+		return _this.waitForUserInput(_this.accept_user_input);
 	});
 }
 
@@ -385,6 +386,7 @@ Game.PromptCard.Modal = function (args) {
 	Util.extend_properties(this, new Game.Card.Modal(spec));
 }
 Util.extend(Game.PromptCard.Modal, Game.Card.Modal);
+Game.PromptCard.Modal.prototype = new Game.Card.Modal(null); 
 
 
 /* 
@@ -395,6 +397,7 @@ Util.extend(Game.PromptCard.Modal, Game.Card.Modal);
  * Other types can be defined in a game_utils.js file for a particular instance. 
  */
 Game.Round.Listener = function (round, spec) {
+	spec = spec || {};
 	var container = (spec && spec.container) ? spec.container : round.container;
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
@@ -403,12 +406,12 @@ Game.Round.Listener = function (round, spec) {
 		AcceptUserInput: "any"
 	}
 	// get *user* response types and insure it is an array.
-	var user_input_types = spec.user_input_types|| round.read("UserInputTypes", Game.Round.Listener.DEFAULTS.UserInputTypes);
+	var user_input_types = spec.user_input_types|| spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes;
 	if (typeof user_input_types === "string") {
 		user_input_types = [user_input_types];
 	}
 	// specify how user input will be interpreted (first answer taken, user must interact with all cards, etc.)
-	this.accept_user_input = round.read("AcceptUserInput", Game.Round.Listener.DEFAULTS.AcceptUserInput);
+	this.accept_user_input = spec.accept_user_input || Game.Round.Listener.DEFAULTS.AcceptUserInput;
 	
 	// assemble cards made by all the user_input_types into my cards array.
 	var _this = this;
@@ -592,6 +595,7 @@ Game.Answer.prototype.getContents = function () {
  * TODO: add possibility of tailoring Responder w/in YAML, as is done with Prompter and Listener.
  */
 Game.Round.Responder = function (round, spec) {
+	spec = spec || {};
 	var container = (spec && spec.container) ? spec.container : round.container;
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
@@ -601,7 +605,7 @@ Game.Round.Responder = function (round, spec) {
 	}
 	
 	// by default, we put up a Modal Feedback.
-	this.accept_user_input = round.read("AcceptUserInput", Game.Round.Responder.DEFAULTS.AcceptUserInput);
+	this.accept_user_input = spec.accept_user_input || Game.Round.Responder.DEFAULTS.AcceptUserInput;
 }
 Util.extend(Game.Round.Responder, Game.Dealer);
 
