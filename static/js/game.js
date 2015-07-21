@@ -175,15 +175,25 @@ Game.prototype.gameFeedback = function () {
 	} else {
 		gameFeedbackMessage = this.read("LostGameFeedback");
 	}
-	gameFeedbackMessage = gameFeedbackMessage.insert_values(this.current_score);
+	// give opportunity to customize gameFeedbackMessage(s) with current score.
+	if (gameFeedbackMessage instanceof Array) {
+		gameFeedbackMessage = $(gameFeedbackMessage).collect(function () {
+			return this.insert_values(this.current_score);
+		});
+	} if (gameFeedbackMessage instanceof Object) {
+		for (var m in gameFeedbackMessage) {
+			gameFeedbackMessage[m] = gameFeedbackMessage[m].insert_values(this.current_score);
+		}
+	} else if (typeof gameFeedbackMessage === "string") {
+		gameFeedbackMessage = gameFeedbackMessage.insert_values(this.current_score);
+	}
+	
 	var feedback_spec = {
 		content: gameFeedbackMessage,
 		css_class: "game_summary"
 	};
 	var feedback_card = Game.Card.create(feedback_spec);
 	feedback_card.dealTo(feedback_spec.container);
-	// add to the msg stream as well.
-	this.sendMessage(gameFeedbackMessage);
 };
 
 Game.prototype.read = function (field_name /* , default_value */ ) {

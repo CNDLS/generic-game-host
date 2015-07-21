@@ -31,12 +31,15 @@ textarea {
 }
 
 .navbar-nav a {
-  font-size: 1.25em;
+  font-size: 1.5em;
 }
 
 #game {
   margin: 24px;
   text-transform: none;
+}
+.game_summary {
+  font-size: 1.25em;
 }
 
 .left_column, .right_column {

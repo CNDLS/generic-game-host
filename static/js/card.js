@@ -72,6 +72,11 @@ Game.Card = function(spec) {
 	// keep track of this Card via the jQuery data for the element.
 	// this will work, even if we use another jQuery selector to select this one element.
 	this.element.addClass("card " + card_type).data("card", this);
+	
+	// add any other specified css_classes.
+	if (spec.css_class || false) {
+		this.element.addClass(spec.css_class);
+	}
 }
 
 Game.Card.prototype.style = function (css_classes) {
