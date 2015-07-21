@@ -141,7 +141,12 @@ Game.prototype.introduce = function () {
 };
 
 Game.prototype.timeoutRound = function () {
-	this.current_round.timeout(new Game.Answer(), 0);
+	this.sendMessage("ran out of time.");
+	$.event.trigger("game.stopClock");
+	if (!this.current_round){ return; } // safety.
+	var timeout_fn = this.current_round.read("OnTimeout"); // default is GiveWrongAnswer.
+	var timeout_obj = this.current_round[timeout_fn]();
+	this.current_round.respond(timeout_obj.answer, timeout_obj.score);
 };
 
 Game.prototype.addPoints = function (points) {
@@ -314,7 +319,7 @@ $(function () {
 	var read_url = $("script#reader").attr("read-from");
 	var report_url = $("script#reporter").attr("report-to");
 	var csrftoken = $("script#reporter").attr("csrftoken");
-          var parsed_yaml;
+  var parsed_yaml;
 	// get the YAML from our URL.
 	$.ajax({
 		url: read_url,
@@ -328,10 +333,10 @@ $(function () {
 				}
 			);
                   
-                  if (parsed_yaml) {
+      if (parsed_yaml) {
 				game = new Game(parsed_yaml);
-                      game.reporter.setURL(report_url, csrftoken);
-                  }
+        game.reporter.setURL(report_url, csrftoken);
+      }
 		},
 		error: function (XMLHttpRequest, textStatus, errorThrown) {
 			console.error(XMLHttpRequest, textStatus, errorThrown);

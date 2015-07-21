@@ -93,6 +93,7 @@ Game.Round.DEFAULTS = {
 	Resources: {},
 	Answers: [],
 	MaxTime: 5,
+	OnTimeout: "GiveWrongAnswer",
 	Prompt: {
 		title: function (round) { "Round :nbr".insert_values(round.nbr); },
 		content: prompt,
@@ -226,10 +227,14 @@ Game.Round.prototype.endResponding = function () {
 	this.advance();
 }
 
-Game.Round.prototype.onbeforetimeout = function () {
-	this.game.sendMessage("ran out of time.");
-	$.event.trigger("game.stopClock");
-};
+// default behavior upon timeout. give the first non-correct answer you find in the spec.
+Game.Round.prototype.GiveWrongAnswer = function () {
+	var a_wrong_answer = $(this.answers).select(function () {
+		return !this.correct;
+	})
+	a_wrong_answer = (a_wrong_answer.length) ? a_wrong_answer[0] : new Game.Answer();
+	return { answer: a_wrong_answer, score: a_wrong_answer.negative_value || 0 }
+}
 
 Game.Round.prototype.onbeforeabort = function (eventname, from, to, next_round, abort_tear_down) {
 	if (abort_tear_down) {
