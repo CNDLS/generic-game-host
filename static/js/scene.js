@@ -16,26 +16,53 @@ Game.SetPiece = {}
 Game.SceneFactory = {
 	create: function (scene_spec, game, events) {
 		var scene_type_name = scene_spec.scene_type || "Basic";
-		var backdrop_spec = scene_spec.backdrop || {};
+		var backdrop_spec = scene_spec.backdrop || "div";
 		var set_piece_specs = scene_spec.set_pieces || [];
 		
-		var scene;
+		var scene_type, scene;
 		in_production_try(this, function () {
-			scene = new Game.Scene[scene_type_name](backdrop_spec, set_piece_specs, game);
+			if (Game.Scene.hasOwnProperty(scene_type_name)) {
+				scene_type = Game.Scene[scene_type_name];
+			} else {
+				scene_type = Game.Scene.Basic;
+			}
+			scene = new scene_type(scene_type_name, backdrop_spec, set_piece_specs, game);
 			scene.init(events);
 
 			// associate scene w the rounds it is used in.
 			scene.rounds = scene_spec.rounds || [];
-			if (scene.rounds === "all") {
-				scene.rounds = $(game.rounds).collect(function (i) { return i + 1; });
+			// pull rounds spec from scene YAML.
+			if ((typeof scene.rounds === "object") && (scene.rounds[0])) {
+				scene.rounds = scene.rounds[0];
+			} 
+			if (scene.rounds instanceof Array) {
+				// do nothing. that's what we want.
+			} else if (!isNaN(Math.round(scene.rounds))) {
+				// if it is a number, put that in (make sure it is an integer).
+				scene.rounds = [Math.round(scene.rounds)];
+			} else if (typeof scene.rounds === "string") {
+				if (scene.rounds === "all") {
+					// make an array of all rounds.
+					scene.rounds = $(game.rounds).collect(function (i) { return i + 1; });
+				} else {
+					// match to a regex that will pull all numbers & indicate 'runs'.
+					// assemble an array.
+					scene.rounds = Util.numberArrayFromTokenList(scene.rounds);
+				}
+				
+			} else {
+				console.warn("Can't assign scene to rounds", scene, scene.rounds);
+				scene.rounds = [];
 			}
 		});
+
 		return scene;
 	}
 }
 
-Game.Scene.Basic = function (backdrop_spec, set_piece_specs, game) {
+Game.Scene.Basic = function (scene_type_name, backdrop_spec, set_piece_specs, game) {
 	Util.extend_properties(this, new Game.Dealer(game));
+	this.scene_type_name = scene_type_name;
 	this.backdrop = new Game.Card(backdrop_spec);
 	this.set_piece_specs = set_piece_specs;
 	this.onstage = false; // we should be able to switch out scenes while saving their state.
@@ -63,17 +90,7 @@ Game.Scene.Basic.prototype.init = function (events) {
 Game.Scene.Basic.prototype.setup = function (round) {
 	var dfd = $.Deferred();
 	if (!this.onstage) {
-		// all scene types get defined on Game.Scene, so we can loop 
-		// through them to discover our class.
-		var scene_type_names = Object.keys(Game.Scene);
-		var _this = this;
-		var scene_class = $.any(scene_type_names, function () {
-			if (Game.Scene[this] === _this.constructor) {
-				return this.underscore();
-			}
-		}) || "";
-		
-		var backdrop_classes = "backdrop " + scene_class;
+		var backdrop_classes = "backdrop " + this.scene_type_name.underscore();
 		this.backdrop.style(backdrop_classes);
 		
 		// put down the backdrop, then create and add the set pieces.

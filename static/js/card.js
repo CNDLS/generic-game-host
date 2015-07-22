@@ -52,7 +52,8 @@ Game.Card = function(spec) {
 		var nodes_in_card = card_scaffold.get(0).childNodes;
 		switch (nodes_in_card.length) {
 			case 0:
-				throw new Error("Could not create Card.");
+				debugger;
+				throw new Error("Failed to create Card.");
 				break;
 			
 			case 1:

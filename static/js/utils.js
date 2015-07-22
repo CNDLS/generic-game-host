@@ -128,5 +128,25 @@ Util = {
 	
 	isNumeric: function(val) {
 		return !isNaN(parseFloat(val)) && isFinite(val);
+	},
+	
+	numberArrayFromTokenList: function(tokenList) {
+		var r = /(?:\.\.)*\d+/g;
+		var number_tokens = tokenList.match(r);
+		var output_array = [];
+		$(number_tokens).each(function (i) {
+			var n = parseInt(this.replace("..", ""));
+			if (this.match(/\.\./) !== null) {
+				var prev_n = parseInt(number_tokens[i-1]);
+				if (!isNaN(prev_n) && !isNaN(n)) {
+					for (j=prev_n+1; j<=n; ++j) {
+						output_array.push(j);
+					}
+				}
+			} else {
+				output_array.push(n);
+			}
+		});
+		return output_array;
 	}
 }

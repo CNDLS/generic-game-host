@@ -130,6 +130,8 @@ Game.Round.prototype.setup = function () {
 		var round = this;
 		if (reset_scene) {
 			try {
+				// remove prior scene.
+				$(".backdrop").remove();
 				var current_scene = this.game.scenes[this.nbr];
 				current_scene.setup(round).then(function () {
 					round.prompt();
