@@ -374,21 +374,6 @@ Game.Round.Prompter.prototype.prompt = function () {
 }
 
 
-Game.PromptCard.Simple = function (args) {
-	var spec = args.shift();
-	Util.extend_properties(this, new Game.Card(spec));
-}
-Util.extend(Game.PromptCard.Simple, Game.Card);
-
-
-Game.PromptCard.Modal = function (args) {
-	var spec = args.shift();
-	Util.extend_properties(this, new Game.Card.Modal(spec));
-}
-Util.extend(Game.PromptCard.Modal, Game.Card.Modal);
-Game.PromptCard.Modal.prototype = new Game.Card.Modal(null); 
-
-
 /* 
  * Listener
  * Each response_type creates a different drives the loading of some kind of widget. Lots of customization will probably happen here,
@@ -406,16 +391,16 @@ Game.Round.Listener = function (round, spec) {
 		AcceptUserInput: "any"
 	}
 	// get *user* response types and insure it is an array.
-	var user_input_types = spec.user_input_types|| spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes;
-	if (typeof user_input_types === "string") {
-		user_input_types = [user_input_types];
+	this.user_input_types = spec.user_input_types|| spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes;
+	if (typeof this.user_input_types === "string") {
+		this.user_input_types = [this.user_input_types];
 	}
 	// specify how user input will be interpreted (first answer taken, user must interact with all cards, etc.)
 	this.accept_user_input = spec.accept_user_input || Game.Round.Listener.DEFAULTS.AcceptUserInput;
 	
 	// assemble cards made by all the user_input_types into my cards array.
 	var _this = this;
-	this.cards = $.map(user_input_types, function (user_input_type) {
+	this.cards = $.map(this.user_input_types, function (user_input_type) {
 		var listener_card_type = (user_input_type || Game.Round.Listener.DEFAULTS.UserInputType) + "Card";
 		return Game.DealersCardFactory.create("ListenerCard", listener_card_type, _this, round);
 	});
@@ -471,100 +456,28 @@ Game.Round.PromptLinkListener = function (round, spec) {
 Util.extend(Game.Round.PromptLinkListener, Game.Round.Listener);
 
 
-/* Each ListenerCard will capture input form the user(s).
- * Upon receiving user input, the card resolves the Listener's Deferred,
- * passing one of the Answer objects created from the YAML spec for this Round.
+/*
+ * GroupedInputsListener -- listens for clicks on inputs (eg; checkboxes) in groups.
  */
-
-/* FreeResponseCard just creates a card with a text input field and doesn't care about the answer. */
-Game.ListenerCard.FreeResponseCard = function (args) {
-	var round = args.shift();
-	Util.extend_properties(this, new Game.Card({ div:"<input type=\"text\" />" }));
-}
-Util.extend(Game.ListenerCard.FreeResponseCard, Game.Card);
-
-
-Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container) {
-	Game.Card.prototype.dealTo.call(this, container);
+Game.Round.GroupedInputsListener = function (round, spec) {
+	spec.user_input_types = [];
+	Util.extend_properties(this, new Game.Round.Listener(round, spec));
+	//
+	var answer_groups = round.read("AnswerGroups");
 	var _this = this;
-	this.element.find("input[type=text]").on("keypress", function (e) {
-        if (e.keyCode === 13) {
-			var answer = new Game.Answer(e.target.value);
-			var score = 1; // any response is accepted.
-			$(_this.element).trigger("Card.userInput", answer, score);
-			e.target.blur();
+	if ((typeof answer_groups === "object") && (answer_groups.hasOwnProperty("0"))) {
+		// each Answer object in this case is a group of inputs and a mini-prompt.
+		for (var i=0; i<answer_groups.length; i++) {
+			var answer_group_spec = answer_groups[i];
+			var group_id = round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
+			var group_label = (answer_group_spec.group || group_id);
+			var group_card_type = (answer_group_spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes[0]) + "Card";
+			var group_card = Game.DealersCardFactory.create("ListenerCard", group_card_type, _this, round, answer_group_spec);
+			this.addCard(group_card);
 		}
-	});
-	this.element.find("input[type=text]").focus();
+	}
 }
-
-
-/* MultipleChoiceCard creates a card with a list of radio buttons, labelled with Answers from YAML. */
-Game.ListenerCard.MultipleChoiceCard = function (args) {
-	var round = args.shift();
-	this.radio_btns = {};
-	var group_name = "radio_group_" + round.nbr;
-	var _this = this;
-	$.each(round.answers, function (i, answer_spec) {
-		var answer = new Game.Answer(answer_spec);
-		var btn_id = "radio_btn_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
-		_this.radio_btns[btn_id] =
-			{ html: ("<li><input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"
-						+ "<label for=\"" + btn_id + "\">" + answer.content + "</label></input></li>"),
-			  answer: answer,
-			  btn_id: btn_id
-			}
-	});
-	var radio_btn_html = $.map(this.radio_btns, function (btn, btn_id /* , ?? */) {
-		return btn.html;
-	}).join("\n");
-	Util.extend_properties(this, new Game.Card(radio_btn_html));
-}
-Util.extend(Game.ListenerCard.MultipleChoiceCard, Game.Card);
-
-
-Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container) {
-	Game.Card.prototype.dealTo.call(this, container);
-	var _this = this;
-	this.element.find("input[type=radio]").on("click", function (e) {
-		var clicked_radio_btn = _this.radio_btns[e.target.id];
-		var correct = clicked_radio_btn.answer.correct || false;
-		var value = clicked_radio_btn.answer.value || 1;
-		var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
-		var answer = new Game.Answer(clicked_radio_btn.answer);
-		var score = correct ? value : neg_value;
-		$(_this.element).trigger("Card.userInput", answer, score);
-	});
-}
-
-
-/* 
- * This card waits for a click on a link. 
- * args passed as an array.
- */
-Game.ListenerCard.LinkCard = function (args) {
-	this.round = args.shift();
-	var elem = args.shift();
-	$(elem).attr("data-keep-in-dom", true);
-	Util.extend_properties(this, new Game.Card(elem));
-}
-Util.extend(Game.ListenerCard.LinkCard, Game.Card);
-
-
-Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
-	var _this = this;
-	this.element.click(function (e) {
-		// disable the link after one click (maybe will want a double-click option at some point?)
-		$(this).prop('disabled', true);
-		// get answer & score, and pass them when resolving my promise (dfd).
-		var correct = _this.answer.correct || false;
-		var value = _this.answer.value || 1;
-		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
-		var answer = new Game.Answer(_this.answer);
-		var score = correct ? value : neg_value;
-		_this.element.trigger("Card.userInput", {answer: answer, score: score});
-	});
-}
+Util.extend(Game.Round.GroupedInputsListener, Game.Round.Listener);
 
 
 /* 
@@ -642,15 +555,3 @@ Game.Round.Responder.prototype.respond = function () {
 		return _this.waitForUserInput(_this.accept_user_input);
 	});
 }
-
-
-
-Game.ResponderCard.Simple = function (args) {
-	var round = args.shift();
-	var answer = args.shift();
-	var score = args.shift();
-	if (answer.feedback) {
-		Util.extend_properties(this, new Game.Card.Modal(answer.feedback));
-	}
-}
-Util.extend(Game.ResponderCard.Simple, Game.Card.Modal);

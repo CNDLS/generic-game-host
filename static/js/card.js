@@ -43,30 +43,31 @@ Game.Card = function(spec) {
 		var card_type = spec.type || "";
 		delete spec.type
 		
-		var card_scaffold = $(document.createElement("div"));
-		var rendered_element = card_scaffold.render(spec.content || spec);
-		this.load_promise = rendered_element.data().promise;
+		in_production_try(this, function () {
+			var card_scaffold = $(document.createElement("div"));
+			var rendered_element = card_scaffold.render(spec.content || spec);
+			this.load_promise = rendered_element.data().promise;
 	
-		// we want to always have a single HTML element to represent each Card.
-		// so if the spec has generated siblings, we wrap them in a div.
-		var nodes_in_card = card_scaffold.get(0).childNodes;
-		switch (nodes_in_card.length) {
-			case 0:
-				debugger;
-				throw new Error("Failed to create Card.");
-				break;
+			// we want to always have a single HTML element to represent each Card.
+			// so if the spec has generated siblings, we wrap them in a div.
+			var nodes_in_card = card_scaffold.get(0).childNodes;
+			switch (nodes_in_card.length) {
+				case 0:
+					throw new Error("Failed to create Card.");
+					break;
 			
-			case 1:
-				// if it is a text node, use card_scaffold as the Card element.
-				// otherwise, use the child node.
-				var node = nodes_in_card[0];
-				this.element = (node.nodeType == 3) ? card_scaffold : $(node);
-				break;
+				case 1:
+					// if it is a text node, use card_scaffold as the Card element.
+					// otherwise, use the child node.
+					var node = nodes_in_card[0];
+					this.element = (node.nodeType == 3) ? card_scaffold : $(node);
+					break;
 			
-			default:
-				this.element = card_scaffold;
-				break;
-		}
+				default:
+					this.element = card_scaffold;
+					break;
+			}
+		});
 	}
 	
 	// add the generic card class.
