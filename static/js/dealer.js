@@ -460,6 +460,9 @@ Util.extend(Game.Round.PromptLinkListener, Game.Round.Listener);
  * GroupedInputsListener -- listens for clicks on inputs (eg; checkboxes) in groups.
  */
 Game.Round.GroupedInputsListener = function (round, spec) {
+	// this will necessarily require more than one user action, 
+	// so we hide any 'continue' buttons, collect all user_input_promises, and resolve upon a click on our Submit button.
+	
 	spec.user_input_types = [];
 	Util.extend_properties(this, new Game.Round.Listener(round, spec));
 	//

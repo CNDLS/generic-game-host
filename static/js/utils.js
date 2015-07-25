@@ -73,15 +73,6 @@ String.prototype.past_tense = function () {
 };
 
 
-// test string to see if it contains html tags & is formatted correctly.
-/*** requires jQuery ***/
-String.prototype.is_valid_html = function () {
-	var test_div = $('<div/>');
-	test_div.html(this);
-	return (test_div[0].childNodes.length) ? true : false;
-}
-
-
 Object.hasFunction = function (obj, fname) {
 	return (obj.constructor.hasOwnProperty(fname) && typeof obj.constructor[fname] === "function");
 }

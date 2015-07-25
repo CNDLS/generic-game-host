@@ -8,8 +8,20 @@
  * recurse, remember that any data type might be passed in as spec
  * in a given recursion.
  ************************************************************/
+$.render = function (spec) {
+	var div = $("<div/>");
+	return { promise: div.render(spec).data("promise"), html: div.html() }
+}
+
 $.fn.render = function (spec) {
 	var _this = this;
+	
+	// create a dfd to make sure we always have at least one promise.
+	// make sure we're not waiting for it, though. 
+	// this is just for the syntax for $.when.apply()
+	var default_dfd = $.Deferred();
+	var element_load_promises = [default_dfd.promise()];
+	default_dfd.resolve();
 	
 	if (spec instanceof jQuery) {
 		return spec;
@@ -27,10 +39,20 @@ $.fn.render = function (spec) {
 	// (\[\S+=\S+\])* == 0 or more attributes. done. whew.
 	var tag_id_class_regexp = /^(\w+)?(#\w[^\.\[]+)?((?:\.\w[^\[]+)*)?(\[\S+=\S+\])*$/;
 	
+	var valid_html_tags = ["A", "ABBR", "ACRONYM", "ADDRESS", "APPLET", "AREA", "B", "BASE", "BASEFONT", "BDO", "BIG", "BLOCKQUOTE", "BODY", "BR", "BUTTON", "CAPTION", "CENTER", "CITE", "CODE", "COL", "COLGROUP", "DD", "DEL", "DFN", "DIR", "DIV", "DL", "DT", "EM", "FIELDSET", "FONT", "FORM", "FRAME", "FRAMESET", "H1", "H2", "H3", "H4", "H5", "H6", "HEAD", "HR", "HTML", "I", "IFRAME", "IMG", "INPUT", "INS", "ISINDEX", "KBD", "LABEL", "LEGEND", "LI", "LINK", "MAP", "MENU", "META", "NOFRAMES", "NOSCRIPT", "OBJECT", "OL", "OPTGROUP", "OPTION", "P", "PARAM", "PRE", "Q", "S", "SAMP", "SCRIPT", "SELECT", "SMALL", "SPAN", "STRIKE", "STRONG", "STYLE", "SUB", "SUP", "TABLE", "TBODY", "TD", "TEXTAREA", "TFOOT", "TH", "THEAD", "TITLE", "TR", "TT", "U", "UL", "VAR"]
+	
+	
+	// test whether str can be added to an HTML element.
+	function is_valid_html (str) {
+		var test_div = $('<div/>');
+		test_div.html(str);
+		return (test_div[0].childNodes.length) ? true : false;
+	}
+	
 	
 	// function to turn a descriptor into an empty HTML element.
 	// successful matches are of the form: [<whole str>, <tag name>, <id>, <class names separated by .>]
-	function createElement(str) {
+	function createElement (str) {
 		var matches = tag_id_class_regexp.exec(str);
 		var tag_name, el, id, classnames;
 		var dfd = $.Deferred();
@@ -43,8 +65,10 @@ $.fn.render = function (spec) {
 				// make a div to hold the loaded svg.
 				el = $(document.createElement("div"));
 				el.addClass("svg");
-			} else {
+			} else if (valid_html_tags.indexOf(tag_name.toUpperCase()) > -1) {
 				el = $(document.createElement(tag_name));
+			} else {
+				el = $(tag_name); // plain text.
 			}
 			
 			if (id = matches[2]) {
@@ -68,17 +92,20 @@ $.fn.render = function (spec) {
 					switch (tag_name) {
 						case "svg":
 							if (attr_key === "src") {
+								var svg_dfd = $.Deferred();
+								var svg_promise = svg_dfd.promise();
+								element_load_promises.push(svg_promise);
 								// we pull the contents of the src file
 								// and use it to replace the <svg> element.
-								$.ajax(MEDIA_URL + "uploads/custom_img/" + attr_value, { crossDomain: true })
+								$.ajax(attr_value, { crossDomain: true })
 								.then(function (svg_file) {
 									var svg_file_jQ = $(svg_file.documentElement);
 									// put svg file root node into element.
 									var svg_root_element = document.importNode(svg_file.documentElement,true);
 									el.append(svg_root_element);
-									el.data({ promise: dfd.promise() });
+									el.data({ promise: svg_promise });
 									// give added elements a chance to show up in the DOM.
-									dfd.resolve();
+									svg_dfd.resolve();
 								})
 								.fail(function () {
 									// convert svg tag to an object tag w src as data attr...?
@@ -90,10 +117,13 @@ $.fn.render = function (spec) {
 						
 						case "img":
 							if (attr_key === "src") {
-								el.attr(attr_key, MEDIA_URL + "uploads/custom_img/" + attr_value);
+								var img_dfd = $.Deferred();
+								var img_promise = img_dfd.promise();
+								element_load_promises.push(img_promise);
+								el.attr(attr_key, attr_value);
 								// resolve once the image has been loaded.
 								el.get(0).onload = function (evt) {
-									dfd.resolve();
+									img_dfd.resolve();
 								}
 							}
 							break;
@@ -107,7 +137,7 @@ $.fn.render = function (spec) {
 				dfd.resolve(); // no atrributes.
 			}
 			
-			el.data({ promise: dfd.promise() });
+			el.data({ promise: $.when.apply(element_load_promises) });
 			return el;
 		}
 	}
@@ -119,12 +149,17 @@ $.fn.render = function (spec) {
 			// is_valid_html will return true for vanilla strings (eg; "some text"), 
 			// which are, in fact, valid HTML.
 			// we have to exclude our tag descriptors, though.
-			if (spec.is_valid_html() && !tag_id_class_regexp.test(spec)) {
-				return $(this).html(spec);
+			if (is_valid_html(spec)) {
+				if (tag_id_class_regexp.test(spec)) {
+					var el = createElement(spec);
+					$(this).append(el);
+					return el;
+				} else {
+					console.log(spec)
+					return $(this).html(spec);
+				}
 			} else {
-				var el = createElement(spec);
-				$(this).append(el);
-				return el;
+				console.warn("Invalid content passed to jQuery render()", spec);
 			}
 			break;
 			
@@ -153,6 +188,9 @@ $.fn.render = function (spec) {
 						var el = this;
 					} else {
 						var el = createElement(key);
+						if (typeof spec[key] === "string") {
+							$(el).html(spec[key]);
+						}
 						promises.push(el.data("promise"));
 					}
 					// recurse into complex objects.
