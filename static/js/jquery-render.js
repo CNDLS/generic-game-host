@@ -68,7 +68,7 @@ $.fn.render = function (spec) {
 			} else if (valid_html_tags.indexOf(tag_name.toUpperCase()) > -1) {
 				el = $(document.createElement(tag_name));
 			} else {
-				el = $(tag_name); // plain text.
+				return str;
 			}
 			
 			if (id = matches[2]) {
@@ -155,7 +155,6 @@ $.fn.render = function (spec) {
 					$(this).append(el);
 					return el;
 				} else {
-					console.log(spec)
 					return $(this).html(spec);
 				}
 			} else {
@@ -188,13 +187,13 @@ $.fn.render = function (spec) {
 						var el = this;
 					} else {
 						var el = createElement(key);
-						if (typeof spec[key] === "string") {
-							$(el).html(spec[key]);
-						}
-						promises.push(el.data("promise"));
 					}
 					// recurse into complex objects.
-					$(el).render(spec[key]);
+					if (typeof spec[key] === "string") {
+						$(el).append(createElement(spec[key]));
+					} else {
+						$(el).render(spec[key]);
+					}
 					promises.push(el.data("promise"));
 					$(this).append(el);
 				}

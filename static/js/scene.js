@@ -151,6 +151,9 @@ Game.SetPieceFactory = {
 	create: function (set_piece_spec) {
 		var set_piece_type_name = set_piece_spec["set_piece_type"] || "Basic";
 		return in_production_try(this, function () {
+			if (set_piece_spec instanceof String) {
+					set_piece_spec = set_piece_spec.toString().replace(/MEDIA_URL\+/g, MEDIA_URL);
+			}
 			return new Game.SetPiece[set_piece_type_name](set_piece_spec);
 		});
 	}
