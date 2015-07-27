@@ -164,7 +164,8 @@ $.fn.render = function (spec) {
 			
 		case "object":
 			if (spec instanceof Array) {
-				for (var item in spec) {
+				for (var i=0; i<spec.length; i++) {
+					var item = spec[i];
 					if (spec instanceof HTMLElement) {
 						$(this).append(item);
 					} else {
