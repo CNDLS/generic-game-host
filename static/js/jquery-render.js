@@ -136,7 +136,6 @@ $.fn.render = function (spec) {
 			} else {
 				dfd.resolve(); // no atrributes.
 			}
-			$.when.apply($, element_load_promises).done(function () { console.log("done", element_load_promises.length, el) });
 			el.data({ promise: $.when.apply($, element_load_promises) });
 			return el;
 		}
@@ -144,6 +143,7 @@ $.fn.render = function (spec) {
 	
 	
 	// processing the spec based on type.
+	var promises = [];
 	switch (typeof spec) {
 		case "string":
 			// is_valid_html will return true for vanilla strings (eg; "some text"), 
@@ -169,8 +169,9 @@ $.fn.render = function (spec) {
 					if (spec instanceof HTMLElement) {
 						$(this).append(item);
 					} else {
-						var el = createElement(item);
-						$(this).append(el);
+						var obj = $.render(item);
+						$(this).append(obj.html);
+						promises.push(obj.promise);
 					}
 				}
 			} else if (spec instanceof HTMLElement) {
@@ -178,7 +179,6 @@ $.fn.render = function (spec) {
 			} else {
 				var keys = Object.keys(spec);
 				var key;
-				var promises = [];
 				for (var i=0; i<keys.length; i++) {
 					key = keys[i];
 					// check if this is an Array or Array-like object.
