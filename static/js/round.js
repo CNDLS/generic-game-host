@@ -117,7 +117,7 @@ Game.Round.prototype.setup = function () {
 		// if scene has changed, put up the new one.
 		var reset_scene, prompt_without_scene;
 		try {
-			var prior_scene = this.game.scenes[this.game.prior_round_nbr - 1];
+			var prior_scene = this.game.scenes[this.game.prior_round_nbr];
 			if (prior_scene === undefined) {
 				reset_scene = true;
 			} else {

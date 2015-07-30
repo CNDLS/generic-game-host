@@ -141,7 +141,6 @@ $.fn.render = function (spec) {
 		}
 	}
 	
-	
 	// processing the spec based on type.
 	var promises = [];
 	switch (typeof spec) {
