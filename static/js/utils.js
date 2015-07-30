@@ -91,7 +91,7 @@ Array.getUnique = function(arr){
 }
 
 Util = {
-	extend_properties: function(child, parent) {
+	extend_properties: function (child, parent) {
 		for (m in parent) {
 			if (typeof parent[m] !== "function") {
 				child[m] = parent[m];
@@ -99,7 +99,7 @@ Util = {
 		}
 	},
 	
-	extend: function(subclass, superclass) {
+	extend: function (subclass, superclass) {
 		"use strict";
 
 		function o() { this.constructor = subclass; }
@@ -107,7 +107,7 @@ Util = {
 		return (subclass.prototype = new o());
 	},
 	
-	clone: function(src_fn) {
+	clone: function (src_fn) {
 		var temp = function () { return src_fn.apply(this, arguments); };
 		for(var key in src_fn) {
 		    if (src_fn.hasOwnProperty(key)) {
@@ -117,11 +117,11 @@ Util = {
 		return temp;
 	},
 	
-	isNumeric: function(val) {
+	isNumeric: function (val) {
 		return !isNaN(parseFloat(val)) && isFinite(val);
 	},
 	
-	numberArrayFromTokenList: function(tokenList) {
+	numberArrayFromTokenList: function (tokenList) {
 		var r = /(?:\.\.)*\d+/g;
 		var number_tokens = tokenList.match(r);
 		var output_array = [];
@@ -139,5 +139,43 @@ Util = {
 			}
 		});
 		return output_array;
+	}, 
+	
+	replaceAll: function (item, pattern, replacement_str) {
+		switch (typeof item) {
+			case "string":
+				return item.replace(pattern, replacement_str);
+				break;
+			
+			case "object":
+				if (item instanceof String) {
+					return item.toString().replace(pattern, replacement_str);
+				} else if (item instanceof Array) {
+					for (var i=0; i < item.length; i++) {
+						item[i] = replaceAll(item[i], pattern, replacement_str);
+					}
+				} else {
+					// do any replacements in keys.
+					var keys = Object.keys(item);
+					var tmp_key;
+					for (var i=0; i < keys.length; i++) {
+						tmp_key = Util.replaceAll(keys[i], pattern, replacement_str);
+						if (tmp_key !== keys[i]) {
+							item[tmp_key] = item[keys[i]];
+							delete item[keys[i]];
+						}
+					}
+					// do any replacements in values.
+					for (var m in item) {
+						item[m] = Util.replaceAll(item[m], pattern, replacement_str);
+					}
+				}
+				return item;
+				break;
+				
+			default:
+				throw new Error("Cannot do replacments on item: " + item);
+				break;
+		}
 	}
 }

@@ -150,10 +150,8 @@ Game.Scene.Basic.prototype.trackRound = function (evt, state_info) {
 Game.SetPieceFactory = {
 	create: function (set_piece_spec) {
 		var set_piece_type_name = set_piece_spec["set_piece_type"] || "Basic";
+		var set_piece_spec = Util.replaceAll(set_piece_spec, /MEDIA_URL\+/g, MEDIA_URL);
 		return in_production_try(this, function () {
-			if (set_piece_spec instanceof String) {
-					set_piece_spec = set_piece_spec.toString().replace(/MEDIA_URL\+/g, MEDIA_URL);
-			}
 			return new Game.SetPiece[set_piece_type_name](set_piece_spec);
 		});
 	}
