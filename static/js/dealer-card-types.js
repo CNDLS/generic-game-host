@@ -102,7 +102,7 @@ Game.ListenerCard.MultipleAnswerCard = function (args) {
 	}
 	
 	this.checkboxes = {};
-	var group_name = "checkbox_group_" + round.nbr;
+	var group_name = "checkbox_group_" + round.nbr + S4();
 	var _this = this;
 	$.each(answers, function (i, answer_spec) {
 		var answer = new Game.Answer(answer_spec);
@@ -117,8 +117,9 @@ Game.ListenerCard.MultipleAnswerCard = function (args) {
 	var checkbox_html = $.map(this.checkboxes, function (checkbox, checkbox_id /* , ?? */) {
 		return checkbox.html;
 	}).join("\n");
-	// wrap li's in a ul.
-	checkbox_html = "<ul>" + prompt_html + checkbox_html + "</ul>";
+	// wrap li's in a ul. add a submit button, to send state of checkboxes.
+	var submit_btn_html = "<li><button type='submit' form='" + group_name + "_form' value='submit'>Submit</button></li>"
+	checkbox_html = "<ul><form id='" + group_name + "_form'>" + prompt_html + checkbox_html + submit_btn_html + "</ul>";
 	Util.extend_properties(this, new Game.Card(checkbox_html));
 }
 Util.extend(Game.ListenerCard.MultipleAnswerCard, Game.Card);

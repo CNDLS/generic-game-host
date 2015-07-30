@@ -136,8 +136,8 @@ $.fn.render = function (spec) {
 			} else {
 				dfd.resolve(); // no atrributes.
 			}
-			
-			el.data({ promise: $.when.apply(element_load_promises) });
+			$.when.apply($, element_load_promises).done(function () { console.log("done", element_load_promises.length, el) });
+			el.data({ promise: $.when.apply($, element_load_promises) });
 			return el;
 		}
 	}
