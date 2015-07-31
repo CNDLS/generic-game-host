@@ -284,7 +284,6 @@ Game.prototype.newRound = function (next_round) {
 Game.prototype.end = function() {
 	$.event.trigger("game.resetClock");
 	if (this.current_round) this.current_round.doTearDown();
-	this.gameFeedback();
 	this.allowReplay();
 }
 

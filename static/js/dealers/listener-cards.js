@@ -1,28 +1,8 @@
-/* PromptCards could eventually do cool things,
- * like introducing a NPC or opening up a new room,
- * but for the time being, we'll likely mostly use Simples and Modals.
- */
-
-Game.PromptCard.Simple = function (args) {
-	var spec = args.shift();
-	Util.extend_properties(this, new Game.Card(spec));
-}
-Util.extend(Game.PromptCard.Simple, Game.Card);
-
-
-Game.PromptCard.Modal = function (args) {
-	var spec = args.shift();
-	Util.extend_properties(this, new Game.Card.Modal(spec));
-}
-Util.extend(Game.PromptCard.Modal, Game.Card.Modal);
-Game.PromptCard.Modal.prototype = new Game.Card.Modal(null); 
-
-
-
 /* Each ListenerCard will capture input form the user(s).
  * Upon receiving user input, the card resolves the Listener's Deferred,
  * passing one of the Answer objects created from the YAML spec for this Round.
  */
+
 
 /* FreeResponseCard just creates a card with a text input field and doesn't care about the answer. */
 Game.ListenerCard.FreeResponseCard = function (args) {
@@ -47,13 +27,21 @@ Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container) {
 }
 
 
+
 /* MultipleChoiceCard creates a card with a list of radio buttons, labelled with Answers from YAML. */
 Game.ListenerCard.MultipleChoiceCard = function (args) {
 	var round = args.shift();
+	var spec = args.shift() || {};
 	this.radio_btns = {};
 	var group_name = "radio_group_" + round.nbr;
+	var answers = spec.answers || round.answers;
+	var prompt_html = "";
+	if (spec.prompt || false) {
+		prompt_html = "<li class='prompt'>" + spec.prompt + "</li>";
+	}
+	
 	var _this = this;
-	$.each(round.answers, function (i, answer_spec) {
+	$.each(answers, function (i, answer_spec) {
 		var answer = new Game.Answer(answer_spec);
 		var btn_id = "radio_btn_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
 		_this.radio_btns[btn_id] =
@@ -66,6 +54,7 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 	var radio_btn_html = $.map(this.radio_btns, function (btn, btn_id /* , ?? */) {
 		return btn.html;
 	}).join("\n");
+	radio_btn_html = "<ul>" + prompt_html + radio_btn_html + "</ul>";
 	Util.extend_properties(this, new Game.Card(radio_btn_html));
 }
 Util.extend(Game.ListenerCard.MultipleChoiceCard, Game.Card);
@@ -84,6 +73,7 @@ Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container) {
 		$(_this.element).trigger("Card.userInput", answer, score);
 	});
 }
+
 
 
 /* MultipleAnswerCard differs from MultipleChoiceCard, in that it is checkboxes
@@ -125,6 +115,7 @@ Game.ListenerCard.MultipleAnswerCard = function (args) {
 Util.extend(Game.ListenerCard.MultipleAnswerCard, Game.Card);
 
 
+
 /* GrupedInputCard is just a holder for other cards. 
  * They all report together.
  */
@@ -132,6 +123,7 @@ Game.ListenerCard.GroupedInputCard = function (args) {
 	Util.extend_properties(this, new Game.Card("div"));
 }
 Util.extend(Game.ListenerCard.GroupedInputCard, Game.Card);
+
 
 
 /* 
@@ -161,18 +153,3 @@ Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
 		_this.element.trigger("Card.userInput", {answer: answer, score: score});
 	});
 }
-
-
-
-/* ResponderCards could have an NPC speak, etc,
- * but for the time being, we'll likely mostly use Simples.
- */
-Game.ResponderCard.Simple = function (args) {
-	var round = args.shift();
-	var answer = args.shift();
-	var score = args.shift();
-	if (answer.feedback) {
-		Util.extend_properties(this, new Game.Card.Modal(answer.feedback));
-	}
-}
-Util.extend(Game.ResponderCard.Simple, Game.Card.Modal);
