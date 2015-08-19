@@ -19,7 +19,7 @@ Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container) {
         if (e.keyCode === 13) {
 			var answer = new Game.Answer(e.target.value);
 			var score = 1; // any response is accepted.
-			$(_this.element).trigger("Card.userInput", answer, score);
+			$(_this.element).trigger("Card.userInput", {answer: answer, score: score});
 			e.target.blur();
 		}
 	});
@@ -70,7 +70,7 @@ Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container) {
 		var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
 		var answer = new Game.Answer(clicked_radio_btn.answer);
 		var score = correct ? value : neg_value;
-		$(_this.element).trigger("Card.userInput", answer, score);
+		$(_this.element).trigger("Card.userInput", {answer: answer, score: score});
 	});
 }
 

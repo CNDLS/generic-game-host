@@ -140,7 +140,7 @@ Game.Round.GroupedInputsListener.prototype.deal = function (cards_to_be_dealt, c
 		this.group_card.element.find("button[type=submit]").on("click", function (e) {
 			var answer = new Game.Answer("test");
 			var score = 0;
-			$(_this.group_card.element).trigger("Card.userInput", answer, score);
+			$(_this.group_card.element).trigger("Card.userInput", {answer: answer, score: score});
 		});
 	} else {
 		// TODO: write case of collecting responses when a submit button is not present.

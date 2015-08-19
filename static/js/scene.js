@@ -139,8 +139,6 @@ Game.Scene.Basic.prototype.trackRound = function (evt, state_info) {
 	}
 }
 
-
-
 /*
  * SetPieces are the Cards held by a Scene.
  */

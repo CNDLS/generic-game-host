@@ -38,14 +38,38 @@ $.extend(Game, {
 		}
 	},
 	
-	// *** NOTE: this depends on Card having a remove() method.
 	clearCards: function (selector, card_classnames) {
 		// clear all selected cards.
 		card_classnames = (card_classnames || "") + ".card";
 		$(selector || "*").find(card_classnames).each(function () {
 			// fallback is to just remove the element.
 			var card = $(this).data().card || $(this);
-			card.remove();
+			// extra safeguard.
+			(card.remove || $.noop).call(card);
 		});
+	},
+	
+	/*** Returns for ex; "Game.Round.Prompter" For reporting. ***/
+	getClassName: function (obj, scope, scope_names) {
+		if (obj === undefined) { return undefined; }
+		scope = scope || Game;
+		scope_names = scope_names || ["Game"];
+		if (obj.constructor === scope) return scope_names.join(".");
+		
+		for (var m in scope) {
+			var member = scope[m];
+			if ( (typeof member === "function")
+				 || ((typeof member === "object") && (typeof member["new"] === "function")) ) {
+				if (obj.constructor === member) {
+					scope_names.push(m);
+					return scope_names.join(".");
+				} else {
+					var member_scope_names = scope_names.slice();
+					member_scope_names.push(m);
+					var found_obj = Game.getClassName(obj, member, member_scope_names);
+					if (found_obj) { return found_obj; }
+				}
+			}
+		}
 	}
 });

@@ -105,8 +105,6 @@ Game.Round.DEFAULTS = {
 };
 
 Game.Round.prototype.setup = function () {
-	// record the start time of the round.
-	this.game.record({ round_nbr: this.nbr, event: "start of round" });
 	// do any presentation that sets up the round for the player(s).
 	var setup = this.read("Setup");
 	if (typeof setup === "function") {
@@ -132,8 +130,8 @@ Game.Round.prototype.setup = function () {
 			try {
 				// remove prior scene.
 				$(".backdrop").remove();
-				var current_scene = this.game.scenes[this.nbr];
-				current_scene.setup(round).then(function () {
+				this.scene = this.game.scenes[this.nbr];
+				this.scene.setup(round).then(function () {
 					round.prompt();
 				});
 			} catch (e) {
@@ -148,6 +146,9 @@ Game.Round.prototype.setup = function () {
 			});
 		}
 	}
+	
+	// record the start time of the round.
+	this.game.record({ round_nbr: this.nbr, event: "start of round", scene: this.scene.report() });
 };
 
 Game.Round.prototype.onPromptPlayer = function () {

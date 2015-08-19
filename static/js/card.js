@@ -108,11 +108,6 @@ Game.Card.prototype.dealTo = function (container) {
 	$(this.container).append(this.element);
 }
 
-Game.Card.prototype.remove = function () {
-	this.unbindEvents();
-	this.element.remove();
-}
-
 Game.Card.prototype.unbindEvents = function (in_event_names) {
 	// remove passed-in (or any) events bound to the card element, or any nested input or link elements.
 	var interactive_elements = this.element.find("input, a").addBack();
@@ -122,9 +117,14 @@ Game.Card.prototype.unbindEvents = function (in_event_names) {
 	});
 }
 
+Game.Card.prototype.remove = function () {
+	this.unbindEvents();
+	this.element.remove();
+}
+
 // what I tell the Reporter about myself.
 Game.Card.prototype.report = function () {
-	return JSON.stringify(this.spec.content) || "undefined";
+	return this.spec.content || this.spec || undefined;
 }
 
 // a create method for basic Card types (as opposed to those controlled by Dealers).

@@ -262,17 +262,19 @@ Game.Dealer.prototype.discardAll = function () {
 
 // what I tell the Reporter about myself.
 Game.Dealer.prototype.report = function () {
-	return $(this.cards).collect(function () {
+	var cards_report = $(this.cards).collect(function () {
 		var card = this;
-		return card.report();
-	}).join(",");
+		return { card: Game.getClassName(card), state: card.report() };
+	});
+	
+	return { dealer: Game.getClassName(this), cards: cards_report };
 }
 
 
 // card scopes by dealer.
-Game.PromptCard = {};
-Game.ListenerCard = {};
-Game.ResponderCard = {};
+Game.PromptCard = function () {};
+Game.ListenerCard = function () {};
+Game.ResponderCard = function () {};
 
 
 // a factory for creating cards for the various dealers.
