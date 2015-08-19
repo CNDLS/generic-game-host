@@ -230,11 +230,12 @@ Game.Round.prototype.endResponding = function () {
 }
 
 // default behavior upon timeout. give the first non-correct answer you find in the spec.
+// if a particulate wrong answer is specified, though, use that.
 Game.Round.prototype.GiveWrongAnswer = function () {
-	var a_wrong_answer = $(this.answers).select(function () {
-		return !this.correct;
-	})
-	a_wrong_answer = (a_wrong_answer.length) ? a_wrong_answer[0] : new Game.Answer();
+	var a_wrong_answer = 
+	$(this.answers).select(function () { return this.timeout_answer; })[0] ||
+	$(this.answers).select(function () { return !this.correct; })[0] ||
+	new Game.Answer();
 	return { answer: a_wrong_answer, score: a_wrong_answer.negative_value || 0 }
 }
 
