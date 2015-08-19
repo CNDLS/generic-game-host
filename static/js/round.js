@@ -139,6 +139,7 @@ Game.Round.prototype.setup = function () {
 			}
 		} else {
 			prompt_without_scene = true;
+			this.scene = prior_scene;
 		}
 		if (prompt_without_scene) {
 			this.game.nextTick().then(function () {
@@ -175,7 +176,7 @@ Game.Round.prototype.onListenForPlayer = function () {
 		var _this = this;
 		this.listener.deal()
 		.then(function () {
-			_this.game.record({ event: "start listening", prompt: _this.listener.report() });
+			_this.game.record({ event: "start listening", listener: _this.listener.report() });
 			$.event.trigger("game.startClock", _this.max_time || undefined);
 			return _this.listener.listen();
 		})
@@ -210,7 +211,7 @@ Game.Round.prototype.endListening = function (answer, score) {
 	}
 
 	this.game.addPoints(score);
-	this.game.record({ event: "user answers", answer: user_answer });
+	this.game.record({ event: "user answers", answer: user_answer, score: score });
 	this.respond(answer, score);
 }
 

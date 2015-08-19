@@ -68,6 +68,13 @@ Game.Card = function(spec) {
 					break;
 			}
 		});
+		
+		// what will get reported to the db.
+		this.history = undefined;
+		this.element.on("Card.*", function (evt, data) {
+			if (!this.history) { this.history = []; };
+			this.history.push(evt.namespace);
+		});
 	}
 	
 	// add the generic card class.
@@ -124,7 +131,7 @@ Game.Card.prototype.remove = function () {
 
 // what I tell the Reporter about myself.
 Game.Card.prototype.report = function () {
-	return this.spec.content || this.spec || undefined;
+	return this.history || this.spec || undefined;
 }
 
 // a create method for basic Card types (as opposed to those controlled by Dealers).
