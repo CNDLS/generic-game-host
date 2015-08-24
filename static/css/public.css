@@ -1,45 +1,132 @@
+/*****
+color vars
+*********************************************/
+/*****
+basics
+*********************************************/
+.test {
+  outline: 1px solid black;
+  height: 100px; }
+
+html {
+  height: 100%; }
+
+body {
+  min-height: 100%;
+  background-image: url("../img/small_steps_opacity40.png"); }
+
+/*****
+main wrapper and cards
+*********************************************/
+.main-wrap {
+  background-color: rgba(229, 229, 230, 0.8);
+  min-height: 100%;
+  padding-bottom: 5rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.23), 0 3px 10px rgba(0, 0, 0, 0.16); }
+
+hr {
+  width: 80%;
+  margin: 3rem auto;
+  height: 4px;
+  color: white;
+  z-index: 99; }
+
+.infosection {
+  padding: 10px;
+  background-color: #f2f2f3;
+  box-shadow: 0 8px 6px -6px black;
+  margin-bottom: 1.5rem;
+  border: 1px solid #bdbdc1; }
+
+/*****
+main blurb
+*********************************************/
+.main-blurb {
+  background-image: url(../img/siteImgs/apple-desk-laptop-working-large.jpg);
+  background-size: 100%;
+  background-repeat: no-repeat;
+  padding: 0 2rem; }
+  .main-blurb h1 {
+    color: white;
+    font-style: italic;
+    padding-top: 25%;
+    word-wrap: break-word;
+    hyphens: auto; }
+    @media screen and (max-width: 768px) {
+      .main-blurb h1 {
+        font-size: 1.75rem; } }
+
+.main-blurb .bgimage-inside {
+  padding-top: 63.1068%; }
+
+.whatis {
+  padding-top: 3rem;
+  padding-bottom: 3rem; }
+
+.whatis .infosection {
+  font-size: 2rem;
+  text-align: center; }
+
+/*****
+What is lev/l
+*********************************************/
+.whatis .infosection:first-child .bgimage {
+  background-image: url(../img/siteImgs/school-furniture-education-university-medium.jpg);
+  background-size: 100%;
+  margin-top: 2rem; }
+  .whatis .infosection:first-child .bgimage .bgimage-inside {
+    padding-top: 66.2879%; }
+
+.whatis .infosection:nth-child(2) .bgimage {
+  background-image: url(../img/siteImgs/hands-people-working-large.jpg);
+  background-size: 100%;
+  margin-top: 2rem; }
+  .whatis .infosection:nth-child(2) .bgimage .bgimage-inside {
+    padding-top: 66.2879%; }
+
+/*****
+teams
+*********************************************/
+/*****
+orig styles
+*********************************************/
+.rt-col-list {
+  margin-top: 4rem; }
+
 .public.container {
   padding: 96px 0;
-  font-size: 1.5em;
-}
-.tagline {
-  font-size: 1.75em;
-  color: #15CCC2;
-}
+  font-size: 1.5em; }
+
 .public.container ul {
-  list-style: none;
-}
+  list-style: none; }
+
 .public.container ul.outline > li {
-  margin: 1.5em 0;
-}
+  margin: 1.5em 0; }
+
 .public.container li {
-  margin: 0.25em 0;
-}
+  margin: 0.25em 0; }
 
 ul.options {
   font-style: italic;
-  padding-bottom: 24px;
-}
+  padding-bottom: 24px; }
 
 ul.options span {
   font-weight: normal;
-  color: #92989B;
-}
+  color: #92989B; }
 
 ul.outline h3 {
   color: #92989B;
   font-size: 20px;
-  margin-bottom: 2px;
-}
+  margin-bottom: 2px; }
 
 .ctr {
-  text-align: center;
-}
+  text-align: center; }
+
 .float-ctr {
   margin-left: auto;
-  margin-right: auto;
-}
+  margin-right: auto; }
 
 img.callout {
-  width: 100%;
-}
+  width: 100%; }
+
+/*# sourceMappingURL=public.css.map */
