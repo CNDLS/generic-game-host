@@ -105,13 +105,14 @@ Game.Round.GroupedInputsListener = function (round, spec) {
 	
 	// this listener gets AnswerGroups rather than just Answers.
 	var answer_groups = round.read("AnswerGroups");
+	var s4 = S4();
 	var _this = this;
 	if ((typeof answer_groups === "object") && (answer_groups.hasOwnProperty("0"))) {
 		// each Answer object in this case is a group of inputs and a mini-prompt.
 		for (var i=0; i<answer_groups.length; i++) {
 			var answer_group_spec = answer_groups[i];
-			var group_id = round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
-			var group_label = (answer_group_spec.group || group_id);
+			var group_id = (answer_group_spec.group || (i + 1)); // random 4-character code.
+			answer_group_spec.group_name = round.nbr + "_" + s4 + "_" + group_id;
 			var group_card_type = (answer_group_spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes[0]) + "Card";
 			var group_card = Game.DealersCardFactory.create("ListenerCard", group_card_type, _this, round, answer_group_spec);
 			group_card.container = this.group_container;
@@ -127,26 +128,59 @@ Game.Round.GroupedInputsListener.prototype.deal = function (cards_to_be_dealt, c
 	var card_promises = [];
 	var group_card_promise = Game.Round.Listener.prototype.deal.call(this, [this.group_card], container, dealing_dfd);
 	card_promises.push(group_card_promise);
-	var member_cards = this.cards.slice(1); // all but the group card.
-	var member_card_promises = Game.Round.Listener.prototype.deal.call(this, member_cards, this.group_card.element, dealing_dfd);
+	this.member_cards = this.cards.slice(1); // all but the group card.
+	var member_card_promises = Game.Round.Listener.prototype.deal.call(this, this.member_cards, this.group_card.element, dealing_dfd);
 	var card_promises = card_promises.concat(member_card_promises);
+	
+	// collect Answers from all cards.
+	$(this.member_cards).each(function () {
+		var member_card = this;
+		$(member_card.element).on("Card.userInput", function (evt, data) {
+			// use data.answer to set the data for whatever group the card belongs to.
+			member_card.answer = (data.answer || new Game.Answer());
+			member_card.score = data.score || 0;
+		})
+	});
 	
 	// add a submit button, if spec calls for one.
 	if (this.spec.submit_button || false) {
 		// collect all responses upon submit click.
 		var submit_btn_html = "<div class='submit_container'><button type='submit' value='submit'>Submit</button></div>";
 		this.group_card.element.append(submit_btn_html);
-		var _this = this;
-		this.group_card.element.find("button[type=submit]").on("click", function (e) {
-			var answer = new Game.Answer("test");
-			var score = 0;
-			$(_this.group_card.element).trigger("Card.userInput", {answer: answer, score: score});
-		});
+		var respondToSubmitBtn = this.respondToSubmitBtn.bind(this);
+		this.group_card.element.find("button[type=submit]").on("click", respondToSubmitBtn);
+
+		// add the bit where we wait for the user.
+		this.user_input_dfd = $.Deferred();
+		this.user_input_promise = this.user_input_dfd.promise();
 	} else {
 		// TODO: write case of collecting responses when a submit button is not present.
 	}
-	
 	return $.when.apply($, card_promises);
+}
+
+
+Game.Round.GroupedInputsListener.prototype.respondToSubmitBtn = function (evt) {
+	// check completeness -- are all required Answers provided?
+	var answers = [];
+	var scores = [];
+	$(this.member_cards).each(function () {
+		answers.push(this.answer);
+		scores.push(this.score);
+	});
+	// send grouped answers and scores.
+	$(this.group_card.element).trigger("Card.userInput", { answer: answers, score: scores });
+	this.user_input_dfd.resolve();
+}
+
+
+// Deactivate only the input in the clicked control's group card.
+Game.Round.GroupedInputsListener.prototype.deactivateCards = function (card) {
+	if (this.spec.submit_button || false) {
+		// bury the command if we are waiting for a submit click.
+	} else {
+		if (card) { card.setActive(false); }
+	}
 }
 
 

@@ -211,7 +211,7 @@ Game.Round.prototype.endListening = function (answer, score) {
 	}
 
 	this.game.addPoints(score);
-	this.game.record({ event: "user answers", answer: user_answer, score: score });
+	this.game.record({ event: "user answers", answer: user_answer, score: score, listener: this.listener.report() });
 	this.respond(answer, score);
 }
 

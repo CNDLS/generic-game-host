@@ -29,7 +29,7 @@ Game.Card = function(spec) {
 	Game.Card.SEND_TO_BACK = -1;
 	
 	// save the spec, in case we need to manipulate the card contents later on.
-	this.spec = spec;
+	this.spec = (spec instanceof HTMLElement) ? spec.toString() : spec;
 	
 	// make space to save any dealer I'm associated with.
 	this.dealer = {};
@@ -68,13 +68,6 @@ Game.Card = function(spec) {
 					break;
 			}
 		});
-		
-		// what will get reported to the db.
-		this.history = undefined;
-		this.element.on("Card.*", function (evt, data) {
-			if (!this.history) { this.history = []; };
-			this.history.push(evt.namespace);
-		});
 	}
 	
 	// add the generic card class.
@@ -86,6 +79,17 @@ Game.Card = function(spec) {
 	if (spec.css_class || false) {
 		this.element.addClass(spec.css_class);
 	}
+	
+	// respond to user and game actions and track what will get reported to the db.
+	this.history = undefined;
+	// will have to list out all types of Card events.
+	var _this = this;
+	this.element.on("Card.userInput", function (evt, data) {
+		if (_this.element.is(evt.target)) {
+			_this.history = _this.history || [];
+			_this.history.push({ event: evt.namespace, timestamp: evt.timeStamp });
+		}
+	});
 }
 
 Game.Card.prototype.style = function (css_classes) {

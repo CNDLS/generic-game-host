@@ -177,7 +177,7 @@ Game.Dealer.prototype.waitForAnyUserInput = function () {
 			// make any listener cards still onscreen unreceptive to user input (show them disabled).
 			// this is the default behavior; a listener would have to override if inputs should stay active
 			// past this point.
-			_this.deactivateCards();
+			_this.deactivateCards(data.card);
 			user_input_dfd.resolve(data);
 		});
 	});
@@ -222,6 +222,7 @@ Game.Dealer.prototype.waitForAllUserInput = function () {
 	var collected_data = [];
 	$(this.cards).each(function () {
 		this.element.on("Card.userInput", function (evt, data) {
+			console.log("go")
 			// make this listener card unreceptive to user input (show it disabled).
 			this.setActive(false);
 			// collect all answers and scores

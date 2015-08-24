@@ -33,7 +33,7 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 	var round = args.shift();
 	var spec = args.shift() || {};
 	this.radio_btns = {};
-	var group_name = "radio_group_" + round.nbr;
+	var group_name = spec.group_name || ("radio_group_" + round.nbr);
 	var answers = spec.answers || round.answers;
 	var prompt_html = "";
 	if (spec.prompt || false) {
@@ -62,16 +62,18 @@ Util.extend(Game.ListenerCard.MultipleChoiceCard, Game.Card);
 
 Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container) {
 	Game.Card.prototype.dealTo.call(this, container);
-	var _this = this;
-	this.element.find("input[type=radio]").on("click", function (e) {
-		var clicked_radio_btn = _this.radio_btns[e.target.id];
-		var correct = clicked_radio_btn.answer.correct || false;
-		var value = clicked_radio_btn.answer.value || 1;
-		var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
-		var answer = new Game.Answer(clicked_radio_btn.answer);
-		var score = correct ? value : neg_value;
-		$(_this.element).trigger("Card.userInput", { answer: answer, score: score});
-	});
+	var respondToClick = this.respondToClick.bind(this);
+	this.element.find("input[type=radio]").on("click", respondToClick);
+}
+
+Game.ListenerCard.MultipleChoiceCard.prototype.respondToClick = function (e) {
+	var clicked_radio_btn = this.radio_btns[e.target.id];
+	var correct = clicked_radio_btn.answer.correct || false;
+	var value = clicked_radio_btn.answer.value || 1;
+	var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
+	var answer = new Game.Answer(clicked_radio_btn.answer);
+	var score = correct ? value : neg_value;
+	$(this.element).trigger("Card.userInput", { card: this, answer: answer, score: score});
 }
 
 
