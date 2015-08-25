@@ -45,10 +45,12 @@ Game.Reporter.prototype.sendReport = function () {
 	}
 	
 	console.log((this.user_data))
+	reporter.user_data = [];
 	
 	var dfd = $.Deferred();
 	dfd.resolve();
 	return dfd.promise();
+	
 	// return $.ajax({
 	// 	url: this.report_url,
 	// 	type: "POST",

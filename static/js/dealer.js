@@ -156,6 +156,10 @@ Game.Dealer.prototype.waitForUserInput = function () {
 			return this.waitForAllUserInput();
 			break;
 			
+		case "collect":
+			return this.collectUserInput();
+			break;
+			
 		case "none":
 			return this.game.internal_clock.nextTick();
 			break;
@@ -222,7 +226,6 @@ Game.Dealer.prototype.waitForAllUserInput = function () {
 	var collected_data = [];
 	$(this.cards).each(function () {
 		this.element.on("Card.userInput", function (evt, data) {
-			console.log("go")
 			// make this listener card unreceptive to user input (show it disabled).
 			this.setActive(false);
 			// collect all answers and scores
@@ -233,6 +236,26 @@ Game.Dealer.prototype.waitForAllUserInput = function () {
 		});
 	});
 	return user_input_dfd.promise();
+}
+
+
+// ONLY USE THIS WHERE ANOTHER MECHANISM PROVIDES A PROMISE
+// FROM this.user_input_dfd (eg; a submit button. cf GroupedInputsListener)
+Game.Dealer.prototype.collectUserInput = function () {
+	var collected_data = [];
+	$(this.cards).each(function () {
+		var _this = this;
+		this.element.on("Card.userInput", function (evt, data) {
+			// make this listener card unreceptive to user input (show it disabled).
+			// _this.setActive(false);
+			// collect all answers and scores
+			collected_data.push(data);
+		});
+	});
+	this.collected_data = collected_data;
+	
+	this.user_input_dfd = this.user_input_dfd || $.Deferred();
+	return this.user_input_dfd.promise();
 }
 
 
@@ -302,7 +325,6 @@ Game.DealersCardFactory = {
 				}
 				// add css classes for dealer_card_scope & card_type.
 				var css_classes = [
-					// PromptCard becomes prompt css class.
 					"card",
 					dealer_card_scope_name.replace("Card", "").underscore(), // eg; SomeDealerCard -> some_dealer
 					card_type.underscore() // eg; MultipleChoiceCard -> multiple_choice_card

@@ -118,16 +118,6 @@ Util.extend(Game.ListenerCard.MultipleAnswerCard, Game.Card);
 
 
 
-/* GrupedInputCard is just a holder for other cards. 
- * They all report together.
- */
-Game.ListenerCard.GroupedInputCard = function (args) {
-	Util.extend_properties(this, new Game.Card("div"));
-}
-Util.extend(Game.ListenerCard.GroupedInputCard, Game.Card);
-
-
-
 /* 
  * This card waits for a click on a link. 
  * args passed as an array.
@@ -155,3 +145,12 @@ Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
 		_this.element.trigger("Card.userInput", {answer: answer, score: score});
 	});
 }
+
+
+/* GroupedInputCard is just a holder for other cards. 
+ * They all report together.
+ */
+Game.ListenerCard.GroupedInputCard = function (args) {
+	Util.extend_properties(this, new Game.Card("div"));
+}
+Util.extend(Game.ListenerCard.GroupedInputCard, Game.Card);

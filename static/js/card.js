@@ -29,7 +29,7 @@ Game.Card = function(spec) {
 	Game.Card.SEND_TO_BACK = -1;
 	
 	// save the spec, in case we need to manipulate the card contents later on.
-	this.spec = (spec instanceof HTMLElement) ? spec.toString() : spec;
+	this.spec = spec;
 	
 	// make space to save any dealer I'm associated with.
 	this.dealer = {};
@@ -73,7 +73,10 @@ Game.Card = function(spec) {
 	// add the generic card class.
 	// keep track of this Card via the jQuery data for the element.
 	// this will work, even if we use another jQuery selector to select this one element.
-	this.element.addClass("card " + card_type).data("card", this);
+	this.element.addClass("card").data("card", this);
+	if (card_type) {
+		this.element.addClass(card_type);
+	}
 	
 	// add any other specified css_classes.
 	if (spec.css_class || false) {
@@ -87,7 +90,7 @@ Game.Card = function(spec) {
 	this.element.on("Card.userInput", function (evt, data) {
 		if (_this.element.is(evt.target)) {
 			_this.history = _this.history || [];
-			_this.history.push({ event: evt.namespace, timestamp: evt.timeStamp });
+			_this.history.push({ event: evt.namespace, data: data, timestamp: evt.timeStamp });
 		}
 	});
 }
@@ -135,7 +138,9 @@ Game.Card.prototype.remove = function () {
 
 // what I tell the Reporter about myself.
 Game.Card.prototype.report = function () {
-	return this.history || this.spec || undefined;
+	if (this.history) { return this.history }
+	if (typeof this.spec === "string") { return this.spec }
+	return Util.createDescriptor(this.element.get(0));
 }
 
 // a create method for basic Card types (as opposed to those controlled by Dealers).

@@ -91,10 +91,9 @@ Util.extend(Game.Round.PromptLinkListener, Game.Round.Listener);
 Game.Round.GroupedInputsListener = function (round, spec) {
 	// this will necessarily require more than one user action, 
 	// so we hide any 'continue' buttons, collect all user_input_promises, and resolve upon a click on our Submit button.
-	
 	spec.user_input_types = ["GroupedInput"];
 	Util.extend_properties(this, new Game.Round.Listener(round, spec));
-	this.group_card = this.cards[0];
+	this.group_card = this.cards.shift();
 	
 	// this listener offers the option of a header card, apart from any Prompt
 	// that may act to organize the cards that follow (eg; table headers).
@@ -103,20 +102,28 @@ Game.Round.GroupedInputsListener = function (round, spec) {
 		this.group_card.element.render(header_spec);
 	}
 	
+	if (this.spec.submit_button || false) {
+		// collect Answers from all cards, so we can report it upon the submit click.
+		this.accept_user_input = "collect";
+		// add the bit where we wait for the user.
+		this.user_input_dfd = $.Deferred();
+		this.user_input_promise = this.user_input_dfd.promise();
+	}
+	
 	// this listener gets AnswerGroups rather than just Answers.
 	var answer_groups = round.read("AnswerGroups");
 	var s4 = S4();
 	var _this = this;
 	if ((typeof answer_groups === "object") && (answer_groups.hasOwnProperty("0"))) {
 		// each Answer object in this case is a group of inputs and a mini-prompt.
-		for (var i=0; i<answer_groups.length; i++) {
+		for (var i=0; i < answer_groups.length; i++) {
 			var answer_group_spec = answer_groups[i];
 			var group_id = (answer_group_spec.group || (i + 1)); // random 4-character code.
 			answer_group_spec.group_name = round.nbr + "_" + s4 + "_" + group_id;
-			var group_card_type = (answer_group_spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes[0]) + "Card";
-			var group_card = Game.DealersCardFactory.create("ListenerCard", group_card_type, _this, round, answer_group_spec);
-			group_card.container = this.group_container;
-			this.addCard(group_card);
+			var member_card_type = (answer_group_spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes[0]) + "Card";
+			var member_card = Game.DealersCardFactory.create("ListenerCard", member_card_type, _this, round, answer_group_spec);
+			member_card.container = this.group_container;
+			this.addCard(member_card);
 		}
 	}
 }
@@ -128,19 +135,8 @@ Game.Round.GroupedInputsListener.prototype.deal = function (cards_to_be_dealt, c
 	var card_promises = [];
 	var group_card_promise = Game.Round.Listener.prototype.deal.call(this, [this.group_card], container, dealing_dfd);
 	card_promises.push(group_card_promise);
-	this.member_cards = this.cards.slice(1); // all but the group card.
-	var member_card_promises = Game.Round.Listener.prototype.deal.call(this, this.member_cards, this.group_card.element, dealing_dfd);
+	var member_card_promises = Game.Round.Listener.prototype.deal.call(this, this.cards, this.group_card.element, dealing_dfd);
 	var card_promises = card_promises.concat(member_card_promises);
-	
-	// collect Answers from all cards.
-	$(this.member_cards).each(function () {
-		var member_card = this;
-		$(member_card.element).on("Card.userInput", function (evt, data) {
-			// use data.answer to set the data for whatever group the card belongs to.
-			member_card.answer = (data.answer || new Game.Answer());
-			member_card.score = data.score || 0;
-		})
-	});
 	
 	// add a submit button, if spec calls for one.
 	if (this.spec.submit_button || false) {
@@ -150,9 +146,6 @@ Game.Round.GroupedInputsListener.prototype.deal = function (cards_to_be_dealt, c
 		var respondToSubmitBtn = this.respondToSubmitBtn.bind(this);
 		this.group_card.element.find("button[type=submit]").on("click", respondToSubmitBtn);
 
-		// add the bit where we wait for the user.
-		this.user_input_dfd = $.Deferred();
-		this.user_input_promise = this.user_input_dfd.promise();
 	} else {
 		// TODO: write case of collecting responses when a submit button is not present.
 	}
@@ -164,13 +157,32 @@ Game.Round.GroupedInputsListener.prototype.respondToSubmitBtn = function (evt) {
 	// check completeness -- are all required Answers provided?
 	var answers = [];
 	var scores = [];
-	$(this.member_cards).each(function () {
-		answers.push(this.answer);
+	$(this.collected_data).each(function () {
+		answers.push(this.answer.getContents());
 		scores.push(this.score);
 	});
-	// send grouped answers and scores.
-	$(this.group_card.element).trigger("Card.userInput", { answer: answers, score: scores });
-	this.user_input_dfd.resolve();
+	if (this.spec.require === "all") {
+		if (this.collected_data.length < this.cards.length) {
+			// fail 'validation'.
+			this.promptUserForMoreInput();
+		} else {
+			// send grouped answers and scores.
+			var answer = new Game.Answer({ content: answers });
+			$(this.group_card.element).trigger("Card.userInput", { answer: answer, score: scores });
+			this.user_input_dfd.resolve({ answer: answer, score: scores });
+		}
+	} else {
+		// allow items to specify themselves as required.
+		// also allow grouped spec, like we do assigning Scenes to Rounds (eg; [1..4, 6])?
+	}
+}
+
+
+Game.Round.GroupedInputsListener.prototype.promptUserForMoreInput = function () {
+	alert("Please complete all items.")
+	// this.member_cards.each(function () {
+	// 	if (!this.answer)
+	// });
 }
 
 

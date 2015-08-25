@@ -177,5 +177,14 @@ Util = {
 				throw new Error("Cannot do replacments on item: " + item);
 				break;
 		}
+	},
+	
+	createDescriptor: function (htmlElement) {
+		if (htmlElement instanceof HTMLElement) {
+			var descriptor = htmlElement.nodeName.toLowerCase();
+			if (htmlElement.id) { descriptor += ("#" + htmlElement.id); }
+			descriptor += ("." + $(htmlElement).attr("class").replace(/\s/g, "."));
+			return descriptor;
+		}
 	}
 }

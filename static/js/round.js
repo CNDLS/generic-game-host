@@ -177,7 +177,11 @@ Game.Round.prototype.onListenForPlayer = function () {
 		this.listener.deal()
 		.then(function () {
 			_this.game.record({ event: "start listening", listener: _this.listener.report() });
-			$.event.trigger("game.startClock", _this.max_time || undefined);
+			if (_this.max_time) {
+				$.event.trigger("game.startClock", _this.max_time);
+			} else {
+				$.event.trigger("game.resetClock");
+			}
 			return _this.listener.listen();
 		})
 		.then(function (data) {
@@ -260,7 +264,7 @@ Game.Round.prototype.onEnd = function (eventname, from, to, next_round) {
 	this.doTearDown();
 	var _this = this;
 	this.game.nextTick().then(function () {
-		_this.game.record({ event: "round transition", old_round: _this.played_round });
+		_this.game.record({ event: "round transition", previous_round: _this.played_round });
 		// if a next_round is passed in, use that, or
 		// if Round YAML specifies a "Next" round to go to, use that, or
 		// the game will just read the next one in the list, or will conclude if there is none.
