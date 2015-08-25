@@ -183,7 +183,7 @@ Util = {
 		if (htmlElement instanceof HTMLElement) {
 			var descriptor = htmlElement.nodeName.toLowerCase();
 			if (htmlElement.id) { descriptor += ("#" + htmlElement.id); }
-			descriptor += ("." + $(htmlElement).attr("class").replace(/\s/g, "."));
+			descriptor += ("." + ($(htmlElement).attr("class") || "").replace(/\s/g, "."));
 			return descriptor;
 		}
 	}

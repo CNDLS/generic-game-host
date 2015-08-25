@@ -7,7 +7,7 @@
  * (release notes to go here).
  ******************************************************************************/
 
-var environment = { mode: "development" };
+var environment = { mode: "development", verbose: false };
 
 /* 
  * Game.

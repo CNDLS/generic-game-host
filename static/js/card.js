@@ -84,12 +84,12 @@ Game.Card = function(spec) {
 	}
 	
 	// respond to user and game actions and track what will get reported to the db.
-	this.history = undefined;
+	this.history = [];
+	
 	// will have to list out all types of Card events.
 	var _this = this;
 	this.element.on("Card.userInput", function (evt, data) {
-		if (_this.element.is(evt.target)) {
-			_this.history = _this.history || [];
+		if (_this.element.is(this)) {
 			_this.history.push({ event: evt.namespace, data: data, timestamp: evt.timeStamp });
 		}
 	});
@@ -137,11 +137,19 @@ Game.Card.prototype.remove = function () {
 }
 
 // what I tell the Reporter about myself.
-Game.Card.prototype.report = function () {
-	if (this.history) { return this.history }
-	if (typeof this.spec === "string") { return this.spec }
-	return Util.createDescriptor(this.element.get(0));
+Game.Card.prototype.getHistory = function () {
+	return this.history;
 }
+
+// return a descriptor string from the spec or create a jQuery descriptor for my element.
+Game.Card.prototype.getDescriptor = function () {
+	if (typeof this.spec === "string") { 
+		return this.spec;
+	} else {
+		return Util.createDescriptor(this.element.get(0));
+	}
+}
+
 
 // a create method for basic Card types (as opposed to those controlled by Dealers).
 Game.Card.create = function (spec) {

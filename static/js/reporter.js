@@ -44,7 +44,9 @@ Game.Reporter.prototype.sendReport = function () {
 		headers["X-CSRFToken"] = this.csrftoken;
 	}
 	
-	console.log((this.user_data))
+	if (environment.verbose) {
+		console.log((this.user_data));
+	}
 	reporter.user_data = [];
 	
 	var dfd = $.Deferred();

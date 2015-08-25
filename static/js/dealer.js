@@ -91,6 +91,12 @@ Game.Dealer.prototype.dealCards = function (cards_to_be_dealt, container, dealin
 		// REMEMBER, at this point, the Card is just saying whether or not it has been dealt;
 		// Cards that wait for user input once they've been dealt should do so via a different dfd.
 		( card.dealTo(container) ) ? $.noop() : dealing_dfd.resolve();
+		
+		// in verbose mode, note in card's history that it was dealt and to where.
+		if (environment.verbose) {
+			card.history.push({ event: "dealt", to: Util.createDescriptor((card.container || $()).get(0)) });
+		}
+		
 		return dealing_dfd.promise();
 	});
 	
@@ -286,12 +292,18 @@ Game.Dealer.prototype.discardAll = function () {
 
 // what I tell the Reporter about myself.
 Game.Dealer.prototype.report = function () {
-	var cards_report = $(this.cards).collect(function () {
-		var card = this;
-		return { card: Game.getClassName(card), state: card.report() };
-	});
+	if (environment.verbose || false) {
+		// get each cards constructor, its element element descriptor,
+		// and some info about its current state.
+		var cards_report = $(this.cards).collect(function () {
+			var card = this;
+			return { card: Game.getClassName(card), descriptor: card.getDescriptor(), history: card.getHistory() };
+		});
 	
-	return { dealer: Game.getClassName(this), cards: cards_report };
+		return { dealer: Game.getClassName(this), cards: cards_report };
+	} else {
+		return Game.getClassName(this);
+	}
 }
 
 
