@@ -1,0 +1,169 @@
+/*****
+color vars
+*********************************************/
+$blue1: #0083B6;
+// $blue1: rgba(0,131,182, 1);
+$gray1: #6D6E71;
+// $gray1: rgba(109,110,113, 1);
+
+/*****
+basics
+*********************************************/
+.test {
+    outline: 1px solid black;
+    height: 100px;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+    background-image: url("../img/small_steps_opacity40.png");
+}
+
+/*****
+main wrapper and cards
+*********************************************/
+.main-wrap {
+    background-color: hsla(255, 2, 90, .8);
+    // background-color: hsla(225, 2, 85, .8);
+    min-height: 100%;
+    padding-bottom: 5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,.23),
+    0 3px 10px rgba(0,0,0,.16);
+}
+
+hr {
+    width: 80%;
+    margin: 3rem auto;
+    height: 4px;
+    // color: $gray1;
+    color: white;
+    z-index: 99;
+}
+
+.infosection {
+    padding: 10px;
+    background-color: hsla(240, 3, 95, 1);
+    box-shadow: 0 8px 6px -6px black;
+    margin-bottom: 1.5rem;
+    border: 1px solid hsla(240, 3, 75, 1);
+}
+
+/*****
+main blurb
+*********************************************/
+.main-blurb {
+    background-image: url(../img/siteImgs/apple-desk-laptop-working-large.jpg);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    padding: 0 2rem;
+
+    & h1 {
+        color: white;
+        font-style: italic;
+        padding-top: 25%;
+        word-wrap: break-word;
+        hyphens: auto;
+
+        @media screen and (max-width: 768px) {
+            font-size: 1.75rem;
+        }
+    }
+}
+
+.main-blurb .bgimage-inside {
+    padding-top: 63.1068%;
+}
+
+.whatis {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+}
+
+.whatis .infosection {
+    font-size: 2rem;
+    text-align: center;
+}
+
+/*****
+What is lev/l
+*********************************************/
+.whatis .infosection:first-child .bgimage {
+    background-image: url(../img/siteImgs/school-furniture-education-university-medium.jpg);
+    background-size: 100%;
+    margin-top: 2rem;
+
+    & .bgimage-inside {
+        padding-top: 66.2879%;
+    }
+}
+
+.whatis .infosection:nth-child(2) .bgimage {
+    background-image: url(../img/siteImgs/hands-people-working-large.jpg);
+    background-size: 100%;
+    margin-top: 2rem;
+
+    & .bgimage-inside {
+        padding-top: 66.2879%;
+    }
+}
+
+/*****
+teams
+*********************************************/
+.teams {
+    // font-size: 16px;
+}
+
+
+/*****
+orig styles
+*********************************************/
+.rt-col-list {
+  margin-top: 4rem;
+}
+
+.public.container {
+  padding: 96px 0;
+  font-size: 1.5em;
+}
+.public.container ul {
+  list-style: none;
+}
+.public.container ul.outline > li {
+  margin: 1.5em 0;
+}
+.public.container li {
+  margin: 0.25em 0;
+}
+
+ul.options {
+  font-style: italic;
+  padding-bottom: 24px;
+}
+
+ul.options span {
+  font-weight: normal;
+  color: #92989B;
+}
+
+ul.outline h3 {
+  color: #92989B;
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+
+.ctr {
+  text-align: center;
+}
+.float-ctr {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+img.callout {
+  width: 100%;
+}
