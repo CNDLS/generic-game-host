@@ -32,6 +32,9 @@ def design(request):
 
 def contact(request):
     return render_to_response('contact.html', context_instance=RequestContext(request))
+
+def publicsitechanges(request):
+    return render_to_response('sitechanges.html', context_instance=RequestContext(request))
     
     
 # list all the games that are available to students.
