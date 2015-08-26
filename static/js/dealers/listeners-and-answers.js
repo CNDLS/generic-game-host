@@ -179,7 +179,7 @@ Game.Round.GroupedInputsListener.prototype.respondToSubmitBtn = function (evt) {
 
 
 Game.Round.GroupedInputsListener.prototype.promptUserForMoreInput = function () {
-	alert("Please complete all items.")
+	alert("Please complete all items."); // TODO: replace with a Game.alert(), so we can customize.
 	// this.member_cards.each(function () {
 	// 	if (!this.answer)
 	// });
@@ -188,10 +188,18 @@ Game.Round.GroupedInputsListener.prototype.promptUserForMoreInput = function () 
 
 // Deactivate only the input in the clicked control's group card.
 Game.Round.GroupedInputsListener.prototype.deactivateCards = function (card) {
-	if (this.spec.submit_button || false) {
-		// bury the command if we are waiting for a submit click.
+	// bury the command if we are waiting for a submit click,
+	// unless the spec says to go ahead.
+	if ((this.spec.submit_button || false) && !(this.spec.deactivate_cards || false)) {
+		return;
+	}
+	if (card) { 
+		// can pass in a single card to deactivate.
+		card.setActive(false);
 	} else {
-		if (card) { card.setActive(false); }
+		$.each(this.cards, function () {
+			this.setActive(false);
+		});
 	}
 }
 

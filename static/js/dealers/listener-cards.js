@@ -68,6 +68,7 @@ Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container) {
 
 Game.ListenerCard.MultipleChoiceCard.prototype.respondToClick = function (e) {
 	var clicked_radio_btn = this.radio_btns[e.target.id];
+	// add classes, so we can style if need be.
 	var correct = clicked_radio_btn.answer.correct || false;
 	var value = clicked_radio_btn.answer.value || 1;
 	var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?

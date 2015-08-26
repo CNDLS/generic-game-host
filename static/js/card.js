@@ -92,7 +92,7 @@ Game.Card = function(spec) {
 		if (_this.element.is(this)) {
 			var answer;
 			try {
-				data = data.answer.getContents();
+				data = data.answer;
 			} catch (e) {
 				data = JSON.stringify(data);
 			}
