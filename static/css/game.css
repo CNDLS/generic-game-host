@@ -39,7 +39,17 @@ textarea {
   text-transform: none;
 }
 .game_summary {
-  font-size: 1.25em;
+  font-size: 6em;
+  width: 100vw;
+  text-align: center;
+  margin-top: 30vh;
+  opacity: 0;
+  transition: opacity 1s;
+  -webkit-transition: opacity 1s;
+}
+
+.appear {
+  opacity: 1;
 }
 
 .left_column, .right_column {

@@ -119,6 +119,14 @@ Game.Scene.Basic.prototype.setup = function (round) {
 	return dfd.promise();
 }
 
+
+Game.Scene.Basic.prototype.tearDown = function () {
+	$(this.cards).each(function () {
+		this.remove();
+	});
+	this.backdrop.remove();
+}
+
 Game.Scene.Basic.prototype.finalize = function () {
 	// kept for custom code.
 }

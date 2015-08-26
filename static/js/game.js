@@ -102,12 +102,12 @@ Game.prototype.record = function (data) {
 	this.reporter.addData(data);
 }
 
-Game.prototype.report = function (create_round, catch_func) {
+Game.prototype.report = function (try_func, catch_func) {
 	// changed create_round call from .then() to .done(), 
 	// so the game won't pause if AJAX fails.
 	// hopefully, we'll get the data sent at the next opportunity.
 	this.reporter.sendReport().done(function () {
-		in_production_try(this, create_round, catch_func);
+		in_production_try(this, try_func, catch_func);
 	});
 }
 
@@ -168,7 +168,7 @@ Game.prototype.checkIfUserWon = function () {
 	}
 }
 
-Game.prototype.gameFeedback = function () {
+Game.prototype.giveFinalFeedback = function () {
 	var gameFeedbackMessage;
 	if (this.user_won) {
 		gameFeedbackMessage = this.read("WonGameFeedback");
@@ -194,6 +194,9 @@ Game.prototype.gameFeedback = function () {
 	};
 	var feedback_card = Game.Card.create(feedback_spec);
 	feedback_card.dealTo(feedback_spec.container);
+	setTimeout(function () {
+		feedback_card.element.addClass("appear");
+	});
 };
 
 Game.prototype.read = function (field_name /* , default_value */ ) {
@@ -283,8 +286,18 @@ Game.prototype.newRound = function (next_round) {
 
 Game.prototype.end = function() {
 	$.event.trigger("game.resetClock");
-	if (this.current_round) this.current_round.doTearDown();
-	this.allowReplay();
+	if (this.current_round) {
+		this.current_round.doTearDown();
+		this.current_round.scene.tearDown();
+	} 
+
+	// show the end msg after reporting is done.
+	var _this = this;
+	this.report(function () {
+		Game.clearCards();
+		_this.giveFinalFeedback();
+		_this.allowReplay();
+	}, $.noop);
 }
 
 Game.prototype.abort = function() {
