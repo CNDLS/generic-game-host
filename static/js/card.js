@@ -90,6 +90,12 @@ Game.Card = function(spec) {
 	var _this = this;
 	this.element.on("Card.userInput", function (evt, data) {
 		if (_this.element.is(this)) {
+			var answer;
+			try {
+				data = data.answer.getContents();
+			} catch (e) {
+				data = JSON.stringify(data);
+			}
 			_this.history.push({ event: evt.namespace, data: data, timestamp: evt.timeStamp });
 		}
 	});

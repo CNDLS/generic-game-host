@@ -170,6 +170,7 @@ Game.prototype.checkIfUserWon = function () {
 
 Game.prototype.giveFinalFeedback = function () {
 	var gameFeedbackMessage;
+	this.checkIfUserWon();
 	if (this.user_won) {
 		gameFeedbackMessage = this.read("WonGameFeedback");
 	} else {

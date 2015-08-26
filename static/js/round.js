@@ -213,7 +213,9 @@ Game.Round.prototype.endListening = function (answer, score) {
 	} catch (e) {
 		console.log("failed to get answer from user.", e.stack);
 	}
-
+	if (score instanceof Array) {
+		score = $(score).sum();
+	}
 	this.game.addPoints(score);
 	this.game.record({ event: "user answers", answer: user_answer, score: score, listener: this.listener.report() });
 	this.respond(answer, score);
