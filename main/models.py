@@ -2,49 +2,43 @@ from django.db import models
 from django.db.models import signals
 # from validatedfile.fields import ValidatedFileField
 from django.contrib.auth.models import User
+from django.utils.text import slugify
 
 import sys
 import yaml
+import os
+from uuid import uuid4
+
+from taggit.managers import TaggableManager
 from host.settings import MEDIA_ROOT
-from django.core.servers.basehttp import FileWrapper
+
+from validatedfile.fields import ValidatedFileField
+validatedfile_rules = [(
+    [ValidatedFileField],
+    [],
+    {
+        "content_types": ["content_types", {"default": []}],
+        "max_upload_size": ["max_upload_size", {"default": 0}],
+        "mime_lookup_length": ["mime_lookup_length", {"default": 4096}],
+    }
+)]
+
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules(validatedfile_rules, ["^validatedfile\.fields\.ValidatedFileField"])
 
 
-class GameType(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True,null=True)
-    template = models.FileField(
-                        null = True,
-                        blank = True,
-                        upload_to = 'uploads/custom_templates/')
-    css = models.FileField(
-                        null = True,
-                        blank = True,
-                        upload_to = 'uploads/custom_css/')
-    js = models.FileField(
-                        null = True,
-                        blank = True,
-                        upload_to = 'uploads/custom_js/')
-    score_accrues_to_computer = models.BooleanField(default=False)
-        
-    def __unicode__(self):
-        return self.name
-
-    
+# TODO: nix game_type field. replace with many-to-many association with GameGroups
 class Game(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True,null=True)
-    game_type = models.ForeignKey(GameType, unique=False)
-    public = models.BooleanField(default=False)
-    parsed = models.BooleanField(default=False)
-    winning_score = models.IntegerField(default=0)
-    score_accrues_to_computer = models.BooleanField(default=False)
-    game_spec = models.FileField(
+    game_spec = ValidatedFileField(
                         null = True,
                         blank = True,
-                        upload_to = 'uploads/games/')
-                        # max_upload_size = 102400, # 100KB
-                        # content_types = ['application/x-yaml','text/yaml','text/plain','text/plain; charset=us-ascii'])
-        
+                        upload_to = 'uploads/games/',
+                        max_upload_size = 204800, # 200KB
+                        content_types = ['application/x-yaml','text/yaml','text/plain','text/plain; charset=us-ascii'])
+    tags = TaggableManager(blank=True)
+    
     def __unicode__(self):
         return self.name
         
@@ -104,3 +98,55 @@ class GameReport(models.Model):
         s = Struct(**args)
         return s
     decoded_payload = property(_decode_payload)
+
+
+class GameGroup(models.Model):
+    name = models.CharField(max_length=255)
+    games = models.ManyToManyField(Game, blank=True, null=True)
+    users = models.ManyToManyField(User, blank=True, null=True, through="Membership")
+    
+    def __unicode__(self):
+        return self.name
+
+
+class Membership(models.Model):
+    user = models.ForeignKey(User)
+    game_group = models.ForeignKey(GameGroup)
+    role = models.CharField(max_length=64)
+    
+    def __unicode__(self):
+        return self.role
+    
+
+def path_for_media_type(path):
+    def path_generator(instance, filename):
+        ext = filename.split('.')[-1]
+        # get filename
+        if instance.pk:
+            game_group = GameGroup.objects.get(instance.game_group)
+            library_dir = slugify(game_group.name) if game_group else "ungrouped"
+            path = path.format(library_dir=library_dir, media_type=instance.media_type)
+            filename = '{}.{}'.format(instance.game_group.name, ext)
+        else:
+            # set filename as random string
+            filename = '{}.{}'.format(uuid4().hex, ext)
+            path = "uploads/unclaimed/" # dump problematic files where we can see them.
+        # return the whole path to the file
+        return os.path.join(path, filename)
+    return path_generator
+
+
+class LibraryFile(models.Model):
+    media_type = models.CharField(max_length=64)
+    description = models.TextField(blank=True, null=True)
+    game_group = models.ForeignKey(GameGroup)
+    file = models.FileField(
+                        null = True,
+                        blank = True,
+                        upload_to = path_for_media_type('uploads/{library_dir}/{media_type}/'))
+        
+    def __unicode__(self):
+        return self.file.name
+
+
+

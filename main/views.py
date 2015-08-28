@@ -71,8 +71,6 @@ def play(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
     game_type = game.game_type or GameType()
     template_vars = { 'game': game,
-                      'game_css':  game_type.css or None,
-                      'game_js':  game_type.js or None,
                       'current_user': request.user,
                       'AJAX_PREFIX':AJAX_PREFIX }
     return render_to_response('play.html', template_vars, context_instance=RequestContext(request))

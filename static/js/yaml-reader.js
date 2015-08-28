@@ -73,6 +73,14 @@ function Concat (data) {
 Concat.prototype.evaluate = function () {
 	this.str_data = $.collect(this.data, function (i) {
 		var item = (this["evaluate"] instanceof Function) ? this.evaluate() : this;
+		// we make this assumption because we are concatenating a string.
+		// any YAML for this purpose that has not be resolved into a string by its evaluate() function
+		// is likely to be an html spec.
+		try  {
+			if (item instanceof YAML) { item = $.render(item).html; }
+		} catch (e) {
+			console.log("Cannot concatenate YAML, because it could not be rendered into HTML.", e);
+		}
 		return item;
 	});
 	return this.str_data.join("");

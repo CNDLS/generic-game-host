@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import datetime
+from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
@@ -8,29 +8,12 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'GameType'
-        db.create_table(u'main_gametype', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('template', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True)),
-            ('css', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True)),
-            ('js', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True)),
-            ('score_accrues_to_computer', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal(u'main', ['GameType'])
-
         # Adding model 'Game'
         db.create_table(u'main_game', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('game_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.GameType'])),
-            ('public', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('parsed', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('winning_score', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('score_accrues_to_computer', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('game_spec', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True)),
+            ('game_spec', self.gf('validatedfile.fields.ValidatedFileField')(content_types=['application/x-yaml', 'text/yaml', 'text/plain', 'text/plain; charset=us-ascii'], max_upload_size=204800, null=True, max_length=100, blank=True)),
         ))
         db.send_create_signal(u'main', ['Game'])
 
@@ -54,11 +37,43 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'main', ['GameReport'])
 
+        # Adding model 'GameGroup'
+        db.create_table(u'main_gamegroup', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
+        ))
+        db.send_create_signal(u'main', ['GameGroup'])
+
+        # Adding M2M table for field games on 'GameGroup'
+        m2m_table_name = db.shorten_name(u'main_gamegroup_games')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('gamegroup', models.ForeignKey(orm[u'main.gamegroup'], null=False)),
+            ('game', models.ForeignKey(orm[u'main.game'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['gamegroup_id', 'game_id'])
+
+        # Adding model 'Membership'
+        db.create_table(u'main_membership', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('game_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.GameGroup'])),
+            ('role', self.gf('django.db.models.fields.CharField')(max_length=64)),
+        ))
+        db.send_create_signal(u'main', ['Membership'])
+
+        # Adding model 'LibraryFile'
+        db.create_table(u'main_libraryfile', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('media_type', self.gf('django.db.models.fields.CharField')(max_length=64)),
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('game_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['main.GameGroup'])),
+            ('file', self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True)),
+        ))
+        db.send_create_signal(u'main', ['LibraryFile'])
+
 
     def backwards(self, orm):
-        # Deleting model 'GameType'
-        db.delete_table(u'main_gametype')
-
         # Deleting model 'Game'
         db.delete_table(u'main_game')
 
@@ -67,6 +82,18 @@ class Migration(SchemaMigration):
 
         # Deleting model 'GameReport'
         db.delete_table(u'main_gamereport')
+
+        # Deleting model 'GameGroup'
+        db.delete_table(u'main_gamegroup')
+
+        # Removing M2M table for field games on 'GameGroup'
+        db.delete_table(db.shorten_name(u'main_gamegroup_games'))
+
+        # Deleting model 'Membership'
+        db.delete_table(u'main_membership')
+
+        # Deleting model 'LibraryFile'
+        db.delete_table(u'main_libraryfile')
 
 
     models = {
@@ -109,14 +136,16 @@ class Migration(SchemaMigration):
         u'main.game': {
             'Meta': {'object_name': 'Game'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'game_spec': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'game_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['main.GameType']"}),
+            'game_spec': ('validatedfile.fields.ValidatedFileField', [], {'content_types': "['application/x-yaml', 'text/yaml', 'text/plain', 'text/plain; charset=us-ascii']", 'max_upload_size': '204800', 'null': 'True', 'max_length': '100', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'})
+        },
+        u'main.gamegroup': {
+            'Meta': {'object_name': 'GameGroup'},
+            'games': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['main.Game']", 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'parsed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'public': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'score_accrues_to_computer': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'winning_score': ('django.db.models.fields.IntegerField', [], {'default': '0'})
+            'users': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['auth.User']", 'null': 'True', 'through': u"orm['main.Membership']", 'blank': 'True'})
         },
         u'main.gamereport': {
             'Meta': {'object_name': 'GameReport'},
@@ -126,15 +155,20 @@ class Migration(SchemaMigration):
             'payload': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'student': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
-        u'main.gametype': {
-            'Meta': {'object_name': 'GameType'},
-            'css': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+        u'main.libraryfile': {
+            'Meta': {'object_name': 'LibraryFile'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'file': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'game_group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['main.GameGroup']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'js': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'score_accrues_to_computer': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'template': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'})
+            'media_type': ('django.db.models.fields.CharField', [], {'max_length': '64'})
+        },
+        u'main.membership': {
+            'Meta': {'object_name': 'Membership'},
+            'game_group': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['main.GameGroup']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'role': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
         },
         u'main.round': {
             'Meta': {'object_name': 'Round'},
