@@ -1,0 +1,114 @@
+.editor {
+  max-width: 50vw;
+  margin: 9em 1em 6em 2em;
+}
+.editor * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.editor h3:before {
+  content: "Game " &quot;
+}
+.editor h3:after {
+  content: &quot;
+}
+.editor ul {
+  list-style-type: none;
+  padding: 1em;
+  margin: 1em;
+  border: dotted #ddd;
+  border-width: 0 0 0 0.25em;
+  -webkit-border-radius: 2em 0 0 2em;
+  -moz-border-radius: 2em 0 0 2em;
+  border-radius: 2em 0 0 2em;
+}
+.editor li {
+  margin: 0.5em 1em;
+  padding: 0.5em;
+  border: 0.175em solid transparent;
+  -webkit-border-radius: 1.25em;
+  -moz-border-radius: 1.25em;
+  border-radius: 1.25em;
+}
+.editor li:hover {
+  border-color: #eee;
+}
+
+/* fixes because .container collides with Bootstrap css. */
+.editor li.container {
+  width: inherit;
+}
+.editor li.container:before {
+  display: inline;
+}
+
+.editor ul:before, .editor li:before {
+  content: attr(class) ": ";
+  display: inline;
+}
+.editor li[obj]:before {
+  content: "class name: " attr(obj);
+}
+
+ul.object:before, ul.array:before {
+  content: "(" attr(class) ")";
+  font-style: italic;
+}
+ul.object:after, ul.array:after {
+  content: " ";
+  text-align: center;
+  display: block;
+  color: blue;
+  width: 3em;
+  margin: 0.75em;
+  color: #666;
+  border: 0.175em solid #ddd;
+  -webkit-border-radius: 0.5em;
+  -moz-border-radius: 0.5em;
+  border-radius: 0.5em
+}
+
+ul.object:after {
+  content: "\25BE";
+  border-color: #eeb;
+}
+ul.array:after {
+  content: "+";
+  border-color: #bee;
+}
+
+ul.object {
+  border-color: #eeb;
+}
+ul.object:hover {
+  border-color: #cc9;
+}
+ul.object:before {
+  color: #dda;
+}
+ul.array {
+  border-color: #bee;
+}
+ul.array:hover {
+  border-color: #9cc;
+}
+ul.array:before {
+  color: #add;
+}
+
+
+ul:not(.object | .array)[state=active] {
+  background-color: #efefef;
+}
+li[state=active] {
+  background-color: #efefef;
+  border-color: #ddd;
+}
+
+[type=fn]:after {
+  content: "()";
+}

@@ -4,10 +4,15 @@ from django.db.models import signals
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 
+# Receive the pre_delete signal and delete the file associated with the model instance.
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
+
 import sys
 import yaml
 import os
-from uuid import uuid4
+import time
+from uuid import uuid1, uuid4
 
 from taggit.managers import TaggableManager
 from host.settings import MEDIA_ROOT
@@ -27,18 +32,41 @@ from south.modelsinspector import add_introspection_rules
 add_introspection_rules(validatedfile_rules, ["^validatedfile\.fields\.ValidatedFileField"])
 
 
-# TODO: nix game_type field. replace with many-to-many association with GameGroups
+
+def path_for_game_file():
+    def path_generator(instance, filename):
+        ext = filename.split('.')[-1]
+        basename = filename.split('.')[0]
+        # set path.
+        if instance.game_group:
+            library_dir = slugify(instance.game_group.name) if instance.game_group else "ungrouped"
+            path = "uploads/{library_dir}/games/".format(library_dir=library_dir)
+        else:
+            path = "uploads/unclaimed/" # dump problematic files where we can see them.
+            
+        # since this is going into the group directory, along with Library files, make sure the filename is unique.
+        filename = "{}_{}.{}".format(basename, int(time.time()), ext)
+        
+        # return the whole path to the file
+        return os.path.join(path, filename)
+    return path_generator
+    
+    
 class Game(models.Model):
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True,null=True)
+    description = models.TextField(blank=True, null=True)
+    game_group = models.ForeignKey("GameGroup")
     game_spec = ValidatedFileField(
                         null = True,
                         blank = True,
-                        upload_to = 'uploads/games/',
+                        upload_to = path_for_game_file(),
                         max_upload_size = 204800, # 200KB
                         content_types = ['application/x-yaml','text/yaml','text/plain','text/plain; charset=us-ascii'])
     tags = TaggableManager(blank=True)
     
+    def slug(self):
+        return slugify(self.name)
+        
     def __unicode__(self):
         return self.name
         
@@ -74,6 +102,13 @@ class Game(models.Model):
             if (game_yaml_file):
                 game_yaml_file.close()
 
+    
+@receiver(pre_delete, sender=Game)
+def game_delete(sender, instance, **kwargs):
+    # Pass false so FileField doesn't save the model.
+    instance.game_spec.delete(False)
+
+
 
 class Round(models.Model):
     game = models.ForeignKey(Game)
@@ -104,6 +139,17 @@ class GameGroup(models.Model):
     name = models.CharField(max_length=255)
     games = models.ManyToManyField(Game, blank=True, null=True)
     users = models.ManyToManyField(User, blank=True, null=True, through="Membership")
+    library_files = models.ManyToManyField("LibraryFile", blank=True, null=True)
+    
+    def slug(self):
+        return slugify(self.name)
+        
+    def __unicode__(self):
+        return self.name
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=64)
     
     def __unicode__(self):
         return self.name
@@ -112,41 +158,44 @@ class GameGroup(models.Model):
 class Membership(models.Model):
     user = models.ForeignKey(User)
     game_group = models.ForeignKey(GameGroup)
-    role = models.CharField(max_length=64)
+    role = models.ForeignKey(Role)
     
     def __unicode__(self):
         return self.role
-    
 
-def path_for_media_type(path):
+
+def path_for_media_type():
     def path_generator(instance, filename):
         ext = filename.split('.')[-1]
-        # get filename
-        if instance.pk:
-            game_group = GameGroup.objects.get(instance.game_group)
-            library_dir = slugify(game_group.name) if game_group else "ungrouped"
-            path = path.format(library_dir=library_dir, media_type=instance.media_type)
-            filename = '{}.{}'.format(instance.game_group.name, ext)
+        # set path.
+        if instance.game_group:
+            library_dir = slugify(instance.game_group.name) if instance.game_group else "ungrouped"
+            path = "uploads/{library_dir}/custom_{media_type}/".format(library_dir=library_dir, media_type=instance.media_type)
         else:
-            # set filename as random string
-            filename = '{}.{}'.format(uuid4().hex, ext)
             path = "uploads/unclaimed/" # dump problematic files where we can see them.
+            
         # return the whole path to the file
         return os.path.join(path, filename)
     return path_generator
 
 
 class LibraryFile(models.Model):
-    media_type = models.CharField(max_length=64)
+    MEDIA_CHOICES = (
+        ('js', 'js'),
+    )
+    media_type = models.CharField(max_length=64, choices=MEDIA_CHOICES)
     description = models.TextField(blank=True, null=True)
     game_group = models.ForeignKey(GameGroup)
     file = models.FileField(
                         null = True,
                         blank = True,
-                        upload_to = path_for_media_type('uploads/{library_dir}/{media_type}/'))
+                        upload_to = path_for_media_type())
         
     def __unicode__(self):
         return self.file.name
 
 
-
+@receiver(pre_delete, sender=LibraryFile)
+def library_file_delete(sender, instance, **kwargs):
+    # Pass false so FileField doesn't save the model.
+    instance.file.delete(False)
