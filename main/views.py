@@ -73,7 +73,6 @@ def read(request, game_id):
 @csrf_protect
 def play(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
-    print game.game_group.library_files.all()
     template_vars = { 'game': game,
                       'group_slug': game.game_group.slug,
                       'library_files': game.game_group.library_files.all(),

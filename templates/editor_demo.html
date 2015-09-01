@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-<section class="editor">
+<section id="schema">
     <h3>Demo</h3>
     <ul class="object">
         <li class="title">Gorge of Eternal Peril</li>
@@ -73,27 +73,31 @@
         </li>
     </ul>
 </section>
+<section id="editor">
+    <div>editor</div>
+</section>
+<div class="clearFix"></div>
 {% endblock %}
 
 {% block js %}
 <script>
     // highlight.
-    $(".editor *").click(function (evt) {
+    $("#schema *").click(function (evt) {
         // console.log(evt.target);
-        $(".editor *").attr("state", null);
+        $("#schema *").attr("state", null);
         $(evt.target).attr("state", "active");
         evt.stopPropagation();
     });
     // clear.
-    $(document.body).click(function (evt) {
-        $(".editor *").attr("state", null);
+    $("#editor").click(function (evt) {
+        $("#schema *").attr("state", null);
         evt.stopPropagation();
     });
     // add elements or members.
-    $(".editor ul.object").click(function (evt) {
+    $("#schema ul.object").click(function (evt) {
         // console.log("add member");
     });
-    $(".editor ul.array").click(function (evt) {
+    $("#schema ul.array").click(function (evt) {
         // console.log("add element");
     });
     

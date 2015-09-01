@@ -250,9 +250,10 @@ ul.objectives li:nth-child(3) {
 	text-align: center;
 }
 .dialog {
-  padding: 20px;
-  width: 460px;
-  margin: 50px auto;
+  padding: 0.5em 0;
+  width: 32em;
+  height: 24em;
+  margin: 2em auto;
   text-align: left;
 }
 
@@ -302,6 +303,7 @@ table#detail td {
 }
 
 .instructions {
+    background-color: transparent;
 }
 
 .dialog h1{
@@ -317,6 +319,8 @@ table#detail td {
 	overflow-x: hidden;
 	overflow-y: scroll;
 	list-style-type: none;
+	border-left: 1px solid #ccc;     border-right: 1px solid #ccc;
+	padding-left: 0.5em;
 }
 
 #game_list a{
@@ -438,8 +442,11 @@ table#detail td {
 #footer ul li img {
   height: 40px;
 }
-.dialog h1,.dialog h2 {
-  color: #15CCC2;
+.dialog h1 {
+  background-color: #15CCC2;
+  color: white;
+  padding: 0.25em 0.5em 0 0.5em;
+  margin-bottom: 0;
 }
 #logo-gu {
   padding-top: 0.75em;

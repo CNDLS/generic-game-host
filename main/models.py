@@ -161,7 +161,7 @@ class Membership(models.Model):
     role = models.ForeignKey(Role)
     
     def __unicode__(self):
-        return self.role
+        return "{}:{}".format(self.game_group.name, self.role.name)
 
 
 def path_for_media_type():

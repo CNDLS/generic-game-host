@@ -1,8 +1,14 @@
-.editor {
+#schema {
   max-width: 50vw;
   margin: 9em 1em 6em 2em;
+  float: left;
 }
-.editor * {
+#editor {
+  height: 100vh;
+  width: 50vw;
+  float: left;
+}
+#schema * {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -10,13 +16,13 @@
   -ms-user-select: none;
   user-select: none;
 }
-.editor h3:before {
+#schema h3:before {
   content: "Game " &quot;
 }
-.editor h3:after {
+#schema h3:after {
   content: &quot;
 }
-.editor ul {
+#schema ul {
   list-style-type: none;
   padding: 1em;
   margin: 1em;
@@ -26,7 +32,7 @@
   -moz-border-radius: 2em 0 0 2em;
   border-radius: 2em 0 0 2em;
 }
-.editor li {
+#schema li {
   margin: 0.5em 1em;
   padding: 0.5em;
   border: 0.175em solid transparent;
@@ -34,23 +40,23 @@
   -moz-border-radius: 1.25em;
   border-radius: 1.25em;
 }
-.editor li:hover {
+#schema li:hover {
   border-color: #eee;
 }
 
 /* fixes because .container collides with Bootstrap css. */
-.editor li.container {
+#schema li.container {
   width: inherit;
 }
-.editor li.container:before {
+#schema li.container:before {
   display: inline;
 }
 
-.editor ul:before, .editor li:before {
+#schema ul:before, #schema li:before {
   content: attr(class) ": ";
   display: inline;
 }
-.editor li[obj]:before {
+#schema li[obj]:before {
   content: "class name: " attr(obj);
 }
 
