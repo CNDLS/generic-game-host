@@ -1,114 +1,179 @@
-{% extends "base.html" %}
+{% extends "game_base.html" %}
 {% load staticfiles %}
 
 {% block css %}
-    <link href="{{ STATIC_URL }}/css/editor.css" media="screen, print" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/editor.css" media="screen, print" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/redactor.css" media="screen, print" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block content %}
-<section id="schema">
-    <h3>Demo</h3>
-    <ul class="object">
-        <li class="title">Gorge of Eternal Peril</li>
-        <li class="winning" type="fn">TheKingGotAcross</li>
-        <li class="scenes">
-            <ul class="array">
-                <li class="scene">
-                    <ul class="object">
-                        <li class="scene_type">Gorge</li>
-                        <li class="rounds">all</li>
-                        <li class="backdrop">ul</li>
-                        <li class="set_pieces">
-                            <ul class="array">
-                                <li class="spec">li.old_man</li>
-                                <li class="spec">li.knight</li>
-                                <li class="spec">li.knight</li>
-                                <li class="spec">li.king</li>
-                                <li class="spec">li.answers</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </li>
-        <li class="widgets">
-            <ul class="array">
-                 <li obj="CountDownClock"></li>
-                 <li obj="Scoreboard"></li>
-             </ul>
-        </li>
-        <li class="templates">
-            <ul class="array">
-                <li class="template">
-                    <ul class="object">
-                        <li class="variable">BASE_ROUND</li>
-                        <li class="prompter">
-                            <ul class="object">
-                                <li class="container spec">li.old_man</li>
-                            </ul>
-                        </li>
-                        <li class="listener">
-                            <ul class="object">
-                                <li class="container spec">li.answers</li>
-                            </ul>
-                        </li>
-                        <li class="responder">
-                            <ul class="object">
-                                <li class="container spec">li.old_man</li>
-                            </ul>
-                        </li>
-                        <li class="tear_down">
-                            <ul class="object">
-                                <li class="call fname">clearCards</li>
-                                <li class="pass">
-                                    <ul class="array">
-                                        <li class="spec">li.old_man</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </li>
-    </ul>
-</section>
-<section id="editor">
-    <div>editor</div>
-</section>
-<div class="clearFix"></div>
+<div id="content">
+    <section id="schema">
+        
+    </section>
+    <section id="editor_column">
+        <div id="redactor">editor</div>
+    </section>
+</div>
 {% endblock %}
 
 {% block js %}
-<script>
-    // highlight.
-    $("#schema *").click(function (evt) {
-        // console.log(evt.target);
-        $("#schema *").attr("state", null);
-        $(evt.target).attr("state", "active");
-        evt.stopPropagation();
-    });
-    // clear.
-    $("#editor").click(function (evt) {
-        $("#schema *").attr("state", null);
-        evt.stopPropagation();
-    });
-    // add elements or members.
-    $("#schema ul.object").click(function (evt) {
-        // console.log("add member");
-    });
-    $("#schema ul.array").click(function (evt) {
-        // console.log("add element");
+    {{ block.super }}
+    <script src="{{ STATIC_URL }}js/redactor.js"></script>
+    <script>
+    $(function () {
+
+	$('#redactor').redactor({
+		buttons: ['link']
+	});
+        
+      var read_url = $("script#reader").attr("read-from");
+      var parsed_yaml;
+    	// get the YAML from our URL.
+    	$.ajax({
+    		url: read_url,
+    		type: "GET",
+    		success: function (data /* , textStatus, XMLHttpRequest */) {
+    			// try to parse the game data.
+    			in_production_try(this,
+    				function () {
+    					// try to make a game from the parsed game data.
+    					parsed_yaml = new YAML( jsyaml.safeLoad(data, { schema: GAME_SCHEMA }) );
+    				}
+    			);
+                // render parsed_yaml as nested lists.
+                if (parsed_yaml) { renderYAML(parsed_yaml); }
+    		},
+    		error: function (XMLHttpRequest, textStatus, errorThrown) {
+    			console.error(XMLHttpRequest, textStatus, errorThrown);
+    		}
+    	});
     });
     
-    // delete key.
-    $(document.body).keypress(function (evt) {
-        if (evt.keyCode === 46) {
-            var active_element = $([state=active]);
-            if (!active_element.is(":empty")) {
-                alert("Are you sure you want to delete " + $(evt.targetElement).className())
+    function renderYAML(yaml, container, context) {
+        // init parsed_yaml_as_html as game, if nec.
+        if (!container) {
+            container = $("#schema");
+            container.render({'h3': yaml.get("Title")});
+            container.render('ul.object');
+            container = container.find('ul.object');
+            context = "Game";
+        }
+        // output each type of yaml.
+        var m_thing, m_key;
+        for (m in yaml) {
+            var renderable = {};
+            // console.log(m + ": " + yaml[m] + "(" + (typeof yaml[m]) + ")")
+            m_thing = yaml[m];
+            switch (typeof m_thing) {
+                
+                case "string":
+                    if ((typeof window[m_thing] === "function") 
+                        || ((typeof window[context] === "function") && (typeof window[context][m_thing] === "function"))) {
+                        m_key = "li.fn." + m;
+                        // look for functions defined on the current context.
+                        // NOTE: requires ***strict*** naming conventions,
+                        // eg; Scenes -> Game.Scene
+                        try {
+                            var test_context = eval("window[\"" + context + "\"][\"" + m.singularize() + "\"]");
+                            if (test_context) { test_context = m.singularize() }
+                        } catch (e) {
+                            // console.log("Couldn't eval", e)
+                        }
+                    } else {
+                        m_key = (isNaN(parseInt(m))) ? "li." + m.underscore() : "li.element";
+                    }
+                    renderable[m_key] = "";
+                    var str_container = container.render(renderable).find(":last-child");
+                    str_container.html(m_thing);
+                    break;
+                
+                case "number":
+                    m_key = "li." + m.underscore();
+                    renderable[m_key] = m_thing;
+                    container.render(renderable);
+                    break;
+                    
+                case "object":
+                    // look for functions defined on the current context.
+                    // NOTE: requires ***strict*** naming conventions,
+                    // eg; Scenes -> Game.Scene
+                    var nested_context = context;
+                    try {
+                        var nested_context = eval("window[\"" + context + "\"][\"" + m.singularize() + "\"]");
+                        if (nested_context){ nested_context = m.singularize() };
+                    } catch (e) {
+                        // console.log("Couldn't eval", e)
+                    }
+                    
+                    // if m resolves to an integer, it's just an array index.
+                    var m_key;
+                    if (isNaN(parseInt(m))) {
+                        m_key = "li." + m.underscore();
+                        renderable[m_key] = ""
+                    } else {
+                        m_key = "li.element";
+                        console.log(m_thing.yaml_anchor || "no yaml_anchor")
+                        if (nested_context) {
+                            renderable[m_key] = nested_context;
+                        } else if (m_thing.hasOwnProperty("yaml_anchor")) {
+                            m_key = "variable"
+                            renderable[m_key] = m_thing.yaml_anchor;
+                        } else {
+                            renderable[m_key] = "";
+                        }
+                    }
+                    
+                    var li_container = container.render(renderable);
+                    
+                    if (m_thing instanceof YAML) {
+                        var ul_container;
+                        if (m_thing.hasOwnProperty("0")) {
+                            ul_container = li_container.render("ul.array");
+                        } else {
+                            ul_container = li_container.render("ul.object");
+                        }
+                        renderYAML(m_thing, ul_container, nested_context);
+                    }
+                    break;
             }
         }
-    });
-</script>
+        
+        // highlight.
+        $("#schema *").click(function (evt) {
+            // console.log(evt.target);
+            $("#schema *").attr("state", null);
+            $(evt.target).attr("state", "active");
+            // line up the editor.
+            if (evt.target.nodeName === "LI") {
+                $(".redactor-box").css({ display: "block" });
+                $(".redactor-box").offset({ top: $(evt.target).offset().top });
+            }
+            evt.stopPropagation();
+        });
+        // clear.
+        $("#editor_column").click(function (evt) {
+            $("#schema *").attr("state", null);
+            $(".redactor-box").css({ display: "none" });
+            evt.stopPropagation();
+        });
+        // add elements or members.
+        $("#schema ul.object").click(function (evt) {
+            // console.log("add member");
+        });
+        $("#schema ul.array").click(function (evt) {
+            // console.log("add element");
+        });
+    
+        // delete key.
+        $(document.body).keypress(function (evt) {
+            if (evt.keyCode === 46) {
+                var active_element = $([state=active]);
+                if (!active_element.is(":empty")) {
+                    alert("Are you sure you want to delete " + $(evt.targetElement).className())
+                }
+            }
+        });
+    }
+    </script>
 {% endblock %}

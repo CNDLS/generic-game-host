@@ -1815,6 +1815,11 @@ function readAnchorProperty(state) {
   }
 
   state.anchor = state.input.slice(_position, state.position);
+	
+	/****** ADDED TO ALLOW INTROSPECTION FOR EDITOR *****/
+	try {
+		state.anchorMap["yaml_anchor"] = state.anchor;
+	} catch (e) {}	// console.log("state.anchor", state)
   return true;
 }
 
