@@ -312,6 +312,33 @@ table#detail td {
 	margin: none;
 }
 
+#game_list{
+	font-size: 1.5em;
+	max-height: 600px;
+	min-height: 200px;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	list-style-type: none;
+	border-left: 1px solid #ccc;     border-right: 1px solid #ccc;
+	padding-left: 0.5em;
+}
+
+#game_list a{
+	color: #92989B;
+	display: block;
+  padding: 6px 12px;
+  font-size: 18px;
+
+	text-decoration: none;
+	line-height: 1.5em;
+	padding: 0 6px;
+	margin: 3px 2px 3px -10px;
+}
+
+#game_list a:hover, #game_list a.selected{
+  color: white;
+  background-color: #92989B;
+}
 
 .card {
     /* padding: 0.5em; */
@@ -393,7 +420,37 @@ table#detail td {
   color: #66ffff;
 }
 
-
+#footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  margin-right: 0;
+  margin-left: 0;
+}
+#footer ul {
+  background: #92989B;
+  list-style: none;
+  margin: 0;
+  height: 52px;
+  font-size: 0.85em;
+}
+#footer ul li {
+  float: left;
+  padding: 0.5em 1em;
+  color: white;
+}
+#footer ul li img {
+  height: 40px;
+}
+.dialog h1 {
+  background-color: #15CCC2;
+  color: white;
+  padding: 0.25em 0.5em 0 0.5em;
+  margin-bottom: 0;
+}
+#logo-gu {
+  padding-top: 0.75em;
+}
 
 .disabled {
    pointer-events: none;
@@ -411,6 +468,4 @@ table#detail td {
 .right{
 	float: right;
 }
-.clearfix{
-    clear: both;
-*zoom:1}.clearfix:before,.clearfix:after{display:table;line-height:0;content:""}.clearfix:after{clear:both}
+.clearfix{*zoom:1}.clearfix:before,.clearfix:after{display:table;line-height:0;content:""}.clearfix:after{clear:both}

@@ -103,8 +103,6 @@ Game.Card = function(spec) {
 
 Game.Card.prototype.style = function (css_classes) {
 	// remove card class and then add back those specified.
-	// this is done so we can keep cards out the 'clearCards' function.
-	// TODO: *** Look into a better way to do this. cards should remain '.card's ***
 	this.element.removeClass("card").addClass(css_classes);
 	return this; // for daisy-chaining.
 }

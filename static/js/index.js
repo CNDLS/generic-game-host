@@ -1,5 +1,5 @@
 $(function(){
-  $("#game_list li a:not(.edit_link)").click(function(){
+  $("#game_list li a").click(function(){
 		// highlight only clicked link.
 		$("#game_list li a").removeClass("selected");
 		$(this).addClass("selected");

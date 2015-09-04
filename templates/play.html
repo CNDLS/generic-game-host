@@ -1,10 +1,8 @@
-{% extends "game_base.html" %}
+{% extends "base.html" %}
 {% load staticfiles %}
 
 {% block css %}
     <!-- assume we have a custom_css file, named after our game.  -->
-
-    <link href="{{ STATIC_URL }}css/game.css" media="screen, print" rel="stylesheet" type="text/css" />
     <link href="{{ MEDIA_URL }}uploads/{{ group_slug }}/custom_css/{{ game.slug }}.css" media="screen, print" rel="stylesheet" type="text/css" />
 {% endblock %}
 
@@ -28,7 +26,38 @@
 {% endblock %}
 
 {% block js %}
-		{{ block.super }}
+		<!-- 
+		<script type="text/javascript" src="{{ STATIC_URL }}js/module.js" >
+			/*
+	 		 * eventually, we will use module.js for its require() function,
+			 * to help us load our js files into one long file.	
+			 * but for now, figuring out require just makes my brain hurt
+			 * very, very much.
+			 */
+		</script>
+		-->
+		<script type="text/javascript" src="{{ STATIC_URL }}js/state-machine.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/js-yaml.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/utils.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/game.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/round.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/card.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealer.js" ></script>
+        <!-- various dealer and card types. -->
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers/intro-dealers.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers/prompters.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers/prompter-cards.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers/listeners-and-answers.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers/listener-cards.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers/responders.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/dealers/responder-cards.js" ></script>
+        <!-- widgets and utilities. -->
+		<script type="text/javascript" src="{{ STATIC_URL }}js/internal_clock.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/widget.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/scene.js" ></script>
+		<script type="text/javascript" src="{{ STATIC_URL }}js/game_utils.js" ></script>
+		<script type="text/javascript" id="reader" src="{{ STATIC_URL }}js/yaml-reader.js"  read-from="{{ AJAX_PREFIX }}/read/{{ game.id }}/"></script>
+		<script type="text/javascript" id="reporter" src="{{ STATIC_URL }}js/reporter.js"  report-to="{{ AJAX_PREFIX }}/write/{{ game.id }}/" csrftoken="{{ csrf_token }}"></script>
 			
 		<!-- library scripts. to be loaded for certain game types. -->
         
@@ -36,5 +65,11 @@
         {% for library_file in library_files %}
             <script type="text/javascript" src="{{ MEDIA_URL }}{{ library_file.file.name }}" ></script>
         {% endfor %}
+
+		<script type="text/javascript">
+            var STATIC_URL = "{{ STATIC_URL }}";
+            var MEDIA_URL = "{{ MEDIA_URL }}uploads/{{ group_slug }}/";
+			var game;
+		</script>
 
 {% endblock %}

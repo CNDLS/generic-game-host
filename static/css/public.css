@@ -12,42 +12,8 @@
 .public.container ul.outline > li {
   margin: 1.5em 0;
 }
-#game_list {
-	font-size: 1.5em;
-	max-height: 600px;
-	min-height: 200px;
-	overflow-x: hidden;
-	overflow-y: scroll;
-	list-style-type: none;
-	border: 1px solid #ccc;
-  border-top-width: 0;
-	padding-left: 0;
-}
-
-#game_list a {
-	color: #92989B;
-	/* display: block; */
-  font-size: 18px;
-	text-decoration: none;
-	line-height: 1.5em;
-	padding: 0.25em 0.5em;
-	margin: 0;
-}
-
-#game_list a.edit_link {
-  font-size: 11px;
-	color: #c5cbce;
-  float: right;
-  margin-right: 12px;
-  margin-top: 4px;
-}
-
-#game_list li:hover {
-  background-color: #c5cbce;
-}
-
-#game_list li:hover a{
-  color: white;
+.public.container li {
+  margin: 0.25em 0;
 }
 
 ul.options {
