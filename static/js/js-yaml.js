@@ -1815,6 +1815,7 @@ function readAnchorProperty(state) {
   }
 
   state.anchor = state.input.slice(_position, state.position);
+	
   return true;
 }
 
@@ -2137,6 +2138,11 @@ function loadDocuments(input, options) {
   while (state.position < (state.length - 1)) {
     readDocument(state);
   }
+	
+	/**** track variable names for YAML editor. 09/05/15 bg ****/
+	for (m in state.anchorMap) {
+		state.anchorMap[m].variable_name = m;
+	}
 
   return state.documents;
 }

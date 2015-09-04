@@ -1,0 +1,31 @@
+#footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  margin-right: 0;
+  margin-left: 0;
+}
+#footer ul {
+  background: #92989B;
+  list-style: none;
+  margin: 0;
+  height: 52px;
+  font-size: 0.85em;
+}
+#footer ul li {
+  float: left;
+  padding: 0.5em 1em;
+  color: white;
+}
+#footer ul li img {
+  height: 40px;
+}
+.dialog h1 {
+  background-color: #15CCC2;
+  color: white;
+  padding: 0.25em 0.5em 0 0.5em;
+  margin-bottom: 0;
+}
+#logo-gu {
+  padding-top: 0.75em;
+}

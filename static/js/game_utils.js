@@ -71,5 +71,15 @@ $.extend(Game, {
 				}
 			}
 		}
-	}
+	},
+  
+	getFunctionName: function (fn) {
+    for (m in Game) {
+      if (Game[m] instanceof Function) {
+        if (fn == Game[m]) {
+          return m;
+        }
+      }
+    }
+  }
 });
