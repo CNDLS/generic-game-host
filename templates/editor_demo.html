@@ -23,9 +23,9 @@
     <script>
     $(function () {
 
-	$('#redactor').redactor({
-		buttons: ['link']
-	});
+			$('#redactor').redactor({
+				buttons: ['link']
+			});
         
       var read_url = $("script#reader").attr("read-from");
       var parsed_yaml;
@@ -41,8 +41,65 @@
     					parsed_yaml = new YAML( jsyaml.safeLoad(data, { schema: GAME_SCHEMA }) );
     				}
     			);
-                // render parsed_yaml as nested lists.
-                if (parsed_yaml) { renderYAML(parsed_yaml); }
+          // render parsed_yaml as nested lists.
+          if (parsed_yaml) { 
+						renderYAML(parsed_yaml);
+						
+				    // highlight.
+				    $("#schema *").click(function (evt) {
+				        // console.log(evt.target);
+				        $("#schema *").attr("state", null);
+				        $(evt.target).attr("state", "active");
+				        // line up the editor.
+				        if (evt.target.nodeName === "LI") {
+				            $(".redactor-box").css({ display: "block" });
+				            $(".redactor-box").offset({ top: $(evt.target).offset().top });
+				        }
+				        evt.stopPropagation();
+				    });
+				    // clear.
+				    $("#editor_column").click(function (evt) {
+				        $("#schema *").attr("state", null);
+				        $(".redactor-box").css({ display: "none" });
+				        evt.stopPropagation();
+				        evt.stopImmediatePropagation();
+				    });
+				    // add elements or members.
+				    $("#schema ul.object").click(function (evt) {
+								if (isOnArrow(evt)) {
+									$(this).toggleClass("closed");
+								} else {
+									console.log(evt.offsetX, evt.offsetY)
+								}
+								evt.stopPropagation();
+				    });
+				    $("#schema ul.array").click(function (evt) {
+								if (isOnArrow(evt)) {
+									$(this).toggleClass("closed");
+								} else {
+									console.log(evt.offsetX, evt.offsetY)
+								}
+								evt.stopPropagation();
+				    });
+						$("#schema ul.function").click(function (evt) {
+								if (isOnArrow(evt)) {
+									$(this).toggleClass("closed");
+								} else {
+									console.log(evt.offsetX, evt.offsetY)
+								}
+								evt.stopPropagation();
+				    });
+
+				    // delete key.
+				    $(document.body).keypress(function (evt) {
+				        if (evt.keyCode === 46) {
+				            var active_element = $([state=active]);
+				            if (!active_element.is(":empty")) {
+				                alert("Are you sure you want to delete " + $(evt.targetElement).className())
+				            }
+				        }
+				    });
+					}
     		},
     		error: function (XMLHttpRequest, textStatus, errorThrown) {
     			console.error(XMLHttpRequest, textStatus, errorThrown);
@@ -50,11 +107,20 @@
     	});
     });
     
+		function isOnArrow(evt) {
+			return (
+					(evt.offsetX <= 25) &&
+					(evt.offsetX >= 5) &&
+					(evt.offsetY <= 25) &&
+					(evt.offsetY >= 5)
+				 );
+		}
+		
     function renderYAML(yaml, container, context) {
         // init parsed_yaml_as_html as game, if nec.
         if (!container) {
             container = $("#schema");
-            container.render({'h3': yaml.get("Title")});
+            container.render({'h3': "&quot;" + yaml.get("Title") + "&quot;"});
             container.render('ul.object');
             container = container.find('ul.object');
             context = "Game";
@@ -135,7 +201,7 @@
                             ul_container = li_container.render("ul.array");
                         } else if (m_thing.hasOwnProperty("fn")) {
 														var fname = Game.getFunctionName(m_thing.fn);
-														ul_container = li_container.render({ "ul.function[type=fn]": fname });
+														ul_container = li_container.render({ "ul.function[type=fn]": fname }).find(":last-child");
 												} else {
                             ul_container = li_container.render("ul.object");
                         }
@@ -146,41 +212,6 @@
             }
         }
         
-        // highlight.
-        $("#schema *").click(function (evt) {
-            // console.log(evt.target);
-            $("#schema *").attr("state", null);
-            $(evt.target).attr("state", "active");
-            // line up the editor.
-            if (evt.target.nodeName === "LI") {
-                $(".redactor-box").css({ display: "block" });
-                $(".redactor-box").offset({ top: $(evt.target).offset().top });
-            }
-            evt.stopPropagation();
-        });
-        // clear.
-        $("#editor_column").click(function (evt) {
-            $("#schema *").attr("state", null);
-            $(".redactor-box").css({ display: "none" });
-            evt.stopPropagation();
-        });
-        // add elements or members.
-        $("#schema ul.object").click(function (evt) {
-            // console.log("add member");
-        });
-        $("#schema ul.array").click(function (evt) {
-            // console.log("add element");
-        });
-    
-        // delete key.
-        $(document.body).keypress(function (evt) {
-            if (evt.keyCode === 46) {
-                var active_element = $([state=active]);
-                if (!active_element.is(":empty")) {
-                    alert("Are you sure you want to delete " + $(evt.targetElement).className())
-                }
-            }
-        });
     }
     </script>
 {% endblock %}

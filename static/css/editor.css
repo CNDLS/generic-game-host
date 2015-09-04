@@ -72,8 +72,28 @@
   content: attr(class) ": ";
   display: inline;
 }
-#schema li[obj]:before {
-  content: "class name: " attr(obj);
+#schema ul:before, 
+#schema li:not(.element):before {
+  content: attr(class) ": ";
+  display: inline;
+}
+#schema ul.function:before {
+  content: "\25BE" " " attr(type) ": ";
+  display: inline;
+}
+
+#schema ul.object.closed:before, 
+#schema ul.array.closed:before {
+  content: "\25B8" " (" attr(class) ")";
+}
+#schema ul.function.closed:before {
+  content: "\25B8" " " attr(type) ": ";
+}
+
+#schema ul.array.closed *,
+#schema ul.object.closed *,
+#schema ul.function.closed * {
+  display: none;
 }
 
 #schema ul.object:before, 
@@ -123,6 +143,10 @@
   font-weight: bold;
 }
 
+#schema ul.function * {
+  font-weight: normal;
+}
+
 #schema ul.function:before {
   font-weight: normal;
   font-style: italic;
@@ -142,10 +166,6 @@
 #schema li[state=active] {
   background-color: #efefef;
   border-color: #ddd;
-}
-
-#schema [type=fn]:after {
-  content: "()";
 }
 
 
