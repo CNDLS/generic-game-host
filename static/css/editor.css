@@ -48,7 +48,7 @@
   border-radius: 2em 0 0 2em;
 }
 #schema li {
-  margin: 0.5em 1em;
+  margin: 0 1em;
   padding: 0.5em;
   border: 0.175em solid transparent;
   -webkit-border-radius: 1.25em;
@@ -82,27 +82,27 @@
   display: inline;
 }
 
-#schema ul.object.closed:before, 
-#schema ul.array.closed:before {
-  content: "\25B8" " (" attr(class) ")";
+#schema ul[type=object].closed:before, 
+#schema ul[type=array].closed:before {
+  content: "\25B8" " (" attr(type) ")";
 }
 #schema ul.function.closed:before {
   content: "\25B8" " " attr(type) ": ";
 }
 
-#schema ul.array.closed *,
-#schema ul.object.closed *,
-#schema ul.function.closed * {
+#schema ul[type=array].closed *,
+#schema ul[type=object].closed *,
+#schema ul.function.closed *:not(span) {
   display: none;
 }
 
-#schema ul.object:before, 
-#schema ul.array:before {
-  content: "\25BE" " (" attr(class) ")";
+#schema ul[type=object]:before, 
+#schema ul[type=array]:before {
+  content: "\25BE" " (" attr(type) ")";
   font-style: italic;
 }
-#schema ul.object:after, 
-#schema ul.array:after {
+#schema ul[type=object]:after, 
+#schema ul[type=array]:after {
   content: " ";
   text-align: center;
   display: block;
@@ -116,25 +116,25 @@
   border-radius: 0.5em
 }
 
-#schema ul.object:after {
+#schema ul[type=object]:after {
   content: "\25BE";
   border-color: #dd6;
 }
-#schema ul.array:after {
+#schema ul[type=array]:after {
   content: "+";
   border-color: #6dd;
 }
 
-#schema ul.object {
+#schema ul[type=object] {
   border-color: #dd6;
 }
-#schema ul.object:hover {
+#schema ul[type=object]:hover {
   border-color: #cc9;
 }
-#schema ul.object:before {
+#schema ul[type=object]:before {
   color: #dda;
 }
-#schema ul.array {
+#schema ul[type=array] {
   border-color: #6dd;
 }
 
@@ -152,15 +152,16 @@
   font-style: italic;
 }
 
-#schema ul.array:hover {
+#schema ul[type=array]:hover {
   border-color: #9cc;
 }
-#schema ul.array:before {
+#schema ul[type=array]:before {
   color: #add;
 }
 
 
-#schema ul:not(.object | .array)[state=active] {
+#schema ul:not([type=object])[state=active],
+#schema ul:not([type=array])[state=active] {
   background-color: #efefef;
 }
 #schema li[state=active] {

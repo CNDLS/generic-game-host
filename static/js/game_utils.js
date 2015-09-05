@@ -73,13 +73,25 @@ $.extend(Game, {
 		}
 	},
   
-	getFunctionName: function (fn) {
-    for (m in Game) {
-      if (Game[m] instanceof Function) {
-        if (fn == Game[m]) {
-          return m;
-        }
-      }
-    }
+	getFunctionName: function (fn, scope, scope_names) {
+		if (fn === undefined) { return undefined; }
+		scope = scope || Game;
+		scope_names = scope_names || ["Game"];
+		if (fn === scope) return scope_names.join(".");
+    
+		for (var m in scope) {
+			var member = scope[m];
+			if (typeof member === "function") {
+				if (fn === member) {
+					scope_names.push(m);
+					return scope_names.join(".");
+				} else {
+					var member_scope_names = scope_names.slice();
+					member_scope_names.push(m);
+					var found_fn = Game.getFunctionName(fn, member, member_scope_names);
+					if (found_fn) { return found_fn; }
+				}
+			}
+		}
   }
 });
