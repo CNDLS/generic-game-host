@@ -24,9 +24,20 @@ $(function () {
 				
 		    // highlight.
 		    $("#schema li").click(function (evt) {
-            activateTarget(evt);
+            activateTarget(evt.target);
 		        evt.stopPropagation();
 		    });
+		    $("#schema li").hover(
+          function (evt) {
+            $("#schema li").css("border-color", "transparent");
+            $(this).css("border-color", "#eee");
+		        evt.stopPropagation();
+		      },
+          function (evt) {
+            $(this).css("border-color", "transparent");
+		        evt.stopPropagation();
+		      }
+        );
 		    // clear.
 		    $("#editor_column").click(function (evt) {
 		        $("#schema *").attr("state", null);
@@ -49,7 +60,9 @@ $(function () {
               $(".redactor-box").css({ display: "none" });
 							$(this).toggleClass("closed");
 						} else if (isOnAddCntl(evt)) {
-              console.log("add item to array")
+              // console.log("add item to array")
+              var new_li = $("<li/>").appendTo(this);
+              activateTarget(new_li.get(0));
 						}
 						evt.stopPropagation();
 		    });
@@ -94,14 +107,14 @@ $(function () {
 });
 
 
-function activateTarget(evt) {
+function activateTarget(evt_target) {
   // console.log(evt.target);
   $("#schema *").attr("state", null);
-  $(evt.target).attr("state", "active");
+  $(evt_target).attr("state", "active");
   // line up the editor.
-  if (evt.target.nodeName === "LI") {
+  if (evt_target.nodeName === "LI") {
       $(".redactor-box").css({ display: "block" });
-      $(".redactor-box").offset({ top: $(evt.target).offset().top });
+      $(".redactor-box").offset({ top: $(evt_target).offset().top });
   }
 }
 

@@ -8,6 +8,7 @@
 #schema {
   width: 50vw;
   margin: 9em 1em 6em 2em;
+  overflow-x: scroll;
 }
 #editor_column {
   position:absolute;
@@ -55,9 +56,9 @@
   -moz-border-radius: 1.25em;
   border-radius: 1.25em;
 }
-#schema li:hover {
+/*#schema li:hover {
   border-color: #eee;
-}
+}*/
 
 /* fixes because .container collides with Bootstrap css. */
 #schema li.container {
@@ -68,14 +69,14 @@
 }
 
 #schema ul:before, 
-#schema li:not(.element):before {
+#schema li[class]:not(.element):before {
   content: attr(class) ": ";
   display: inline;
 }
-#schema ul:before, 
-#schema li:not(.element):before {
-  content: attr(class) ": ";
-  display: inline;
+#schema li:not([class]):before {
+  content: "NEW";
+  font-size: 0.8em;
+  color: #ccc;
 }
 #schema ul.function:before {
   content: "\25BE" " " attr(type) ": ";
@@ -128,9 +129,9 @@
 #schema ul[type=object] {
   border-color: #dd6;
 }
-#schema ul[type=object]:hover {
-  border-color: #cc9;
-}
+/*#schema ul[type=object]:hover {
+  border-color: #aa4;
+}*/
 #schema ul[type=object]:before {
   color: #dda;
 }
@@ -152,9 +153,9 @@
   font-style: italic;
 }
 
-#schema ul[type=array]:hover {
+/*#schema ul[type=array]:hover {
   border-color: #9cc;
-}
+}*/
 #schema ul[type=array]:before {
   color: #add;
 }
@@ -168,6 +169,7 @@
   background-color: #efefef;
   border-color: #ddd;
 }
+
 
 
 /* bootstrap fixes */
