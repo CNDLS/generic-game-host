@@ -39,7 +39,7 @@ $(function () {
 		      }
         );
 		    // clear.
-		    $("#editor_column").click(function (evt) {
+		    $("#schema, #editor_column").click(function (evt) {
 		        $("#schema *").attr("state", null);
 		        $(".redactor-box").css({ display: "none" });
 		        evt.stopPropagation();
@@ -58,7 +58,15 @@ $(function () {
 		    $("#schema ul[type=array]").click(function (evt) {
 						if (isOnArrow(evt)) {
               $(".redactor-box").css({ display: "none" });
-							$(this).toggleClass("closed");
+              // $(this).toggleClass("closed");
+              var array_tag = $(this);
+							array_tag.toggleClass("closed");
+              if (array_tag.hasClass("closed")) {
+                var items = $(evt.target).children("li");
+                array_tag.render({ "span": " [" + items.length + "]" });
+              } else {
+                array_tag.children("span").remove();
+              }
 						} else if (isOnAddCntl(evt)) {
               // console.log("add item to array")
               var new_li = $("<li/>").appendTo(this);
@@ -66,7 +74,7 @@ $(function () {
 						}
 						evt.stopPropagation();
 		    });
-				$("#schema ul.function").click(function (evt) {
+				$("#schema ul[type=function]").click(function (evt) {
 						if (isOnArrow(evt)) {
               $(".redactor-box").css({ display: "none" });
               var fn_tag = $(this);
@@ -84,6 +92,15 @@ $(function () {
 						}
 						evt.stopPropagation();
 		    });
+        // initialize functions in closed state.
+        $("#schema ul[type=function]").each(function () {
+          var params = $(this).find(".params > div > ul[type=array]").eq(0).children("li");
+          params = $(params).collect(function () {
+            return this.childNodes[0].nodeValue;
+          }).join(", ")
+          var fn_signature = " (" + params + ")";
+          $(this).render({ "span": fn_signature });
+        });
 
 		    // delete key.
 		    $(document.body).keydown(function (evt) {
@@ -153,32 +170,20 @@ function renderYAML(yaml, container, context) {
         switch (typeof m_thing) {
             
             case "string":
-                if ((typeof window[m_thing] === "function") 
-                    || ((typeof window[context] === "function") && (typeof window[context][m_thing] === "function"))) {
-                    m_key = "li.fn." + m;
-                    // look for functions defined on the current context.
-                    // NOTE: requires ***strict*** naming conventions,
-                    // eg; Scenes -> Game.Scene
-                    try {
-                        var test_context = eval("window[\"" + context + "\"][\"" + m.singularize() + "\"]");
-                        if (test_context) { test_context = m.singularize() }
-                    } catch (e) {
-                        // console.log("Couldn't eval", e)
-                    }
-                } else {
-                    m_key = (isNaN(parseInt(m))) ? "li." + m.underscore() : "li.element";
-										if (m.underscore() === "variable_name") { 
-											container.prev().append(" [" + m_thing + "]");
-											break; 
-										}
-                }
+                m_key = (isNaN(parseInt(m))) ? "li." + m.underscore() : "li.element";
+								if (m.underscore() === "variable_name") {
+                  // container.attr("name", m_thing);
+                  container.prepend("[" + m_thing + "]");
+									break;
+								}
+                // funky way to do this, so we don't end up w String() -- array of chars -- in element.
                 renderable[m_key] = "";
                 var str_container = container.render(renderable).find(":last");
                 str_container.replaceWith(m_thing);
                 break;
             
             case "number":
-                m_key = (isNaN(parseInt(m))) ? "li." + m.underscore() : "li.element";
+                m_key = (isNaN(parseInt(m))) ? "li." + m.underscore() : "li.number";
                 renderable[m_key] = m_thing;
                 container.render(renderable);
                 break;
@@ -190,7 +195,8 @@ function renderYAML(yaml, container, context) {
                 var nested_context = context;
                 try {
                     var nested_context = eval("window[\"" + context + "\"][\"" + m.singularize() + "\"]");
-                    if (nested_context){ nested_context = m.singularize() };
+                    console.log("nested_content", nested_content)
+                    if (nested_context){ nested_context = { "p": m.singularize() } };
                 } catch (e) {
                     // console.log("Couldn't eval", e)
                 }
@@ -214,13 +220,13 @@ function renderYAML(yaml, container, context) {
                 if (m_thing instanceof YAML) {
                     var ul_container;
 										if ((m.underscore() === "next") && (m_thing.hasOwnProperty("variable_name"))) {
-											li_container.render(" &#8594; " + m_thing.variable_name);
+											li_container.render({ "div.pointer": m_thing.variable_name });
 											break;
 										} else if (m_thing.hasOwnProperty("0")) {
                         ul_container = li_container.render("ul[type=array]");
                     } else if (m_thing.hasOwnProperty("fn")) {
 												var fname = Game.getFunctionName(m_thing.fn);
-												ul_container = li_container.render({ "ul.function[type=function]": fname }).find(":last");
+												ul_container = li_container.render({ "ul.function.closed[type=function]": fname }).find(":last");
 										} else {
                         ul_container = li_container.render("ul[type=object]");
                     }

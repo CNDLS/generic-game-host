@@ -241,6 +241,8 @@ Game.prototype.read = function (field_name /* , default_value */ ) {
 	if (typeof rtn_val === "function") { 
 		rtn_val = new rtn_val(this); 
 	}
+
+  // console.log(Game.getClassName(this) + "::" + field_name.underscore(), rtn_val);
 	return rtn_val;
 };
 

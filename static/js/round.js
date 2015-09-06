@@ -4,12 +4,13 @@ Game = Game || function () {};
 /* 
  * Rounds of the Game.
  */
-Game.Round = function (game, round_spec) {
+Game.Round = function (game, round_spec, mock) {
 	if (round_spec === undefined) {
 		console.log("no round_spec provided");
 		return;
 	}
-	
+	mock = mock || false;
+  
 	this.game = game;
 	this.nbr = this.game.round_nbr;
 	this.spec = round_spec;
@@ -32,6 +33,8 @@ Game.Round = function (game, round_spec) {
 	this.responder = this.read("Responder");
 
 	this.tear_down = this.read("Teardown") || $.noop;
+  
+  if (mock) { return; }
 		 
 	// *** MESSAGING ***
 	// This is where we attach animations, etc through objects like the Scene object.
