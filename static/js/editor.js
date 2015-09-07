@@ -104,16 +104,25 @@ $(function () {
 
 		    // delete key.
 		    $(document.body).keydown(function (evt) {
-		        if (evt.keyCode === 46) {
-	            var active_element = $([state=active]);
-	            if (!active_element.is(":empty")) {
-                if (confirm("Are you sure you want to delete " + $(evt.targetElement).className())) {
-                  active_element.remove();
+            if (evt.keyCode === 8) {
+                var active_element = $("[state=active]");
+                if (!active_element.is(":empty")) {
+                  var label = active_element.attr("class");
+                  if ( (active_element[0].childNodes.length === 1) 
+                    && (active_element[0].childNodes[0].nodeType === 3) ) {
+                    label += " '" + active_element[0].childNodes[0].nodeValue + "'";
+                  }
+                  
+                  if (window.confirm("Are you sure you want to delete " + label + "?")) {
+                    active_element.remove();
+                    $(".redactor-box").css({ display: "none" });
+                  }
                 }
-	            }
-  		        evt.stopPropagation();
-  		        evt.stopImmediatePropagation();
-		        }
+
+                evt.stopPropagation();
+                evt.stopImmediatePropagation();
+                return false;
+            }
 		    });
 			}
 		},
@@ -159,22 +168,28 @@ function renderYAML(yaml, container, context) {
         container.render({'h3': "&quot;" + yaml.get("Title") + "&quot;"});
         container.render('ul[type=object]');
         container = container.find('ul[type=object]');
-        context = "Game";
+        context = game; // game obj was instantiated by game.js code, from same YAML file.
     }
     // output each type of yaml.
-    var m_thing, m_key;
+    var m_thing, m_type, m_key;
     for (m in yaml) {
         var renderable = {};
         // console.log(m + ": " + yaml[m] + "(" + (typeof yaml[m]) + ")")
         m_thing = yaml[m];
+        m_type = (isNaN(parseInt(m))) ? m.underscore() : "element";
+        m_key = "li."+ m_type;
+        
         switch (typeof m_thing) {
             
             case "string":
-                m_key = (isNaN(parseInt(m))) ? "li." + m.underscore() : "li.element";
-								if (m.underscore() === "variable_name") {
+								if (m_type === "variable_name") {
                   // container.attr("name", m_thing);
                   container.prepend("[" + m_thing + "]");
 									break;
+								} else {
+                  // check if m_thing is defined on the current context.
+                  m_class = Game.getClassName(context[m_thing]);
+                  console.log(m_type, m_class);
 								}
                 // funky way to do this, so we don't end up w String() -- array of chars -- in element.
                 renderable[m_key] = "";
@@ -183,43 +198,21 @@ function renderYAML(yaml, container, context) {
                 break;
             
             case "number":
-                m_key = (isNaN(parseInt(m))) ? "li." + m.underscore() : "li.number";
+              if (m_type === "element") {
+                m_type = "number";
+                m_key = "li."+ m_type;
+              }
                 renderable[m_key] = m_thing;
                 container.render(renderable);
                 break;
                 
             case "object":
-                // look for functions defined on the current context.
-                // NOTE: requires ***strict*** naming conventions,
-                // eg; Scenes -> Game.Scene
-                var nested_context = context;
-                try {
-                    var nested_context = eval("window[\"" + context + "\"][\"" + m.singularize() + "\"]");
-                    console.log("nested_content", nested_content)
-                    if (nested_context){ nested_context = { "p": m.singularize() } };
-                } catch (e) {
-                    // console.log("Couldn't eval", e)
-                }
-                
-                // if m resolves to an integer, it's just an array index.
-                var m_key;
-                if (isNaN(parseInt(m))) {
-                    m_key = "li." + m.underscore();
-                    renderable[m_key] = ""
-                } else {
-                    m_key = "li.element";
-                    if (nested_context) {
-                        renderable[m_key] = nested_context;
-                    } else {
-                        renderable[m_key] = "";
-                    }
-                }
-                
+                renderable[m_key] = ""
                 var li_container = container.render(renderable).find(":last");
                 
                 if (m_thing instanceof YAML) {
                     var ul_container;
-										if ((m.underscore() === "next") && (m_thing.hasOwnProperty("variable_name"))) {
+										if ((m_type === "next") && (m_thing.hasOwnProperty("variable_name"))) {
 											li_container.render({ "div.pointer": m_thing.variable_name });
 											break;
 										} else if (m_thing.hasOwnProperty("0")) {
@@ -231,10 +224,9 @@ function renderYAML(yaml, container, context) {
                         ul_container = li_container.render("ul[type=object]");
                     }
 										
-										renderYAML(m_thing, ul_container, nested_context);
+										renderYAML(m_thing, ul_container, context);
                 }
                 break;
         }
     }
-    
 }

@@ -114,7 +114,8 @@
 #schema ul[type=array].closed span,
 #schema ul[type=object].closed span,
 #schema ul[type=function].closed span {
-  color: #bbb;
+  color: #666;
+  font-weight: normal;
 }
 
 #schema ul[type=object]:after, 
