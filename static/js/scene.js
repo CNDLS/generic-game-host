@@ -14,7 +14,7 @@ Game.SetPiece = {}
 
 // a factory for creating Scenes (Dealers).
 Game.SceneFactory = {
-	create: function (scene_spec, game, events) {
+	create: function (game, scene_spec, events) {
 		var scene_type_name = scene_spec.scene_type || "Basic";
 		var backdrop_spec = scene_spec.backdrop || "div";
 		var set_piece_specs = scene_spec.set_pieces || [];
@@ -27,6 +27,9 @@ Game.SceneFactory = {
 				scene_type = Game.Scene.Basic;
 			}
 			scene = new scene_type(scene_type_name, backdrop_spec, set_piece_specs, game);
+
+      if (events === "mock") { return scene; }
+      
 			scene.init(events);
 
 			// associate scene w the rounds it is used in.

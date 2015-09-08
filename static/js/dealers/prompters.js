@@ -3,6 +3,7 @@
  * It provides whatever information a Player needs to play the round.
  */
 Game.Round.Prompter = function (round, spec) {
+  debugger;
 	spec = spec || {};
 	this.spec = spec;
 	

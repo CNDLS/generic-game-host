@@ -26,6 +26,8 @@ Game.Round = function (game, round_spec, mock) {
 	this.answers = this.read("Answers");
 	this.max_time = this.read("MaxTime");
 	this.played_round = { guid: this.roundID }; // to store data of what happened in the round.
+  
+  if (mock) { return; }
 
 	// the three managers which will guide the round through its states.
 	this.prompter = this.read("Prompter");
@@ -33,8 +35,6 @@ Game.Round = function (game, round_spec, mock) {
 	this.responder = this.read("Responder");
 
 	this.tear_down = this.read("Teardown") || $.noop;
-  
-  if (mock) { return; }
 		 
 	// *** MESSAGING ***
 	// This is where we attach animations, etc through objects like the Scene object.
@@ -118,7 +118,9 @@ Game.Round.prototype.setup = function () {
 		// if scene has changed, put up the new one.
 		var reset_scene, prompt_without_scene;
 		try {
-			var prior_scene = this.game.scenes[this.game.prior_round_nbr];
+			var prior_scene = this.game.scenes.select(function () {
+			  return this.rounds.offset(this.game.prior_round_nbr) > -1;
+			});
 			if (prior_scene === undefined) {
 				reset_scene = true;
 			} else {
@@ -133,7 +135,9 @@ Game.Round.prototype.setup = function () {
 			try {
 				// remove prior scene.
 				$(".backdrop").remove();
-				this.scene = this.game.scenes[this.nbr];
+				this.scene = this.game.scenes.select(function () {
+  			  return this.rounds.offset(this.nbr) > -1;
+  			});
 				this.scene.setup(round).then(function () {
 					round.prompt();
 				});
