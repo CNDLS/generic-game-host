@@ -78,6 +78,10 @@
   font-size: 0.8em;
   color: #ccc;
 }
+#schema li[class][type=object]:before, 
+#schema li[class][type=array]:before {
+  display: block;
+}
 
 #schema ul[type=object]:before, 
 #schema ul[type=array]:before, 

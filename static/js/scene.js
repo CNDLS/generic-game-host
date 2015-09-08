@@ -9,7 +9,7 @@
 
 Game.Scene = {}
 Game.Scene.new = Game.new.bind(Game.Scene);
-Game.SetPiece = {}
+Game.Scene.SetPiece = {}
 
 
 // a factory for creating Scenes (Dealers).
@@ -101,7 +101,7 @@ Game.Scene.Basic.prototype.setup = function (round) {
 		this.deal(this.backdrop).then(function () {
 			_this.set_pieces = $.collect(_this.set_piece_specs, function (i) {
 				var card_spec = this;
-				var set_piece = _this.addCard(Game.SetPieceFactory.create(card_spec));
+				var set_piece = _this.addCard(Game.Scene.SetPieceFactory.create(card_spec));
 				set_piece.style("set_piece");
 				return set_piece;
 			});
@@ -156,18 +156,18 @@ Game.Scene.Basic.prototype.trackRound = function (evt, state_info) {
 
 
 // a factory for creating SetPieces (Cards).
-Game.SetPieceFactory = {
-	create: function (set_piece_spec) {
+Game.Scene.SetPieceFactory = {
+	create: function (game, set_piece_spec) {
 		var set_piece_type_name = set_piece_spec["set_piece_type"] || "Basic";
 		var set_piece_spec = Util.replaceAll(set_piece_spec, /MEDIA_URL\+/g, MEDIA_URL);
 		return in_production_try(this, function () {
-			return new Game.SetPiece[set_piece_type_name](set_piece_spec);
+			return new Game.Scene.SetPiece[set_piece_type_name](set_piece_spec);
 		});
 	}
 }
 
-Game.SetPiece.Basic = function (card_spec) {
+Game.Scene.SetPiece.Basic = function (card_spec) {
 	Util.extend_properties(this, new Game.Card(card_spec));
 }
-Util.extend(Game.SetPiece.Basic, Game.Card);
-Game.SetPiece.Basic.prototype = new Game.Card(null); 
+Util.extend(Game.Scene.SetPiece.Basic, Game.Card);
+Game.Scene.SetPiece.Basic.prototype = new Game.Card(null); 

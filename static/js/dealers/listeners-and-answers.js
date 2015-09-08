@@ -7,9 +7,10 @@
  * NOTE: It may seem weird to define user_input_types as an array, but in the case of multiple concurrent valid inputs, where
  * the answers are not specified ahead of time (eg; are calculated on-the-fly), this gets us whatever cards we'll need.
  */
-Game.Round.Listener = function (round, spec) {
+Game.Round.Listener = function (round, spec, mock) {
 	spec = spec || {};
 	this.spec = spec;
+  mock = mock || false;
 	
 	var container = (spec && spec.container) ? spec.container : round.container;
 	Util.extend_properties(this, new Game.Dealer(round, container));
@@ -25,6 +26,8 @@ Game.Round.Listener = function (round, spec) {
 	}
 	// specify how user input will be interpreted (first answer taken, user must interact with all cards, etc.)
 	this.accept_user_input = spec.accept_user_input || Game.Round.Listener.DEFAULTS.AcceptUserInput;
+  
+  if (mock) { return; }
 	
 	// assemble cards made by all the user_input_types into my cards array.
 	var _this = this;
