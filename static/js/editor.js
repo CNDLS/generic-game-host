@@ -1,7 +1,7 @@
 $(function () {
 
-  $('#redactor').redactor({
-    buttons: ['link']
+  window.redactor = $('#redactor').redactor({
+    buttons: ['formatting']
   });
     
   var read_url = $("script#reader").attr("read-from");
@@ -159,6 +159,18 @@ function activateTarget (evt_target) {
   if (evt_target.nodeName === "LI") {
       $(".redactor-box").css({ display: "block" });
       $(".redactor-box").offset({ top: $(evt_target).offset().top });
+      var contexts = $(evt_target).parents("ul").addBack();
+      var game_class = contexts.collect(function () {
+        return $(this).attr("game_class");
+      });
+      game_class = $.grep(game_class, function (gc) {
+        return (gc);
+      }).pop()
+      if (game_class) {
+        redactor.text(game_class);
+      } else {
+        redactor.text(" ");
+      }
   }
 }
 
@@ -185,7 +197,9 @@ function getAssociatedClass (context, test_classname) {
       test_classname = test_classname.classify();
     }
       return eval(context + "['" + test_classname + "']");
-  } catch (e) { console.log(e) }
+  } catch (e) { 
+    // console.log(e)
+  }
 }
 
 function scopeName(context, test_classname) {
@@ -310,7 +324,6 @@ function renderYAML (yaml, container, context, current_scope) {
 
                     if (m_class) {
                       nested_context = context.replace("Factory", "") + "." + m_type.classify();
-                      console.log("nested_context", nested_context)
                     }
                     current_scope = current_thing;
                   } catch (e) {

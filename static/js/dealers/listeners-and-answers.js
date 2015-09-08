@@ -78,7 +78,7 @@ Game.Round.PromptLinkListener = function (round, spec) {
 			var card_elem = prompt_links[i];
 			var link_card = Game.DealersCardFactory.create("ListenerCard", "LinkCard", _this, round, card_elem);
 			_this.addCard(link_card);
-			link_card.answer = new Game.Answer(answer_spec);
+			link_card.answer = new Game.Round.Answer(answer_spec);
 		} catch (e) {
 			console.log(e)
 		}
@@ -170,7 +170,7 @@ Game.Round.GroupedInputsListener.prototype.respondToSubmitBtn = function (evt) {
 			this.promptUserForMoreInput();
 		} else {
 			// send grouped answers and scores.
-			var answer = new Game.Answer({ content: answers });
+			var answer = new Game.Round.Answer({ content: answers });
 			$(this.group_card.element).trigger("Card.userInput", { answer: answer, score: scores });
 			this.user_input_dfd.resolve({ answer: answer, score: scores });
 		}
@@ -217,7 +217,7 @@ Game.Round.GroupedInputsListener.prototype.deactivateCards = function (card) {
  * own types.
  * Answers originate in the YAML spec, and they can specify feedback.
  */
-Game.Answer = function (spec) {
+Game.Round.Answer = function (spec) {
 	if (typeof spec === "string") {
 		spec = { content: spec };
 	}
@@ -225,6 +225,6 @@ Game.Answer = function (spec) {
 }
 
 
-Game.Answer.prototype.getContents = function () {
+Game.Round.Answer.prototype.getContents = function () {
 	return this.content;
 }
