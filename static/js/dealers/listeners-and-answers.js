@@ -7,18 +7,14 @@
  * NOTE: It may seem weird to define user_input_types as an array, but in the case of multiple concurrent valid inputs, where
  * the answers are not specified ahead of time (eg; are calculated on-the-fly), this gets us whatever cards we'll need.
  */
-Game.Round.Listener = function (round, spec, mock) {
+Game.Round.Listener = function (round, spec) {
+	this.round = round;
 	spec = spec || {};
 	this.spec = spec;
-  mock = mock || false;
 	
 	var container = (spec && spec.container) ? spec.container : round.container;
 	Util.extend_properties(this, new Game.Dealer(round, container));
-	
-	Game.Round.Listener.DEFAULTS = {
-		UserInputTypes: ["MultipleChoice"],
-		AcceptUserInput: "any"
-	}
+
 	// get *user* response types and insure it is an array.
 	this.user_input_types = spec.user_input_types|| spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes;
 	if (typeof this.user_input_types === "string") {
@@ -26,17 +22,22 @@ Game.Round.Listener = function (round, spec, mock) {
 	}
 	// specify how user input will be interpreted (first answer taken, user must interact with all cards, etc.)
 	this.accept_user_input = spec.accept_user_input || Game.Round.Listener.DEFAULTS.AcceptUserInput;
-  
-  if (mock) { return; }
-	
-	// assemble cards made by all the user_input_types into my cards array.
+}
+Util.extend(Game.Round.Listener, Game.Dealer);
+
+Game.Round.Listener.DEFAULTS = {
+	UserInputTypes: ["MultipleChoice"],
+	AcceptUserInput: "any"
+}
+
+
+Game.Round.Listener.prototype.init = function () {	// assemble cards made by all the user_input_types into my cards array.
 	var _this = this;
 	this.cards = $.map(this.user_input_types, function (user_input_type) {
 		var listener_card_type = (user_input_type || Game.Round.Listener.DEFAULTS.UserInputType) + "Card";
-		return Game.DealersCardFactory.create("ListenerCard", listener_card_type, _this, round);
+		return Game.DealersCardFactory.create("ListenerCard", listener_card_type, _this, _this.round);
 	});
 }
-Util.extend(Game.Round.Listener, Game.Dealer);
 
 
 // The Listener should deal cards that are initially in a disabled state. They will be enabled upon listen().
@@ -58,9 +59,15 @@ Game.Round.Listener.prototype.listen = function () {
  * PromptLinkListener -- listens for clicks on links embedded in the Prompt card(s).
  */
 Game.Round.PromptLinkListener = function (round, spec) {
+	this.round = round;
 	spec = spec || {};
 	spec.user_input_types = []; // we don't want any Listener Cards created; we just use the links in the Prompt(s).
 	Util.extend_properties(this, new Game.Round.Listener(round, spec));
+}
+Util.extend(Game.Round.PromptLinkListener, Game.Round.Listener);
+
+
+Game.Round.PromptLinkListener.prototype.init = function () {
 	// I don't need a ResponseType -- by default, I just scan
 	// the Prompt for links, and call those my cards. I attach a click
 	// listener to each to set up promises.
@@ -69,14 +76,14 @@ Game.Round.PromptLinkListener = function (round, spec) {
 	// and nbr of answers listed in the spec?
 	var _this = this;
 	var prompt_links = [];
-	$(round.prompter.cards).each(function () {
+	$(this.round.prompter.cards).each(function () {
 		$.merge(prompt_links, this.element.find("a"));
 	});
-	$.each(round.answers, function (i, answer_spec) {
-		var link_id = "prompt_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
+	$.each(this.round.answers, function (i, answer_spec) {
+		var link_id = "prompt_" + _this.round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
 		try {
 			var card_elem = prompt_links[i];
-			var link_card = Game.DealersCardFactory.create("ListenerCard", "LinkCard", _this, round, card_elem);
+			var link_card = Game.DealersCardFactory.create("ListenerCard", "LinkCard", _this, _this.round, card_elem);
 			_this.addCard(link_card);
 			link_card.answer = new Game.Round.Answer(answer_spec);
 		} catch (e) {
@@ -84,9 +91,6 @@ Game.Round.PromptLinkListener = function (round, spec) {
 		}
 	});
 }
-Util.extend(Game.Round.PromptLinkListener, Game.Round.Listener);
-
-
 
 /*
  * GroupedInputsListener -- listens for clicks on inputs (eg; checkboxes) in groups.
@@ -95,7 +99,7 @@ Game.Round.GroupedInputsListener = function (round, spec) {
 	// this will necessarily require more than one user action, 
 	// so we hide any 'continue' buttons, collect all user_input_promises, and resolve upon a click on our Submit button.
 	spec.user_input_types = ["GroupedInput"];
-	Util.extend_properties(this, new Game.Round.Listener(round, spec));
+	Util.extend_properties(this, new Game.Round.Listener(_this.round, spec));
 	this.group_card = this.cards.shift();
 	
 	// this listener offers the option of a header card, apart from any Prompt
@@ -112,7 +116,12 @@ Game.Round.GroupedInputsListener = function (round, spec) {
 		this.user_input_dfd = $.Deferred();
 		this.user_input_promise = this.user_input_dfd.promise();
 	}
-	
+
+}
+Util.extend(Game.Round.GroupedInputsListener, Game.Round.Listener);
+
+
+Game.Round.GroupedInputsListener.prototype.init = function () {
 	// this listener gets AnswerGroups rather than just Answers.
 	var answer_groups = round.read("AnswerGroups");
 	var s4 = S4();
@@ -130,7 +139,6 @@ Game.Round.GroupedInputsListener = function (round, spec) {
 		}
 	}
 }
-Util.extend(Game.Round.GroupedInputsListener, Game.Round.Listener);
 
 
 Game.Round.GroupedInputsListener.prototype.deal = function (cards_to_be_dealt, container, dealing_dfd) {

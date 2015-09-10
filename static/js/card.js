@@ -21,10 +21,6 @@ Game.Card = function(spec) {
 		spec = spec.toString();
 	}
 	
-	// default values for cards.
-	Game.Card.DEFAULTS = {
-		timeout: null
-	};
 	// some card-related constants.
 	Game.Card.SEND_TO_BACK = -1;
 	
@@ -100,6 +96,11 @@ Game.Card = function(spec) {
 		}
 	});
 }
+
+// default values for cards.
+Game.Card.DEFAULTS = {
+	timeout: null
+};
 
 Game.Card.prototype.style = function (css_classes) {
 	// remove card class and then add back those specified.

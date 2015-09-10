@@ -104,8 +104,9 @@ Game.prototype.report = function (try_func, catch_func) {
 	// changed create_round call from .then() to .done(), 
 	// so the game won't pause if AJAX fails.
 	// hopefully, we'll get the data sent at the next opportunity.
+	var _this = this;
 	this.reporter.sendReport().done(function () {
-		in_production_try(this, try_func, catch_func);
+		in_production_try(_this, try_func, catch_func);
 	});
 }
 

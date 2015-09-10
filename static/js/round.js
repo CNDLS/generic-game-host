@@ -34,7 +34,7 @@ Game.Round = function (game, round_spec, mock) {
 	this.listener = this.read("Listener");
 	this.responder = this.read("Responder");
 
-	this.tear_down = this.read("Teardown") || $.noop;
+	this.tear_down = this.read("Teardown");
 		 
 	// *** MESSAGING ***
 	// This is where we attach animations, etc through objects like the Scene object.
@@ -104,7 +104,8 @@ Game.Round.DEFAULTS = {
 	},
 	Prompter: "Prompter",
 	Listener: "Listener",
-	Responder: "Responder"
+	Responder: "Responder",
+	Teardown: $.noop
 };
 
 Game.Round.prototype.setup = function () {
@@ -118,7 +119,7 @@ Game.Round.prototype.setup = function () {
 		// if scene has changed, put up the new one.
 		var reset_scene, prompt_without_scene;
 		try {
-			var prior_scene = this.game.scenes.select(function () {
+			var prior_scene = $(this.game.scenes).select(function () {
 			  return this.rounds.offset(this.game.prior_round_nbr) > -1;
 			});
 			if (prior_scene === undefined) {
@@ -135,9 +136,9 @@ Game.Round.prototype.setup = function () {
 			try {
 				// remove prior scene.
 				$(".backdrop").remove();
-				this.scene = this.game.scenes.select(function () {
-  			  return this.rounds.offset(this.nbr) > -1;
-  			});
+				this.scene = $(this.game.scenes).select(function () {
+					return this.rounds.indexOf(round.nbr) > -1;
+				})[0];
 				this.scene.setup(round).then(function () {
 					round.prompt();
 				});

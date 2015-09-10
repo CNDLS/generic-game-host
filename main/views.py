@@ -90,7 +90,6 @@ def write_results(request, game_id):
         raise Http404
     else:
         current_user = User.objects.get(pk=request.user.id)
-        print current_user
         game = Game.objects.get(pk=game_id)
         game_report = GameReport(payload=request.body, student=current_user, game=game)
         game_report.save()
