@@ -21,10 +21,6 @@ Game.Card = function(spec) {
 		spec = spec.toString();
 	}
 	
-	// default values for cards.
-	Game.Card.DEFAULTS = {
-		timeout: null
-	};
 	// some card-related constants.
 	Game.Card.SEND_TO_BACK = -1;
 	
@@ -101,8 +97,15 @@ Game.Card = function(spec) {
 	});
 }
 
+// default values for cards.
+Game.Card.DEFAULTS = {
+	timeout: null
+};
+
 Game.Card.prototype.style = function (css_classes) {
 	// remove card class and then add back those specified.
+	// this is done so we can keep cards out the 'clearCards' function.
+	// TODO: *** Look into a better way to do this. cards should remain '.card's ***
 	this.element.removeClass("card").addClass(css_classes);
 	return this; // for daisy-chaining.
 }

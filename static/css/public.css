@@ -147,8 +147,58 @@ img.callout {
 .public.container ul.outline > li {
   margin: 1.5em 0;
 }
-.public.container li {
-  margin: 0.25em 0;
+#game_list {
+	font-size: 1.5em;
+	max-height: 600px;
+	min-height: 200px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	list-style-type: none;
+	border: 1px solid #ccc;
+  border-top-width: 0;
+	padding: 0.25em 0.5em;
+}
+
+#game_list li {
+  display: inline-block;
+  border: 1px solid #ccc;
+  margin: 0.5em 0.25em;
+  text-align: center;
+  line-height: 0.75em;
+  -webkit-border-radius: 0.25em;
+  -moz-border-radius:  0.25em;
+  border-radius:  0.25em;
+}
+
+#game_list li:hover {
+  background-color: #eee;
+  border-color: #d0d0d0;
+}
+
+#game_list li:hover a:not(.edit_link){
+  color: #333;
+}
+
+#game_list li a:not(.edit_link) {
+	color: #92989B;
+	display: block;
+	font-size: 0.75em;
+	text-decoration: none;
+	line-height: 1.5em;
+	padding: 0 0.5em;
+	margin: 0;
+}
+
+#game_list a.edit_link {
+  font-size: 0.5em;
+  color: #c5cbce;
+  margin: 0.25em auto;
+  padding: 0;
+	text-decoration: none;
+}
+
+#game_list a.edit_link:hover {
+  color: #99c;
 }
 
 ul.options {

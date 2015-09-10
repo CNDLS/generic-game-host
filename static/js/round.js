@@ -4,12 +4,13 @@ Game = Game || function () {};
 /* 
  * Rounds of the Game.
  */
-Game.Round = function (game, round_spec) {
+Game.Round = function (game, round_spec, mock) {
 	if (round_spec === undefined) {
 		console.log("no round_spec provided");
 		return;
 	}
-	
+	mock = mock || false;
+  
 	this.game = game;
 	this.nbr = this.game.round_nbr;
 	this.spec = round_spec;
@@ -25,13 +26,15 @@ Game.Round = function (game, round_spec) {
 	this.answers = this.read("Answers");
 	this.max_time = this.read("MaxTime");
 	this.played_round = { guid: this.roundID }; // to store data of what happened in the round.
+  
+  if (mock) { return; }
 
 	// the three managers which will guide the round through its states.
 	this.prompter = this.read("Prompter");
 	this.listener = this.read("Listener");
 	this.responder = this.read("Responder");
 
-	this.tear_down = this.read("Teardown") || $.noop;
+	this.tear_down = this.read("Teardown");
 		 
 	// *** MESSAGING ***
 	// This is where we attach animations, etc through objects like the Scene object.
@@ -101,7 +104,8 @@ Game.Round.DEFAULTS = {
 	},
 	Prompter: "Prompter",
 	Listener: "Listener",
-	Responder: "Responder"
+	Responder: "Responder",
+	Teardown: $.noop
 };
 
 Game.Round.prototype.setup = function () {
@@ -115,7 +119,9 @@ Game.Round.prototype.setup = function () {
 		// if scene has changed, put up the new one.
 		var reset_scene, prompt_without_scene;
 		try {
-			var prior_scene = this.game.scenes[this.game.prior_round_nbr];
+			var prior_scene = $(this.game.scenes).select(function () {
+			  return this.rounds.offset(this.game.prior_round_nbr) > -1;
+			});
 			if (prior_scene === undefined) {
 				reset_scene = true;
 			} else {
@@ -130,7 +136,9 @@ Game.Round.prototype.setup = function () {
 			try {
 				// remove prior scene.
 				$(".backdrop").remove();
-				this.scene = this.game.scenes[this.nbr];
+				this.scene = $(this.game.scenes).select(function () {
+					return this.rounds.indexOf(round.nbr) > -1;
+				})[0];
 				this.scene.setup(round).then(function () {
 					round.prompt();
 				});

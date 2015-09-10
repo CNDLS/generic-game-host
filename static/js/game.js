@@ -45,12 +45,10 @@ function Game(game_spec) {
 	// load any HTML to define the Scene(s) in which the game will take place.
 	// Create an object that associates Scenes with the Rounds in which they appear.
 	var scene_specs = this.read("Scenes");
-	this.scenes = {};
+	this.scenes = [];
 	$(scene_specs).each(function (i){
-		var ith_scene = Game.SceneFactory.create(this, game, Game.Round.Events);
-		$(ith_scene.rounds).each(function () {
-			game.scenes[Math.round(this)] = ith_scene;
-		})
+		var ith_scene = Game.SceneFactory.create(game, this, Game.Round.Events);
+		game.scenes.push(ith_scene);
 	});
 		
 	// load any resources that may be available to the user throughout the game.
@@ -62,7 +60,7 @@ function Game(game_spec) {
 	// eg; a countdown clock, scoreboard, etc.
 	var widget_specs = this.read("Widgets");
 	this.widgets = $.each(widget_specs, function (i, widget_type_name){
-		return new Game.Widgets[widget_type_name](game);
+		return new Game.Widget[widget_type_name](game);
 	});
 
 	// record the time the game was started.
@@ -106,8 +104,9 @@ Game.prototype.report = function (try_func, catch_func) {
 	// changed create_round call from .then() to .done(), 
 	// so the game won't pause if AJAX fails.
 	// hopefully, we'll get the data sent at the next opportunity.
+	var _this = this;
 	this.reporter.sendReport().done(function () {
-		in_production_try(this, try_func, catch_func);
+		in_production_try(_this, try_func, catch_func);
 	});
 }
 
@@ -241,6 +240,8 @@ Game.prototype.read = function (field_name /* , default_value */ ) {
 	if (typeof rtn_val === "function") { 
 		rtn_val = new rtn_val(this); 
 	}
+
+  // console.log(Game.getClassName(this) + "::" + field_name.underscore(), rtn_val);
 	return rtn_val;
 };
 

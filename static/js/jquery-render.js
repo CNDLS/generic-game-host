@@ -194,8 +194,13 @@ $.fn.render = function (spec) {
 					} else {
 						$(el).render(spec[key]);
 					}
-					promises.push(el.data("promise"));
-					$(this).append(el);
+					if (el instanceof jQuery) {
+						// only proceed upon success in adding.
+						promises.push(el.data("promise"));
+						$(this).append(el);
+					} else {
+						console.log("$.render() error when trying to render: ", spec)
+					}
 				}
 			}
 			

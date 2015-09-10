@@ -10,15 +10,15 @@ Game.Round.Responder = function (round, spec) {
 	var container = (spec && spec.container) ? spec.container : round.container;
 	Util.extend_properties(this, new Game.Dealer(round, container));
 	
-	Game.Round.Responder.DEFAULTS = {
-		FeedbackType: "Simple", // require click on this -- its a Modal Card.
-		AcceptUserInput: "each" // deliver Modal Cards one at-a-time.
-	}
-	
 	// by default, we put up a Modal Feedback.
 	this.accept_user_input = spec.accept_user_input || Game.Round.Responder.DEFAULTS.AcceptUserInput;
 }
 Util.extend(Game.Round.Responder, Game.Dealer);
+
+Game.Round.Responder.DEFAULTS = {
+	FeedbackType: "Simple", // require click on this -- its a Modal Card.
+	AcceptUserInput: "each" // deliver Modal Cards one at-a-time.
+}
 
 
 Game.Round.Responder.prototype.init = function (answer, score) {

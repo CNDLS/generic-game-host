@@ -1,12 +1,27 @@
-#schema {
-  max-width: 50vw;
-  margin: 9em 1em 6em 2em;
-  float: left;
+#content {
+  position:absolute; 
+  top: 1em;
+  height: auto;
+  left: 1em;
 }
-#editor {
-  height: 100vh;
-  width: 50vw;
-  float: left;
+#schema {
+  width: calc(50vw + 3em);
+  margin: 9em 1em 6em 2em;
+  overflow-x: scroll;
+}
+#editor_column {
+  position:absolute;
+  left: calc(50vw + 3em);
+  top: 4em;
+  height: 100%;
+  min-height: 100vh;
+  width: calc(50vw - 3em);
+  padding: 0;
+  margin: 0;
+  background-color: hsl(0, 0%, 88%);
+  -webkit-box-shadow: inset 10px 0px 25px -10px rgba(0,0,0,0.16);
+  -moz-box-shadow: inset 10px 0px 25px -10px rgba(0,0,0,0.16);
+  box-shadow: inset 10px 0px 25px -10px rgba(0,0,0,0.16);
 }
 #schema * {
   -webkit-touch-callout: none;
@@ -33,16 +48,17 @@
   border-radius: 2em 0 0 2em;
 }
 #schema li {
-  margin: 0.5em 1em;
+  margin: 0 1em;
   padding: 0.5em;
   border: 0.175em solid transparent;
   -webkit-border-radius: 1.25em;
   -moz-border-radius: 1.25em;
   border-radius: 1.25em;
+  white-space: normal;
 }
-#schema li:hover {
+/*#schema li:hover {
   border-color: #eee;
-}
+}*/
 
 /* fixes because .container collides with Bootstrap css. */
 #schema li.container {
@@ -52,19 +68,62 @@
   display: inline;
 }
 
-#schema ul:before, #schema li:before {
+#schema ul:before, 
+#schema li[class]:not(.element):before {
   content: attr(class) ": ";
   display: inline;
 }
-#schema li[obj]:before {
-  content: "class name: " attr(obj);
+#schema li:not([class]):before {
+  content: "NEW";
+  font-size: 0.8em;
+  color: #ccc;
+}
+#schema li[class][type=object]:before, 
+#schema li[class][type=array]:before {
+  display: block;
 }
 
-ul.object:before, ul.array:before {
-  content: "(" attr(class) ")";
+#schema ul[type=object]:before, 
+#schema ul[type=array]:before, 
+#schema ul[type=function]:before {
+  content: "\25BE" " (" attr(type) ") ";
   font-style: italic;
 }
-ul.object:after, ul.array:after {
+
+#schema ul[type=object].closed:before, 
+#schema ul[type=array].closed:before, 
+#schema ul[type=function].closed:before {
+  content: "\25B8" " (" attr(type) ") ";
+}
+#schema ul[type=object][name]:before, 
+#schema ul[type=array][name]:before, 
+#schema ul[type=function][name]:before {
+  content: "\25BE" " (" attr(type) ")  [ " attr(name) " ] ";
+  font-style: italic;
+}
+
+#schema ul[type=object][name].closed:before, 
+#schema ul[type=array][name].closed:before, 
+#schema ul[type=function][name].closed:before {
+  content: "\25B8" " (" attr(type) ")  [ " attr(name) " ] ";
+}
+
+
+#schema ul[type=array].closed *:not(span),
+#schema ul[type=object].closed *:not(span),
+#schema ul[type=function].closed *:not(span) {
+  display: none;
+}
+
+#schema ul[type=array].closed span,
+#schema ul[type=object].closed span,
+#schema ul[type=function].closed span {
+  color: #666;
+  font-weight: normal;
+}
+
+#schema ul[type=object]:after, 
+#schema ul[type=array]:after {
   content: " ";
   text-align: center;
   display: block;
@@ -77,44 +136,87 @@ ul.object:after, ul.array:after {
   -moz-border-radius: 0.5em;
   border-radius: 0.5em
 }
-
-ul.object:after {
-  content: "\25BE";
-  border-color: #eeb;
-}
-ul.array:after {
-  content: "+";
-  border-color: #bee;
+#schema ul {
+  display: inline-block;
+  max-width: 50vw;
+  font-weight: bold;
+  white-space: nowrap;
+  color: #666;
 }
 
-ul.object {
-  border-color: #eeb;
+#schema ul:before {
+  font-weight: normal;
+  font-style: italic;
 }
-ul.object:hover {
-  border-color: #cc9;
+
+#schema ul li {
+  font-weight: normal;
+  color: black;
 }
-ul.object:before {
-  color: #dda;
+
+#schema ul[type=object] {
+  border-color: #dd6;
 }
-ul.array {
-  border-color: #bee;
+#schema ul[type=array] {
+  border-color: #6dd;
 }
-ul.array:hover {
-  border-color: #9cc;
+#schema ul[type=function] {
+  border-color: #d6d;
 }
-ul.array:before {
+
+
+#schema ul[type=array]:before {
   color: #add;
 }
+#schema ul[type=object]:before {
+  color: #dda;
+}
+#schema ul[type=function]:before {
+  color: #dad;
+}
+
+#schema ul[type=object]:after {
+  content: "\25BE";
+  border-color: #dd6;
+}
+#schema ul[type=array]:after {
+  content: "+";
+  border-color: #6dd;
+}
 
 
-ul:not(.object | .array)[state=active] {
+#schema ul:not([type=object])[state=active],
+#schema ul:not([type=array])[state=active] {
   background-color: #efefef;
 }
-li[state=active] {
+#schema li[state=active] {
   background-color: #efefef;
   border-color: #ddd;
 }
 
-[type=fn]:after {
-  content: "()";
+#schema div.pointer {
+  font-weight: bold;
+}
+
+#schema div.pointer:before {
+  content: " " "\2192" " ";
+}
+
+
+/* bootstrap fixes */
+.h1, .h2, .h3, .h4 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+
+/* redactor editor. */
+.redactor-box {
+  position: absolute;
+  top: 3em;
+  left: 1px;
+  -webkit-box-shadow: 0px 10px 25px -10px rgba(0,0,0,0.16);
+  -moz-box-shadow: 0px 10px 25px -10px rgba(0,0,0,0.16);
+  box-shadow: 0px 10px 25px -10px rgba(0,0,0,0.16);
+  display: none;
 }

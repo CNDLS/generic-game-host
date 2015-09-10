@@ -23,9 +23,14 @@
         <h1>Games</h1>
         <ul id ="game_list">
         {% for game in games %}
-          <li><a href="{% url 'play' game.id %}" game_nbr="{{ game.id }}">{{ game.name }}</a></li>
+          <li>
+              <a href="{% url 'play' game.id %}" game_nbr="{{ game.id }}">{{ game.name }}</a>
+              {% if True %}
+              <a class='edit_link' href="{% url 'edit' game.id %}">edit</a>
+              {% endif %}
+          </li>
         {% endfor %}
-        <ul>
+        </ul>
       </div>
     </div>
 

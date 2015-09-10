@@ -33,9 +33,6 @@ def design(request):
 def contact(request):
     return render_to_response('contact.html', context_instance=RequestContext(request))
     
-def editor(request):
-    return render_to_response('editor_demo.html', context_instance=RequestContext(request))
-
 def publicsitechanges(request):
     return render_to_response('sitechanges.html', context_instance=RequestContext(request))
     
@@ -52,6 +49,13 @@ def list(request):
     return render_to_response('list.html', { 'games':games }, context_instance=RequestContext(request))
 
 
+def edit(request, game_id):
+    game = get_object_or_404(Game, pk=game_id)
+    return render_to_response('editor_demo.html', { 'game':game }, context_instance=RequestContext(request))
+
+def editormock(request):
+    return render_to_response('editor_mock.html', context_instance=RequestContext(request))
+    
 # get a game file from which to construct a game.
 def read(request, game_id):
     # don't make it easy to get this from the browser.
@@ -86,7 +90,6 @@ def write_results(request, game_id):
         raise Http404
     else:
         current_user = User.objects.get(pk=request.user.id)
-        print current_user
         game = Game.objects.get(pk=game_id)
         game_report = GameReport(payload=request.body, student=current_user, game=game)
         game_report.save()
