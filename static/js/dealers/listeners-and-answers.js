@@ -59,7 +59,6 @@ Game.Round.Listener.prototype.listen = function () {
  * PromptLinkListener -- listens for clicks on links embedded in the Prompt card(s).
  */
 Game.Round.PromptLinkListener = function (round, spec) {
-	this.round = round;
 	spec = spec || {};
 	spec.user_input_types = []; // we don't want any Listener Cards created; we just use the links in the Prompt(s).
 	Util.extend_properties(this, new Game.Round.Listener(round, spec));
@@ -80,7 +79,7 @@ Game.Round.PromptLinkListener.prototype.init = function () {
 		$.merge(prompt_links, this.element.find("a"));
 	});
 	$.each(this.round.answers, function (i, answer_spec) {
-		var link_id = "prompt_" + _this.round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
+		var link_id = "prompt_" + _this.round.nbr + "_" + (i + 1) + "_" + S8(); // random 4-character code.
 		try {
 			var card_elem = prompt_links[i];
 			var link_card = Game.DealersCardFactory.create("ListenerCard", "LinkCard", _this, _this.round, card_elem);
@@ -99,14 +98,38 @@ Game.Round.GroupedInputsListener = function (round, spec) {
 	// this will necessarily require more than one user action, 
 	// so we hide any 'continue' buttons, collect all user_input_promises, and resolve upon a click on our Submit button.
 	spec.user_input_types = ["GroupedInput"];
-	Util.extend_properties(this, new Game.Round.Listener(_this.round, spec));
+	Util.extend_properties(this, new Game.Round.Listener(round, spec));
+}
+Util.extend(Game.Round.GroupedInputsListener, Game.Round.Listener);
+
+
+Game.Round.GroupedInputsListener.prototype.init = function () {
+  // call super to load any group card.
+  Game.Round.Listener.prototype.init.call(this);
 	this.group_card = this.cards.shift();
 	
 	// this listener offers the option of a header card, apart from any Prompt
 	// that may act to organize the cards that follow (eg; table headers).
-	var header_spec = spec.header || false;
+	var header_spec = this.spec.header || false;
 	if (header_spec) {
 		this.group_card.element.render(header_spec);
+	}
+  
+	// this listener gets AnswerGroups rather than just Answers.
+	var answer_groups = this.round.read("AnswerGroups");
+	var s8 = S8();
+	var _this = this;
+	if ((typeof answer_groups === "object") && (answer_groups.hasOwnProperty("0"))) {
+		// each Answer object in this case is a group of inputs and a mini-prompt.
+		for (var i=0; i < answer_groups.length; i++) {
+			var answer_group_spec = answer_groups[i];
+			var group_id = (answer_group_spec.group || (i + 1)); // random 4-character code.
+			answer_group_spec.group_name = _this.round.nbr + "_" + s8 + "_" + group_id;
+			var member_card_type = (answer_group_spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes[0]) + "Card";
+			var member_card = Game.DealersCardFactory.create("ListenerCard", member_card_type, _this, _this.round, answer_group_spec);
+      member_card.container = this.group_card.container;
+			this.addCard(member_card);
+		}
 	}
 	
 	if (this.spec.submit_button || false) {
@@ -115,28 +138,6 @@ Game.Round.GroupedInputsListener = function (round, spec) {
 		// add the bit where we wait for the user.
 		this.user_input_dfd = $.Deferred();
 		this.user_input_promise = this.user_input_dfd.promise();
-	}
-
-}
-Util.extend(Game.Round.GroupedInputsListener, Game.Round.Listener);
-
-
-Game.Round.GroupedInputsListener.prototype.init = function () {
-	// this listener gets AnswerGroups rather than just Answers.
-	var answer_groups = round.read("AnswerGroups");
-	var s4 = S4();
-	var _this = this;
-	if ((typeof answer_groups === "object") && (answer_groups.hasOwnProperty("0"))) {
-		// each Answer object in this case is a group of inputs and a mini-prompt.
-		for (var i=0; i < answer_groups.length; i++) {
-			var answer_group_spec = answer_groups[i];
-			var group_id = (answer_group_spec.group || (i + 1)); // random 4-character code.
-			answer_group_spec.group_name = round.nbr + "_" + s4 + "_" + group_id;
-			var member_card_type = (answer_group_spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes[0]) + "Card";
-			var member_card = Game.DealersCardFactory.create("ListenerCard", member_card_type, _this, round, answer_group_spec);
-			member_card.container = this.group_container;
-			this.addCard(member_card);
-		}
 	}
 }
 

@@ -5,5 +5,4 @@
 host/settings.py
 /media/*
 wsgi
-static/css/custom.css
 static/admin

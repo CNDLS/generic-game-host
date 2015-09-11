@@ -120,11 +120,12 @@ Game.Round.prototype.setup = function () {
 		var reset_scene, prompt_without_scene;
 		try {
 			var prior_scene = $(this.game.scenes).select(function () {
-			  return this.rounds.offset(this.game.prior_round_nbr) > -1;
+			  return this.rounds.indexOf(this.game.prior_round_nbr) > -1;
 			});
 			if (prior_scene === undefined) {
 				reset_scene = true;
 			} else {
+        prior_scene = prior_scene[0];
 				reset_scene = (prior_scene.rounds.indexOf(this.nbr) === -1);
 			}
 		} catch (e) {
