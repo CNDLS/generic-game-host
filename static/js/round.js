@@ -251,7 +251,7 @@ Game.Round.prototype.GiveWrongAnswer = function () {
 	var a_wrong_answer = 
 	$(this.answers).select(function () { return this.timeout_answer; })[0] ||
 	$(this.answers).select(function () { return !this.correct; })[0] ||
-	new Game.Answer();
+	new Game.Round.Answer();
 	return { answer: a_wrong_answer, score: a_wrong_answer.negative_value || 0 }
 }
 
