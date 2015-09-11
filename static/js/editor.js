@@ -3,7 +3,7 @@ $(function () {
   window.redactor = $('#redactor').redactor({
     buttons: ['formatting']
   });
-    
+
   var read_url = $("script#reader").attr("read-from");
   var parsed_yaml;
   // get the YAML from our URL.
@@ -202,7 +202,7 @@ function getAssociatedClass (context, test_classname) {
   }
 }
 
-function scopeName(context, test_classname) {
+function scopeName (context, test_classname) {
   try{
     var scope = eval(context + "['" + test_classname.singularize().camelize() + "']");
     if (scope) {
@@ -211,7 +211,22 @@ function scopeName(context, test_classname) {
   } catch (e) {}
 }
 
+function is_html_spec (obj) {
+	var tag_id_class_regexp = /^(\w+)?(#\w[^\.\[]+)?((?:\.\w[^\[]+)*)?(\[\S+=\S+\])*$/;
+  var is_a_spec = true;
+  try {
+    for (var m in obj) {
+      is_a_spec = is_a_spec && tag_id_class_regexp.test(m) && tag_id_class_regexp.test(obj[m]);
+    }
+  } catch (e) {
+    is_a_spec = false;
+  }
+
+  return is_a_spec;
+}
+
 function renderYAML (yaml, container, context, current_scope) {
+	
     // init parsed_yaml_as_html as game, if nec.
     if (!container) {
         container = $("#schema");
@@ -306,6 +321,12 @@ function renderYAML (yaml, container, context, current_scope) {
                   } else if (m_thing.hasOwnProperty("fn")) {
                     var fname = Game.getFunctionName(m_thing.fn);
                     ul_container = li_container.render({ "ul.closed[type=function]":fname }).find(":last");
+                    
+                  } else if (is_html_spec(m_thing)) {
+                    for (var n in m_thing) {
+                      li_container.append("div").html(n + ":" + m_thing[n]);
+                    }
+                    break;
                       
                   } else {
                     li_container.attr("type", "object");
@@ -334,7 +355,7 @@ function renderYAML (yaml, container, context, current_scope) {
                     current_thing = null;
                   }
 
-                  if (current_thing !== null) {
+                  if (ul_container && (current_thing !== null)) {
                     ul_container.attr("game_class", Game.getClassName(current_thing));
                   }
                   
