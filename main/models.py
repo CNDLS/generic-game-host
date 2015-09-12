@@ -61,7 +61,7 @@ class Game(models.Model):
                         blank = True,
                         upload_to = path_for_game_file(),
                         max_upload_size = 204800, # 200KB
-                        content_types = ['application/x-yaml','text/yaml','text/plain','text/plain; charset=us-ascii'])
+                        content_types = ['application/x-yaml','text/yaml','text/plain','text/plain; charset=us-ascii', 'text/plain; charset=utf-8'])
     tags = TaggableManager(blank=True)
     
     def slug(self):
