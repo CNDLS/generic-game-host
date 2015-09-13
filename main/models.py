@@ -45,7 +45,7 @@ def path_for_game_file():
             path = "uploads/unclaimed/" # dump problematic files where we can see them.
             
         # since this is going into the group directory, along with Library files, make sure the filename is unique.
-        filename = "{}_{}.{}".format(basename, int(time.time()), ext)
+        filename = "{0}_{1}.{2}".format(basename, int(time.time()), ext)
         
         # return the whole path to the file
         return os.path.join(path, filename)
