@@ -40,13 +40,12 @@ def path_for_game_file():
         # set path.
         if instance.game_group:
             library_dir = slugify(instance.game_group.name) if instance.game_group else "ungrouped"
-            path = MEDIA_ROOT + "uploads/{library_dir}/games/".format(library_dir=library_dir)
+            path = "uploads/{library_dir}/games/".format(library_dir=library_dir)
         else:
-            path = MEDIA_ROOT + "uploads/unclaimed/" # dump problematic files where we can see them.
+            path = "uploads/unclaimed/" # dump problematic files where we can see them.
             
         # set permissions on path.
-        os.makedirs(path, 0o755)
-        os.chmod(path, 0o755) 
+        os.makedirs(MEDIA_ROOT + path, 0o755)
             
         # since this is going into the group directory, along with Library files, make sure the filename is unique.
         filename = "{0}_{1}.{2}".format(basename, int(time.time()), ext)
@@ -64,6 +63,7 @@ class Game(models.Model):
                         null = True,
                         blank = True,
                         upload_to = path_for_game_file(),
+                        max_length = 250,
                         max_upload_size = 204800, # 200KB
                         content_types = ['application/x-yaml','text/yaml','text/plain','text/plain; charset=us-ascii', 'text/plain; charset=utf-8'])
     tags = TaggableManager(blank=True)
