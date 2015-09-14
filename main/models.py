@@ -51,7 +51,7 @@ def path_for_game_file():
             path = "uploads/unclaimed/" # dump problematic files where we can see them.
             
         # set permissions on path.
-        mkdir_p(MEDIA_ROOT + path, 0o755)
+        mkdir_p(MEDIA_ROOT + path, 0o775)
             
         # since this is going into the group directory, along with Library files, make sure the filename is unique.
         filename = "{0}_{1}.{2}".format(basename, int(time.time()), ext)
