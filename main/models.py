@@ -40,9 +40,9 @@ def path_for_game_file():
         # set path.
         if instance.game_group:
             library_dir = slugify(instance.game_group.name) if instance.game_group else "ungrouped"
-            path = "uploads/{library_dir}/games/".format(library_dir=library_dir)
+            path = MEDIA_ROOT + "uploads/{library_dir}/games/".format(library_dir=library_dir)
         else:
-            path = "uploads/unclaimed/" # dump problematic files where we can see them.
+            path = MEDIA_ROOT + "uploads/unclaimed/" # dump problematic files where we can see them.
             
         # set permissions on path.
         os.makedirs(path, 0o755)
