@@ -8,10 +8,7 @@ from django.utils.text import slugify
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 
-import sys
-import yaml
-import os
-import time
+import sys, os, time, yaml, errno
 from uuid import uuid1, uuid4
 
 from taggit.managers import TaggableManager
@@ -31,7 +28,16 @@ validatedfile_rules = [(
 from south.modelsinspector import add_introspection_rules
 add_introspection_rules(validatedfile_rules, ["^validatedfile\.fields\.ValidatedFileField"])
 
-
+def mkdir_p(path, perms=None):
+    try:
+        if perms:
+            os.makedirs(pathpath, perms)
+        else:
+            os.makedirs(pathpath)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
 
 def path_for_game_file():
     def path_generator(instance, filename):
@@ -45,7 +51,7 @@ def path_for_game_file():
             path = "uploads/unclaimed/" # dump problematic files where we can see them.
             
         # set permissions on path.
-        os.makedirs(MEDIA_ROOT + path, 0o755)
+        mkdir_p(MEDIA_ROOT + path, 0o755)
             
         # since this is going into the group directory, along with Library files, make sure the filename is unique.
         filename = "{0}_{1}.{2}".format(basename, int(time.time()), ext)
