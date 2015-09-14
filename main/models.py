@@ -31,9 +31,9 @@ add_introspection_rules(validatedfile_rules, ["^validatedfile\.fields\.Validated
 def mkdir_p(path, perms=None):
     try:
         if perms:
-            os.makedirs(pathpath, perms)
+            os.makedirs(path, perms)
         else:
-            os.makedirs(pathpath)
+            os.makedirs(path)
     except OSError as exc: # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
