@@ -7,7 +7,7 @@
 /* FreeResponseCard just creates a card with a text input field and doesn't care about the answer. */
 Game.ListenerCard.FreeResponseCard = function (args) {
 	var round = args.shift();
-	Util.extend_properties(this, new Game.Card({ div:"<input type=\"text\" />" }));
+	Util.extend_properties(this, new Game.Card({ div:"input[type=text]" }));
 }
 Util.extend(Game.ListenerCard.FreeResponseCard, Game.Card);
 
