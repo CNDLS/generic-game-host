@@ -31,9 +31,9 @@
 }
 
 form#login-form {
-    position: absolute;
+    position: relative;
     top: 12em;
-    width: 12em;
+    width: 24em;
     margin: 0 auto;
     display: block;
 }

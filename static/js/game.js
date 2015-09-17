@@ -128,7 +128,7 @@ Game.prototype.introduce = function () {
 		}
 		// by default, use Game.Card.Modal to define the card.
 		// here, the default type "Modal" will be overwritten by any type in the intro_spec.
-		intro_spec = $.extend({ type: "Modal" }, intro_spec);
+		intro_spec = $.extend({ type: "Modal", css_class: "intro" }, intro_spec);
 		return _this.intro_dealer.addCard(intro_spec);
 	});
 	

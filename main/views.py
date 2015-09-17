@@ -51,7 +51,11 @@ def list(request):
 
 def edit(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
-    return render_to_response('editor_demo.html', { 'game':game }, context_instance=RequestContext(request))
+    template_vars = { 'game': game,
+                      'group_slug': game.game_group.slug,
+                      'library_files': game.game_group.library_files.all(),
+                      'AJAX_PREFIX':AJAX_PREFIX }
+    return render_to_response('editor_demo.html', template_vars, context_instance=RequestContext(request))
 
 def editormock(request):
     return render_to_response('editor_mock.html', context_instance=RequestContext(request))
