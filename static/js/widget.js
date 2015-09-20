@@ -4,15 +4,36 @@
  * that should persist across Rounds.
  */
 Game.Widget = {};
+Game.WidgetFactory = {};
+
+Game.WidgetFactory.create = function (game, widget_spec) {
+  var widget_type_name;
+  try {
+    if ((typeof widget_spec === "string") || (widget_spec instanceof String)) {
+      widget_type_name = widget_spec.toString();
+      return new Game.Widget[widget_type_name](game);
+    } else if (typeof widget_spec === "object") {
+      widget_type_name = Object.keys(widget_spec);
+      widget_spec = widget_spec[widget_type_name]; // pass whatever params to constructor.
+      return new Game.Widget[widget_type_name](game,widget_spec);
+    } else {
+      console.log("Could not create widget from " + widget_spec);
+    }
+  } catch (e) {
+    console.log(e, widget_spec)
+  }
+}
+
 
 /* 
  * Game.Widget.CountdownClock
  * This onscreen (External) clock just puts numbers into a field, counting down from max_time for the Round.
  * Custom clocks need to expose start(max_time), stop(), and a tick() function, which should return the current time.
  */
-Game.Widget.CountdownClock = function (game) {
-	this.clock_face = $("<textarea id=\"clock\" readonly></textarea>");
-	$("#widgets").append(this.clock_face);
+Game.Widget.CountdownClock = function (game, spec) {
+  spec = spec || {};
+  this.clock_face = new Game.Card("textarea#clock[readonly=true]");
+  this.clock_face.dealTo(spec.container || game.widgets_container);
 	
 	this.game = game;
 	// listen for startClock and stopClock events from the game.
@@ -25,13 +46,13 @@ Game.Widget.CountdownClock.prototype.start = function (evt, max_time) {
 	clearInterval(this.clock);
 	if (typeof max_time === "number") {
 		this.clock = setInterval(this.tick.bind(this), 1000);
-		this.clock_face.val(max_time);
+		this.clock_face.element.val(max_time);
 	}
 };
 
 Game.Widget.CountdownClock.prototype.tick = function () {
-	var current_time = this.clock_face.val() - 1;
-	this.clock_face.val(current_time);
+	var current_time = this.clock_face.element.val() - 1;
+	this.clock_face.element.val(current_time);
 	if (current_time === 0) { 
 		this.stop();
 		game.timeoutRound(); 
@@ -45,7 +66,7 @@ Game.Widget.CountdownClock.prototype.stop = function (evt) {
 
 Game.Widget.CountdownClock.prototype.reset = function () {
 	this.stop();
-	this.clock_face.val(null);
+	this.clock_face.element.val(null);
 };
 
 
@@ -67,9 +88,10 @@ Game.Widget.NullClock.prototype.stop = function () {};
  * This is a default scoreboard -- it displays the current score in a field.
  * Custom scoreboards need to expose init(game), add(points), subtract(points), and a reset() functions.
  */
-Game.Widget.Scoreboard = function (game) {
-	this.display = $("<textarea id=\"scoreboard\" readonly></textarea>");
-	$("#widgets").append(this.display);
+Game.Widget.Scoreboard = function (game, spec) {
+  spec = spec || {};
+  this.display = new Game.Card("textarea#scoreboard[readonly=true]");
+  this.display.dealTo(spec.container || game.widgets_container);
 	
 	this.game = game;
 	this.points = game.current_score;
@@ -112,7 +134,7 @@ Game.Widget.Scoreboard.prototype.refresh = function () {
 	// fold in any special message, then display.
 	var addPointsMessage = this.game.read("AddPoints") || ":points";
 	addPointsMessage = addPointsMessage.insert_values(this.points);
-	this.display.val(addPointsMessage);
+	this.display.element.val(addPointsMessage);
 };
 
 

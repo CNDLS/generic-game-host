@@ -199,7 +199,7 @@ $.fn.render = function (spec) {
 						promises.push(el.data("promise"));
 						$(this).append(el);
 					} else {
-						console.log("$.render() error when trying to render: ", spec)
+						console.log("$.render() error when trying to render: ", spec, el)
 					}
 				}
 			}
