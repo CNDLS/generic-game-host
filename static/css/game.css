@@ -149,10 +149,18 @@ label.form-label {
   border-radius: 50%;
   width: 2em;
   height: 2em;
+  float: left;
 }
-textarea#clock {
-  background-color: #92989B;
+div#clock {
   overflow: hidden;
+}
+span#clock_face {
+  position: absolute;
+  left: 2em;
+  width: 2em;
+  top: 0;
+  text-align: center;
+  margin: 0.25em 0.125em;
 }
 textarea#scoreboard {
   background-color: #15CCC2;
@@ -233,26 +241,6 @@ ul.objectives li:nth-child(2) {
 }
 ul.objectives li:nth-child(3) {
   list-style: url('../img/o2.png');
-}
-
-#message {
-  background: url("images/linedpaper.png") repeat;
-  font-size: 1em;
-  font-family: "Courier New", Courier, monospace;
-  font-weight: bold;
-  width: 360px;
-  height: 840px;
-  padding-top: 0px;
-  color: #333;
-  padding: 80px 20px 20px 20px;
-}
-
-#message ul {
-  padding-top: 40px;
-}
-
-#message ul li {
-  padding-bottom: 10px;
 }
 
 /* End Panel CSS */
