@@ -116,7 +116,6 @@ Game.Widget.CountdownClock.prototype.tick = function () {
           break;
       }
     }
-    console.log(value, x, y, new_path_cmds.join(""))
     path_cmds = path_cmds.replace(elliptical_arc_regex, new_path_cmds.join(""));
     this.clock_backing.find("path").attr("d", path_cmds);
     
