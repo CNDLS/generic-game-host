@@ -174,7 +174,7 @@ class Membership(models.Model):
         group_name = self.game_group.name
         role_name = self.role.name
         try:
-            return "{}:{}".format(group_name, role_name)
+            return "{0}:{1}".format(group_name, role_name)
         except:
             return "unknown"
         
