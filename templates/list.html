@@ -46,7 +46,7 @@
       <div id="explanation" class="dialog instructions">
         <h2>General Instructions</h2>
           <p>
-          	<em>&lt;Here is where you put some general info about how to play the games.&gt;</em>
+          	<em>&lt;&nbsp;Some general info about how to play each game goes here.&nbsp;&gt;</em>
           </p>
       </div>
     </div>
@@ -56,7 +56,7 @@
     {% autoescape off %}
     {% for game in games %}
       <div id="description_{{ game.id }}">
-        <h2>In '{{ game.name }}' ...</h2>
+        <h2>'{{ game.name }}'</h2>
         {{ game.description }}
         <p>
           <a class="btn" href="{% url 'play' game.id %}" class='button'>Play</a>

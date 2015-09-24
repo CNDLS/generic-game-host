@@ -62,6 +62,7 @@ Game.Widget.CountdownClock.prototype.tick = function () {
 		this.stop();
 		game.timeoutRound(); 
 	}
+  // cf. http://jsfiddle.net/lensco/ScURE/
   // get the svg cmds and separate out the part we'll change.
   this.clock_backing.find("path").attr("fill", "#CCCCCC");
   var path_cmds = this.clock_backing.find("path").attr("d");
@@ -76,9 +77,12 @@ Game.Widget.CountdownClock.prototype.tick = function () {
     var value = 100 * (this.max_time - current_time) / this.max_time;
     var x = Math.cos((2 * Math.PI)/(100/value));
   	var y = Math.sin((2 * Math.PI)/(100/value));
-
+    
+    if (value <= 0) {
+      return; // done.
+    }
   	//should the arc go the long way round?
-  	var longArc = (value <= 50) ? 1 : 0;
+  	var longArc = (value <= 50) ? 0 : 1;
     
     var new_path_cmds = ["A"];
     for (var i=0; i<p.length; i++) {
@@ -104,11 +108,11 @@ Game.Widget.CountdownClock.prototype.tick = function () {
           break;
           
         case 5:
-          new_path_cmds.push(100 + y*100 + ", ");
+          new_path_cmds.push(50 + y*50 + ", ");
           break;
           
         case 6:
-          new_path_cmds.push(100 - x*100 + " ");
+          new_path_cmds.push(50 - x*50 + " ");
           break;
       }
     }
