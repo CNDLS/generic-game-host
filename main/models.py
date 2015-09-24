@@ -172,9 +172,11 @@ class Membership(models.Model):
     
     def __unicode__(self):
         group_name = self.game_group.name
-        group_name = "Unknown Group" if group_name==""
+        if group_name=="":
+            group_name = "Unknown Group"
         role_name = self.role.name
-        role_name = "Unknown Role" if role_name==""
+        if role_name=="":
+            role_name = "Unknown Role"
         
         return "{}:{}".format(group_name, role_name)
         
