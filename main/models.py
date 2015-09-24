@@ -173,8 +173,9 @@ class Membership(models.Model):
     def __unicode__(self):
         group_name = self.game_group.name
         role_name = self.role.name
+        user_name = self.user.get_full_name()
         try:
-            return "{0}:{1}".format(group_name, role_name)
+            return "{0}: {1}, {2}".format(user_name, group_name, role_name)
         except:
             return "unknown"
         
