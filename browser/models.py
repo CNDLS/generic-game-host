@@ -2,30 +2,25 @@ from django.db import models
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 
-from main.models import Game, Round
+from main.models import Game
 
 class Session(models.Model):
-	student = models.ForeignKey(User, db_column="student")
-	game = models.ForeignKey(Game)
-	generated_id = models.CharField(max_length=255)
-
-
-# There is some redundancy here, but this will make for easy queries for tables.
-class PlayedRound(models.Model):
-	game = models.ForeignKey(Game)
-	round = models.ForeignKey(Round)
-	session = models.ForeignKey(Session)
-	student = models.ForeignKey(User, db_column="student")
-	objection = models.CharField(max_length=32, blank=True, null=True)
-	reason = models.IntegerField()
-	success = models.BooleanField(default=False)
-	points = models.IntegerField()
-	timestamp = models.DateTimeField(blank=True, null=True)
+    player = models.ForeignKey(User, db_column="player")
+    game = models.ForeignKey(Game)
+    generated_id = models.CharField(max_length=255)
 
 
 class Event(models.Model):
-	name = models.CharField(max_length=255)
-	game = models.ForeignKey(Game)
-	session = models.ForeignKey(Session)
-	round = models.ForeignKey(Round, null=True)
-	timestamp = models.DateTimeField(blank=True, null=True)
+    name = models.CharField(max_length=255)
+    game = models.ForeignKey(Game)
+    round_nbr = models.IntegerField()
+    round_id = models.CharField(max_length=255)
+    session = models.ForeignKey(Session)
+    data = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(blank=True, null=True)
+
+
+# There is some redundancy here, but this will make for easy queries for tables.
+class PlayedRound(Event):
+    success = models.BooleanField(default=False)
+    points = models.IntegerField()

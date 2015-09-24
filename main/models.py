@@ -8,10 +8,7 @@ from django.utils.text import slugify
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 
-import sys
-import yaml
-import os
-import time
+import sys, os, time, yaml, errno
 from uuid import uuid1, uuid4
 
 from taggit.managers import TaggableManager
@@ -31,7 +28,16 @@ validatedfile_rules = [(
 from south.modelsinspector import add_introspection_rules
 add_introspection_rules(validatedfile_rules, ["^validatedfile\.fields\.ValidatedFileField"])
 
-
+def mkdir_p(path, perms=None):
+    try:
+        if perms:
+            os.makedirs(path, perms)
+        else:
+            os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
 
 def path_for_game_file():
     def path_generator(instance, filename):
@@ -44,8 +50,11 @@ def path_for_game_file():
         else:
             path = "uploads/unclaimed/" # dump problematic files where we can see them.
             
+        # set permissions on path.
+        mkdir_p(MEDIA_ROOT + path, 0o775)
+            
         # since this is going into the group directory, along with Library files, make sure the filename is unique.
-        filename = "{}_{}.{}".format(basename, int(time.time()), ext)
+        filename = "{0}_{1}.{2}".format(basename, int(time.time()), ext)
         
         # return the whole path to the file
         return os.path.join(path, filename)
@@ -60,8 +69,9 @@ class Game(models.Model):
                         null = True,
                         blank = True,
                         upload_to = path_for_game_file(),
+                        max_length = 250,
                         max_upload_size = 204800, # 200KB
-                        content_types = ['application/x-yaml','text/yaml','text/plain','text/plain; charset=us-ascii'])
+                        content_types = ['application/x-yaml','text/yaml','text/plain','text/plain; charset=us-ascii', 'text/plain; charset=utf-8'])
     tags = TaggableManager(blank=True)
     
     def slug(self):
@@ -162,6 +172,9 @@ class Membership(models.Model):
     
     def __unicode__(self):
         return "{}:{}".format(self.game_group.name, self.role.name)
+        
+    def games(self):
+        return self.game_group.games
 
 
 def path_for_media_type():

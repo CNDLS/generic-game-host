@@ -3,7 +3,7 @@ $(function () {
   window.redactor = $('#redactor').redactor({
     buttons: ['formatting']
   });
-    
+
   var read_url = $("script#reader").attr("read-from");
   var parsed_yaml;
   // get the YAML from our URL.
@@ -92,6 +92,7 @@ $(function () {
             }
             evt.stopPropagation();
         });
+        
         $("#schema ul[type=function]").click(function (evt) {
             if (isOnArrow(evt)) {
               $(".redactor-box").css({ display: "none" });
@@ -110,6 +111,7 @@ $(function () {
             }
             evt.stopPropagation();
         });
+        
         // initialize functions in closed state.
         $("#schema ul[type=function]").each(function () {
           var params = $(this).find(".params > ul[type=array]").eq(0).children("li");
@@ -202,7 +204,7 @@ function getAssociatedClass (context, test_classname) {
   }
 }
 
-function scopeName(context, test_classname) {
+function scopeName (context, test_classname) {
   try{
     var scope = eval(context + "['" + test_classname.singularize().camelize() + "']");
     if (scope) {
@@ -211,12 +213,28 @@ function scopeName(context, test_classname) {
   } catch (e) {}
 }
 
+function is_html_spec (obj) {
+	var tag_id_class_regexp = /^(\w+)?(#\w[^\.\[]+)?((?:\.\w[^\[]+)*)?(\[\S+=\S+\])*$/;
+  var is_a_spec = true;
+  try {
+    for (var m in obj) {
+      is_a_spec = is_a_spec && tag_id_class_regexp.test(m) && tag_id_class_regexp.test(obj[m]);
+      if (m === "variable_name") is_a_spec = false;
+    }
+  } catch (e) {
+    is_a_spec = false;
+  }
+
+  return is_a_spec;
+}
+
 function renderYAML (yaml, container, context, current_scope) {
+	
     // init parsed_yaml_as_html as game, if nec.
     if (!container) {
         container = $("#schema");
         container.render({'h3': "&quot;" + yaml.get("Title") + "&quot;"});
-        container.render('ul[type=object]');
+        container.render('ul[type=object][game_class=Game]');
         container = container.find('ul[type=object]');
         context = "Game";
     }
@@ -301,11 +319,25 @@ function renderYAML (yaml, container, context, current_scope) {
                     
                   } else if (m_thing.hasOwnProperty("0")) {
                     li_container.attr("type", "array");
-                    ul_container = li_container.render("ul[type=array]");
-                      
+                    var ul_spec = "ul[type=array]"
+                    // if the array is named for an object defined on the current context, note that.
+                    nested_context = nested_context.replace(".Element", "");
+                    var ar_class = getAssociatedClass(nested_context, m_type);
+                    if (ar_class) {
+                      ul_spec += "[game_class=" + nested_context + "." + m_type.classify() + "]";
+                    }
+                    // render the completed spec.
+                    ul_container = li_container.render(ul_spec);
+                    
                   } else if (m_thing.hasOwnProperty("fn")) {
                     var fname = Game.getFunctionName(m_thing.fn);
                     ul_container = li_container.render({ "ul.closed[type=function]":fname }).find(":last");
+                    
+                  } else if (is_html_spec(m_thing)) {
+                    for (var n in m_thing) {
+                      li_container.append("div").html(n + " > " + m_thing[n]);
+                    }
+                    break;
                       
                   } else {
                     li_container.attr("type", "object");
@@ -334,7 +366,7 @@ function renderYAML (yaml, container, context, current_scope) {
                     current_thing = null;
                   }
 
-                  if (current_thing !== null) {
+                  if (ul_container && (current_thing !== null)) {
                     ul_container.attr("game_class", Game.getClassName(current_thing));
                   }
                   

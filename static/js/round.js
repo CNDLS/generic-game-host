@@ -120,11 +120,12 @@ Game.Round.prototype.setup = function () {
 		var reset_scene, prompt_without_scene;
 		try {
 			var prior_scene = $(this.game.scenes).select(function () {
-			  return this.rounds.offset(this.game.prior_round_nbr) > -1;
+			  return this.rounds.indexOf(this.game.prior_round_nbr) > -1;
 			});
 			if (prior_scene === undefined) {
 				reset_scene = true;
 			} else {
+        prior_scene = prior_scene[0];
 				reset_scene = (prior_scene.rounds.indexOf(this.nbr) === -1);
 			}
 		} catch (e) {
@@ -251,7 +252,7 @@ Game.Round.prototype.GiveWrongAnswer = function () {
 	var a_wrong_answer = 
 	$(this.answers).select(function () { return this.timeout_answer; })[0] ||
 	$(this.answers).select(function () { return !this.correct; })[0] ||
-	new Game.Answer();
+	new Game.Round.Answer();
 	return { answer: a_wrong_answer, score: a_wrong_answer.negative_value || 0 }
 }
 

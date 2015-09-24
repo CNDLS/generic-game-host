@@ -46,7 +46,7 @@ function Game(game_spec) {
 	// Create an object that associates Scenes with the Rounds in which they appear.
 	var scene_specs = this.read("Scenes");
 	this.scenes = [];
-	$(scene_specs).each(function (i){
+	$(scene_specs).each(function (i) {
 		var ith_scene = Game.SceneFactory.create(game, this, Game.Round.Events);
 		game.scenes.push(ith_scene);
 	});
@@ -58,9 +58,12 @@ function Game(game_spec) {
 	
 	// display any widgets that will remain available throughout the game.
 	// eg; a countdown clock, scoreboard, etc.
+  this.widgets_container = this.read("WidgetsContainer");
 	var widget_specs = this.read("Widgets");
-	this.widgets = $.each(widget_specs, function (i, widget_type_name){
-		return new Game.Widget[widget_type_name](game);
+	this.widgets = [];
+  $.each(widget_specs, function (i) {
+    var ith_widget = Game.WidgetFactory.create(game, this);
+    game.widgets.push(ith_widget);
 	});
 
 	// record the time the game was started.
@@ -81,6 +84,7 @@ Game.DEFAULTS = {
 	InternalClock: "InternalClock",
 	Scenes: [],
 	Widgets: [],
+	WidgetsContainer: $("#widgets"),
 	Reporter: "Reporter",
 	IntroDealer: "IntroDealer",
 	Rounds: [],
@@ -128,7 +132,7 @@ Game.prototype.introduce = function () {
 		}
 		// by default, use Game.Card.Modal to define the card.
 		// here, the default type "Modal" will be overwritten by any type in the intro_spec.
-		intro_spec = $.extend({ type: "Modal" }, intro_spec);
+		intro_spec = $.extend({ type: "Modal", css_class: "intro" }, intro_spec);
 		return _this.intro_dealer.addCard(intro_spec);
 	});
 	

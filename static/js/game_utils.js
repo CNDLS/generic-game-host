@@ -41,7 +41,7 @@ $.extend(Game, {
 	clearCards: function (selector, card_classnames) {
 		// clear all selected cards.
 		card_classnames = (card_classnames || "") + ".card";
-		$(selector || "*").find(card_classnames).each(function () {
+		$(selector || "#game").find(card_classnames).each(function () {
 			// fallback is to just remove the element.
 			var card = $(this).data().card || $(this);
 			// extra safeguard.

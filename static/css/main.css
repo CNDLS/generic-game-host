@@ -29,3 +29,17 @@
 #logo-gu {
   padding-top: 0.75em;
 }
+
+form#login-form {
+    position: relative;
+    top: 12em;
+    width: 24em;
+    margin: 0 auto;
+    display: block;
+}
+
+div#login-box {
+    text-align: center;
+    min-width: 100%;
+    display: block;
+}
