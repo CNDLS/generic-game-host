@@ -171,7 +171,12 @@ class Membership(models.Model):
     role = models.ForeignKey(Role)
     
     def __unicode__(self):
-        return "{}:{}".format(self.game_group.name or "Unknown Group", self.role.name or "Unknown Role")
+        group_name = self.game_group.name
+        group_name = "Unknown Group" if group_name==""
+        role_name = self.role.name
+        role_name = "Unknown Role" if role_name==""
+        
+        return "{}:{}".format(group_name, role_name)
         
     def games(self):
         return self.game_group.games
