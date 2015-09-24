@@ -10,9 +10,17 @@
   <div class="row">
     <div class="col-lg-12">
       <div id="top" class="ctr">
-        <a href="{% url 'admin:index' %}">Admin</a>
-    		&nbsp; &nbsp;
-    	  <a href="{% url 'browse' %}">Reports</a>
+        {% if current_user.is_authenticated %}
+            {% if current_user.is_superuser %}
+            <a href="{% url 'admin:index' %}">Admin</a>
+        		&nbsp; &nbsp;
+        	 <a href="{% url 'browse' %}">Reports</a>
+             {% endif %}
+        		&nbsp; &nbsp;
+            <a href="{% url 'logout' %}">Log Out</a>
+         {% else %}
+             <a href="{% url 'login' %}">Log In</a>
+         {% endif %}
       </div>
     </div>
   </div>
@@ -25,9 +33,9 @@
         {% for game in games %}
           <li>
               <a href="{% url 'play' game.id %}" game_nbr="{{ game.id }}">{{ game.name }}</a>
-              {% if True %}
+              {% ifnotequal game.role 'Player' %}
               <a class='edit_link' href="{% url 'edit' game.id %}">edit</a>
-              {% endif %}
+              {% endifnotequal %}
           </li>
         {% endfor %}
         </ul>

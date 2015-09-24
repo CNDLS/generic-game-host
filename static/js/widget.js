@@ -73,13 +73,12 @@ Game.Widget.CountdownClock.prototype.tick = function () {
     var p = elliptical_arc_regex.exec(path_cmds).splice(1, 7);
   
     // redraw bg svg.
-    var value = (current_time - this.max_time / this.max_time);
+    var value = 100 * (this.max_time - current_time) / this.max_time;
     var x = Math.cos((2 * Math.PI)/(100/value));
   	var y = Math.sin((2 * Math.PI)/(100/value));
 
   	//should the arc go the long way round?
-    var halfway_time = this.max_time / 2;
-  	var longArc = (value <= halfway_time) ? 0 : 1;
+  	var longArc = (value <= 50) ? 1 : 0;
     
     var new_path_cmds = ["A"];
     for (var i=0; i<p.length; i++) {

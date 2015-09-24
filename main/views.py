@@ -6,7 +6,8 @@ from django.core.context_processors import csrf
 from django.views.decorators.csrf import ensure_csrf_cookie, requires_csrf_token, csrf_protect
 from django.contrib.auth.models import User
 
-from main.models import Game, GameGroup, GameReport
+from main.models import Game, GameReport
+from main.models import GameGroup, Membership, Role
 from host.settings import MEDIA_ROOT, AJAX_PREFIX
 
 import os, json
@@ -37,16 +38,26 @@ def publicsitechanges(request):
     return render_to_response('sitechanges.html', context_instance=RequestContext(request))
     
     
-# list all the games that are available to students.
-@login_required
+def getGamesByGroupMembership():
+    Game.objects.filter()
+    
+    
+# list all the games that are available to the current user.
 def list(request):
-    if request.user.is_authenticated():
-        # get all of the games the current user can see (belongs to a group that can see them).
-        games = Game.objects.filter()
+    user_id = request.user.id if request.user.is_authenticated() else -1
+    if request.user.is_authenticated() and request.user.is_superuser:
+        games = Game.objects.all()
     else:
-        games = ''
-        
-    return render_to_response('list.html', { 'games':games }, context_instance=RequestContext(request))
+        user_memberships = Membership.objects.filter(user=user_id)
+        games = Game.objects.filter(game_group__in=user_memberships.prefetch_related('game_group'))
+    
+        for game in games:
+            # temporarily set a role value on the game object, to control edit access in the template.
+            game.role = str(user_memberships.get(game_group=game.game_group).role)
+    
+    return render_to_response('list.html', { 'games': games,
+                                             'current_user': request.user,
+                                            }, context_instance=RequestContext(request))
 
 
 def edit(request, game_id):
@@ -77,7 +88,6 @@ def read(request, game_id):
 
 
 # play a game, defined by a yaml file.
-@login_required
 @csrf_protect
 def play(request, game_id):
     game = get_object_or_404(Game, pk=game_id)

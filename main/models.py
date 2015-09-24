@@ -172,6 +172,9 @@ class Membership(models.Model):
     
     def __unicode__(self):
         return "{}:{}".format(self.game_group.name, self.role.name)
+        
+    def games(self):
+        return self.game_group.games
 
 
 def path_for_media_type():
