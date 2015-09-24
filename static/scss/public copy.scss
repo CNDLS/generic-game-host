@@ -24,88 +24,62 @@ body {
 }
 
 
-
 /*****
 Header
 *********************************************/
-.header.full {
-  position: fixed;
+.header {
   width: 100%;
-  height: calc(100vw * .3);
+  height: 300px;
+  overflow: hidden;
+  position: fixed;
   top: 0;
   left: 0;
-  padding: 0 0 10px 0;
-  overflow: hidden;
   z-index: 999;
   background-color: #373737;
   transition: height .3s;
- 
+  
   & #logo {
     display: inline-block;
-    position: relative;
-    background: url(../img/levl_logo.png) no-repeat;
-    background-size: contain;
-    width: 45vw;
-    // width: 45vw; //using svg
-    height: calc(100vw * .2);
-    // height: 20vw; //using svg
-    left: 27.5vw;
+    position: absolute;
+    background: url(../img/levl.svg) no-repeat;
+    height: 300px;
+    width: 684px;
+    float: left;
+    margin: 0;
     transition: all .3s;
   }
 
-  & .main-nav.full {
+  & nav {
+    display: inline-block;
+    float: right;
+    margin-right: 50px;
     position: relative;
-    width: 45vw;
-    height: calc((100vw * .2) / 2);
-    top: calc(100vw * .01);
-    left: 27.5vw;
-    padding: 0;
-    font-size: 2vw;
-    text-align: center;
-    transition: all .3s;
-
-    & li {
-      display: inline-block; 
-      width: calc(45vw / 3);
-      padding-top: calc((100vw * .2) / 8);
-      list-style: none;
-      // outline: 1px solid red;
-    }
+    font-size: 1.5em;
+    top: 20%;
 
     & a {
+      line-height: 175px;
+      margin-left: 20px;
       color: #9D9D9D;
-      // transition: all .3s;
+      transition: all .3s;
 
       &:hover {
         color: #fff;
-        text-decoration: none;
       }
     }
   }
 
   &.smaller {
-    height: 65px;
-    min-height: 65px;
-    padding: 0;
+    height: 75px;
 
     & #logo {
       width: 150px;
       height: 70px;
-      margin-left: 0px;
-      left: 0px;
-      
+      margin-top: 5px;
     }
 
-    & .main-nav {
-      width: 45vw;
-      height: 65px;
-      top: -7.75vw;
-      left: 50vw;
-      font-size: 1.75vw;
-      padding: 0;
-      margin: 0;
-      transition: left .3s cubic-bezier(0.46,0.03,0.52,0.96),
-                top .4s cubic-bezier(0.46,0.03,0.52,0.96);
+    & nav {
+      font-size: .9em;
     }
 
     & nav a {

@@ -18,65 +18,48 @@ body {
 /*****
 Header
 *********************************************/
-.header.full {
-  position: fixed;
+.header {
   width: 100%;
-  height: calc(100vw * .3);
+  height: 19vw;
+  padding: 0;
+  overflow: hidden;
+  position: fixed;
   top: 0;
   left: 0;
-  padding: 0 0 10px 0;
-  overflow: hidden;
   z-index: 999;
   background-color: #373737;
   transition: height .3s; }
-  .header.full #logo {
+  .header #logo {
     display: inline-block;
-    position: relative;
-    background: url(../img/levl_logo.png) no-repeat;
-    background-size: contain;
+    position: absolute;
+    background: url(../img/levl.svg) no-repeat;
+    height: 20vw;
     width: 45vw;
-    height: calc(100vw * .2);
-    left: 27.5vw;
+    float: left;
+    margin: 0;
     transition: all .3s; }
-  .header.full .main-nav.full {
+  .header nav {
+    display: inline-block;
+    float: right;
+    width: 20vw;
     position: relative;
-    width: 45vw;
-    height: calc((100vw * .2) / 2);
-    top: calc(100vw * .01);
-    left: 27.5vw;
-    padding: 0;
-    font-size: 2vw;
-    text-align: center;
-    transition: all .3s; }
-    .header.full .main-nav.full li {
-      display: inline-block;
-      width: calc(45vw / 3);
-      padding-top: calc((100vw * .2) / 8);
-      list-style: none; }
-    .header.full .main-nav.full a {
-      color: #9D9D9D; }
-      .header.full .main-nav.full a:hover {
-        color: #fff;
-        text-decoration: none; }
-  .header.full.smaller {
-    height: 65px;
-    min-height: 65px;
-    padding: 0; }
-    .header.full.smaller #logo {
+    font-size: 1.25em;
+    top: 20%; }
+    .header nav a {
+      line-height: 175px;
+      margin-left: 20px;
+      color: #9D9D9D;
+      transition: all .3s; }
+      .header nav a:hover {
+        color: #fff; }
+  .header.smaller {
+    height: 65px; }
+    .header.smaller #logo {
       width: 150px;
-      height: 70px;
-      margin-left: 0px;
-      left: 0px; }
-    .header.full.smaller .main-nav {
-      width: 45vw;
-      height: 65px;
-      top: -7.75vw;
-      left: 50vw;
-      font-size: 1.75vw;
-      padding: 0;
-      margin: 0;
-      transition: left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.4s cubic-bezier(0.46, 0.03, 0.52, 0.96); }
-    .header.full.smaller nav a {
+      height: 70px; }
+    .header.smaller nav {
+      font-size: .9em; }
+    .header.smaller nav a {
       line-height: 75px; }
 
 /*****
