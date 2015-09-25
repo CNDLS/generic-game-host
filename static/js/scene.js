@@ -98,6 +98,7 @@ Game.Scene.Basic.prototype.setup = function (round) {
     
     // put down the backdrop, then create and add the set pieces.
     var _this = this;
+    var set_piece_id;
     this.deal(this.backdrop).then(function () {
       _this.set_pieces = $.collect(_this.set_piece_specs, function (i) {
         var card_spec = this;
@@ -106,12 +107,22 @@ Game.Scene.Basic.prototype.setup = function (round) {
         }
         var set_piece = _this.addCard(Game.Scene.SetPieceFactory.create(_this, card_spec));
         set_piece.style("set_piece");
+        
+        // if the set_piece has an id associated with it, save its jQuery object as a member of the scene.
+        // (eg; div#tower yields this.tower).
+        if (set_piece_id = set_piece.element.attr("id")) {
+          if (!_this.hasOwnProperty(set_piece_id)) {
+            _this[set_piece_id] = set_piece.element;
+          }
+        }
+        
         return set_piece;
       });
       // deal the set pieces into the backdrop.
       _this.deal(_this.set_pieces, _this.backdrop.element).then(function() {
         // once all the Cards are dealt, call finalize(), 
         // so custom scripts will have access to them all.
+    		round.scene = _this;
         _this.finalize(round);
         _this.onstage = true;
         // all round to move on.
