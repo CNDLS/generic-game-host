@@ -43,3 +43,14 @@ div#login-box {
     min-width: 100%;
     display: block;
 }
+
+a.edit_link {
+    font-size: 0.6em;
+    letter-spacing: 0.1em;
+    color: white;
+    background-color: #ccc;
+    padding: 0.125em 0.5em;
+    border-radius: 0.25em;
+    margin: 0 0.5em;
+    display: inline-block;
+}

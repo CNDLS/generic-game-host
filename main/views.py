@@ -71,6 +71,9 @@ def edit(request, game_id):
 def editormock(request):
     return render_to_response('editor_mock.html', context_instance=RequestContext(request))
     
+def playermock(request):
+    return render_to_response('flowplayer/index.html', context_instance=RequestContext(request))
+    
 # get a game file from which to construct a game.
 def read(request, game_id):
     # don't make it easy to get this from the browser.

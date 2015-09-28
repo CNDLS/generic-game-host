@@ -6,7 +6,7 @@ Game.ResponderCard.Simple = function (args) {
 	var answer = args.shift();
 	var score = args.shift();
 	if (answer.feedback) {
-		Util.extend_properties(this, new Game.Card.Modal(answer.feedback));
+		Game.Card.Modal.call(this, answer.feedback);
 	}
 }
 Util.extend(Game.ResponderCard.Simple, Game.Card.Modal);

@@ -224,5 +224,11 @@
   display: none;
 }
 
-body {
+.editor-label {
+  display: block;
+  padding: 0.6em 1em;
+  line-height: 1.6em;
+  background-color: #f96;
+  font-size: 0.9em;
+  border-bottom: 1px solid #e85;
 }

@@ -8,7 +8,7 @@ Game.Round.Prompter = function (round, spec) {
 	this.spec = spec;
 	
 	var container = (spec && spec.container) ? spec.container : round.container;
-	Util.extend_properties(this, new Game.Dealer(round, container));
+	Game.Dealer.call(this, round, container);
 	
 	// by default, we just put up a Prompt; user inputs that will give answers are owned by the Prompter.
 	this.accept_user_input = spec.accept_user_input || Game.Round.Prompter.DEFAULTS.AcceptUserInput;

@@ -64,7 +64,7 @@ Game.SceneFactory = {
 }
 
 Game.Scene.Basic = function (scene_type_name, backdrop_spec, set_piece_specs, game) {
-  Util.extend_properties(this, new Game.Dealer(game));
+  Game.Dealer.call(this, game);
   this.scene_type_name = scene_type_name;
   this.backdrop = new Game.Card(backdrop_spec);
   this.set_piece_specs = set_piece_specs;
@@ -110,7 +110,7 @@ Game.Scene.Basic.prototype.setup = function (round) {
         
         // if the set_piece has an id associated with it, save its jQuery object as a member of the scene.
         // (eg; div#tower yields this.tower).
-        if (set_piece_id = set_piece.element.attr("id")) {
+        if (set_piece_id = set_piece.element.attr("id").replace("-", "_")) {
           if (!_this.hasOwnProperty(set_piece_id)) {
             _this[set_piece_id] = set_piece.element;
           }
@@ -186,7 +186,7 @@ Game.Scene.SetPieceFactory = {
 }
 
 Game.Scene.SetPiece.Basic = function (card_spec) {
-  Util.extend_properties(this, new Game.Card(card_spec));
+  Game.Card.call(this, card_spec)
 }
 Util.extend(Game.Scene.SetPiece.Basic, Game.Card);
 Game.Scene.SetPiece.Basic.prototype = new Game.Card(null); 

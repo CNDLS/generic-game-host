@@ -8,7 +8,7 @@ Game.Round.Responder = function (round, spec) {
 	this.spec = spec;
 	
 	var container = (spec && spec.container) ? spec.container : round.container;
-	Util.extend_properties(this, new Game.Dealer(round, container));
+	Game.Dealer.call(this, round, container);
 	
 	// by default, we put up a Modal Feedback.
 	this.accept_user_input = spec.accept_user_input || Game.Round.Responder.DEFAULTS.AcceptUserInput;

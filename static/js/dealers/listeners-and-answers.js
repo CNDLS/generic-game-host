@@ -13,7 +13,7 @@ Game.Round.Listener = function (round, spec) {
 	this.spec = spec;
 	
 	var container = (spec && spec.container) ? spec.container : round.container;
-	Util.extend_properties(this, new Game.Dealer(round, container));
+	Game.Dealer.call(this, round, container);
 
 	// get *user* response types and insure it is an array.
 	this.user_input_types = spec.user_input_types|| spec.user_input_types || Game.Round.Listener.DEFAULTS.UserInputTypes;
@@ -61,7 +61,7 @@ Game.Round.Listener.prototype.listen = function () {
 Game.Round.PromptLinkListener = function (round, spec) {
 	spec = spec || {};
 	spec.user_input_types = []; // we don't want any Listener Cards created; we just use the links in the Prompt(s).
-	Util.extend_properties(this, new Game.Round.Listener(round, spec));
+	Game.Round.Listener.call(this, round, spec);
 }
 Util.extend(Game.Round.PromptLinkListener, Game.Round.Listener);
 
@@ -98,7 +98,7 @@ Game.Round.GroupedInputsListener = function (round, spec) {
 	// this will necessarily require more than one user action, 
 	// so we hide any 'continue' buttons, collect all user_input_promises, and resolve upon a click on our Submit button.
 	spec.user_input_types = ["GroupedInput"];
-	Util.extend_properties(this, new Game.Round.Listener(round, spec));
+	Game.Round.Listener.call(this, round, spec);
 }
 Util.extend(Game.Round.GroupedInputsListener, Game.Round.Listener);
 

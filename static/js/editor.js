@@ -1,7 +1,14 @@
-$(function () {
+if (!RedactorPlugins) var RedactorPlugins = {};
 
-  window.redactor = $('#redactor').redactor({
-    buttons: ['formatting']
+$(function () {
+  window.wysiwyg_editor = $('#redactor').redactor({
+    focus: true,
+    buttons: ['formatting'],
+    plugins: ['textexpander'],
+    textexpander: [
+        ['obj', "{" + $.render("p").html + "}"],
+        ['arr', "[" + $.render("p").html + "]"]
+    ]
   });
 
   var read_url = $("script#reader").attr("read-from");
@@ -39,7 +46,7 @@ $(function () {
           }
         );
         // clear.
-        $("#schema, #editor_column").click(function (evt) {
+        $("#schema").click(function (evt) {
             $("#schema *").attr("state", null);
             $(".redactor-box").css({ display: "none" });
             evt.stopPropagation();
@@ -124,6 +131,7 @@ $(function () {
 
         // delete key.
         $(document.body).keydown(function (evt) {
+          if (evt.target === $("#redactor").get(0)){ return; }
             if (evt.keyCode === 8) {
                 var active_element = $("[state=active]");
                 if (!active_element.is(":empty")) {
@@ -169,9 +177,9 @@ function activateTarget (evt_target) {
         return (gc);
       }).pop()
       if (game_class) {
-        redactor.text(game_class);
+        wysiwyg_editor.text(game_class);
       } else {
-        redactor.text(" ");
+        wysiwyg_editor.text(" ");
       }
   }
 }

@@ -7,7 +7,7 @@
 /* FreeResponseCard just creates a card with a text input field and doesn't care about the answer. */
 Game.ListenerCard.FreeResponseCard = function (args) {
 	var round = args.shift();
-	Util.extend_properties(this, new Game.Card({ div:"input[type=text]" }));
+  Game.Card.call(this, { div:"input[type=text]" });
 }
 Util.extend(Game.ListenerCard.FreeResponseCard, Game.Card);
 
@@ -55,7 +55,7 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 		return btn.html;
 	}).join("\n");
 	radio_btn_html = "<ul>" + prompt_html + radio_btn_html + "</ul>";
-	Util.extend_properties(this, new Game.Card(radio_btn_html));
+	Game.Card.call(this, radio_btn_html);
 }
 Util.extend(Game.ListenerCard.MultipleChoiceCard, Game.Card);
 
@@ -113,7 +113,7 @@ Game.ListenerCard.MultipleAnswerCard = function (args) {
 	// wrap li's in a ul. add a submit button, to send state of checkboxes.
 	var submit_btn_html = "<li><button type='submit' form='" + group_name + "_form' value='submit'>Submit</button></li>"
 	checkbox_html = "<ul><form id='" + group_name + "_form'>" + prompt_html + checkbox_html + submit_btn_html + "</ul>";
-	Util.extend_properties(this, new Game.Card(checkbox_html));
+  Game.Card.call(this, checkbox_html);
 }
 Util.extend(Game.ListenerCard.MultipleAnswerCard, Game.Card);
 
@@ -127,7 +127,7 @@ Game.ListenerCard.LinkCard = function (args) {
 	this.round = args.shift();
 	var elem = args.shift();
 	$(elem).attr("data-keep-in-dom", true);
-	Util.extend_properties(this, new Game.Card(elem));
+	Game.Card.call(this, elem);
 }
 Util.extend(Game.ListenerCard.LinkCard, Game.Card);
 
@@ -152,6 +152,6 @@ Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
  * They all report together.
  */
 Game.ListenerCard.GroupedInputCard = function (args) {
-	Util.extend_properties(this, new Game.Card("div"));
+	Game.Card.call(this, "div");
 }
 Util.extend(Game.ListenerCard.GroupedInputCard, Game.Card);

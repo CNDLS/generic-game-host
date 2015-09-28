@@ -2,7 +2,7 @@
  * Game.IntroDealer sets up the game & gives UI instructions.
  */
 Game.IntroDealer = function (game, container) {
-	Util.extend_properties(this, new Game.Dealer(game, container));
+  Game.Dealer.call(this, game, container);
 }
 Util.extend(Game.IntroDealer, Game.Dealer);
 

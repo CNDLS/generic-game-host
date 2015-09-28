@@ -20,8 +20,9 @@
 {% block js %}
     {{ block.super }}
     <script src="{{ STATIC_URL }}js/redactor.js"></script>
+    <script src="{{ STATIC_URL }}js/redactor-plugins/textexpander.js"></script>
     <script src="{{ STATIC_URL }}js/editor.js"></script>
-    
+        
     <!-- game-type-specific js. -->
     {% for library_file in library_files %}
         <script type="text/javascript" src="{{ MEDIA_URL }}{{ library_file.file.name }}" ></script>
