@@ -2140,7 +2140,7 @@ function loadDocuments(input, options) {
   }
 	
 	/**** track variable names for YAML editor. 09/05/15 bg ****/
-	for (m in state.anchorMap) {
+	for (var m in state.anchorMap) {
 		state.anchorMap[m].variable_name = m;
 	}
 

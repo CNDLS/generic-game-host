@@ -177,35 +177,33 @@ Game.Card.create = function (spec) {
  * Game.Card.Modal
  * Cards which 'stop the action' & require a user response.
  */
-Game.Card.Modal = function (spec) {
-	// create a card in the normal way.
-	Util.extend_properties(this, new Game.Card(spec));
+Game.Card.Modal = Util.extendClass(Game.Card, function (spec) {
+  Game.Card.call(this, spec);
 	// add the bit where we wait for the user.
 	this.user_input_dfd = $.Deferred();
 	this.user_input_promise = this.user_input_dfd.promise();
-}
-Util.extend(Game.Card.Modal, Game.Card);
-Game.Card.Modal.prototype = new Game.Card(null); 
-
-Game.Card.Modal.prototype.dealTo = function (container) {
-	Game.Card.prototype.dealTo.call(this, container);
-	this.addOKButton();
-	return true;
-}
-
-Game.Card.Modal.prototype.addOKButton = function () {
-	// once the user clicks to continue, we can move onto the game.
-	// for now, we"re going to stick to the notion that all intros require a click to continue.
-	if (this.element.find("button.continue").length > 0) { 
-		return;
-	}
-	var _this = this;
-	var ok_button = $(document.createElement("button"))
-										.attr("href", "#")
-										.addClass("continue")
-										.html("Continue").click(function () {
-		_this.user_input_dfd.resolve();
-		_this.remove();
-	});
-	ok_button.appendTo(this.element);
-};
+},
+{
+  dealTo: function (container) {
+  	Game.Card.prototype.dealTo.call(this, container);
+  	this.addOKButton();
+  	return true;
+  },
+  
+  addOKButton: function () {
+  	// once the user clicks to continue, we can move onto the game.
+  	// for now, we"re going to stick to the notion that all intros require a click to continue.
+  	if (this.element.find("button.continue").length > 0) { 
+  		return;
+  	}
+  	var _this = this;
+  	var ok_button = $(document.createElement("button"))
+  										.attr("href", "#")
+  										.addClass("continue")
+  										.html("Continue").click(function () {
+  		_this.user_input_dfd.resolve();
+  		_this.remove();
+  	});
+  	ok_button.appendTo(this.element);
+  }
+});

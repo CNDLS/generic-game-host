@@ -99,6 +99,16 @@ Util = {
 		}
 	},
 	
+	extendClass: function (superclass, subclass, prototype_extension) {
+		"use strict";
+
+		function o() { this.constructor = subclass; }
+		o.prototype = superclass.prototype;
+    subclass.prototype = $.extend(new o(), prototype_extension || {});
+		return subclass;
+	},
+  
+  // extend() is deprecated. 9/27/15 bg.
 	extend: function (subclass, superclass) {
 		"use strict";
 

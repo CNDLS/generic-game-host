@@ -63,106 +63,106 @@ Game.SceneFactory = {
   }
 }
 
-Game.Scene.Basic = function (scene_type_name, backdrop_spec, set_piece_specs, game) {
+Game.Scene.Basic = Util.extendClass(Game.Dealer, function (scene_type_name, backdrop_spec, set_piece_specs, game) {
   Game.Dealer.call(this, game);
   this.scene_type_name = scene_type_name;
   this.backdrop = new Game.Card(backdrop_spec);
   this.set_piece_specs = set_piece_specs;
   this.onstage = false; // we should be able to switch out scenes while saving their state.
-}
-Util.extend(Game.Scene.Basic, Game.Dealer);
-
-
-Game.Scene.Basic.prototype.init = function (events) {
-  // track all of the state transitions that happen in Rounds.
-  // *** insure that only one listener gets created for each enter and leave event.
-  var round_events = $.collect(events, function () {
-    return "Round.leave" + this.from + " Round.enter" + this.to;
-  });
-  // strip out duplicates and put into a space-delimited string.
-  round_events = Array.getUnique(round_events).join(" ");
-  
-  var _this = this;
-  $(document).on(round_events, function (evt, state_info) {
-    return _this.trackRound(evt, state_info)
-  });
-}
-
-
-// I respond to Round setup events by loading my background and dealing my cards.
-Game.Scene.Basic.prototype.setup = function (round) {
-  var dfd = $.Deferred();
-  if (!this.onstage) {
-    var backdrop_classes = "backdrop " + this.scene_type_name.underscore();
-    this.backdrop.style(backdrop_classes);
-    
-    // put down the backdrop, then create and add the set pieces.
-    var _this = this;
-    var set_piece_id;
-    this.deal(this.backdrop).then(function () {
-      _this.set_pieces = $.collect(_this.set_piece_specs, function (i) {
-        var card_spec = this;
-        if (card_spec instanceof String) {
-          card_spec = card_spec.toString();
-        }
-        var set_piece = _this.addCard(Game.Scene.SetPieceFactory.create(_this, card_spec));
-        set_piece.style("set_piece");
-        
-        // if the set_piece has an id associated with it, save its jQuery object as a member of the scene.
-        // (eg; div#tower yields this.tower).
-        if (set_piece_id = set_piece.element.attr("id").replace("-", "_")) {
-          if (!_this.hasOwnProperty(set_piece_id)) {
-            _this[set_piece_id] = set_piece.element;
-          }
-        }
-        
-        return set_piece;
-      });
-      // deal the set pieces into the backdrop.
-      _this.deal(_this.set_pieces, _this.backdrop.element).then(function() {
-        // once all the Cards are dealt, call finalize(), 
-        // so custom scripts will have access to them all.
-    		round.scene = _this;
-        _this.finalize(round);
-        _this.onstage = true;
-        // all round to move on.
-        dfd.resolve();
-      });
+},
+{
+  init: function (events) {
+    // track all of the state transitions that happen in Rounds.
+    // *** insure that only one listener gets created for each enter and leave event.
+    var round_events = $.collect(events, function () {
+      return "Round.leave" + this.from + " Round.enter" + this.to;
     });
-  } else {
-    dfd.resolve();
-  }
+    // strip out duplicates and put into a space-delimited string.
+    round_events = Array.getUnique(round_events).join(" ");
   
-  return dfd.promise();
-}
+    var _this = this;
+    $(document).on(round_events, function (evt, state_info) {
+      return _this.trackRound(evt, state_info)
+    });
+  },
 
-
-Game.Scene.Basic.prototype.tearDown = function () {
-  $(this.cards).each(function () {
-    this.remove();
-  });
-  this.backdrop.remove();
-}
-
-Game.Scene.Basic.prototype.finalize = function () {
-  // kept for custom code.
-}
-
-Game.Scene.Basic.prototype.trackRound = function (evt, state_info) {
-  // game scenes can have a handler function named for entering or leaving any Round state,
-  // which will get executed at that point.
-  // if an appropriate handler is defined on the scene,
-  // call it, passing the event and the info object.
-  // don't interrupt the game if there are any problems, as
-  // this is all for decoration.
-  try {
-    if (typeof this[evt.namespace] === "function") {
-      return (this[evt.namespace]).bind(this)(evt, state_info);
+  // I respond to Round setup events by loading my background and dealing my cards.
+  setup: function (round) {
+    var dfd = $.Deferred();
+    if (!this.onstage) {
+      var backdrop_classes = "backdrop " + this.scene_type_name.underscore();
+      this.backdrop.style(backdrop_classes);
+    
+      // put down the backdrop, then create and add the set pieces.
+      var _this = this;
+      var set_piece_id;
+      this.deal(this.backdrop).then(function () {
+        _this.set_pieces = $.collect(_this.set_piece_specs, function (i) {
+          var card_spec = this;
+          if (card_spec instanceof String) {
+            card_spec = card_spec.toString();
+          }
+          var set_piece = _this.addCard(Game.Scene.SetPieceFactory.create(_this, card_spec));
+          set_piece.style("set_piece");
+        
+          // if the set_piece has an id associated with it, save its jQuery object as a member of the scene.
+          // (eg; div#tower yields this.tower).
+          if (set_piece_id = set_piece.element.attr("id").replace("-", "_")) {
+            if (!_this.hasOwnProperty(set_piece_id)) {
+              _this[set_piece_id] = set_piece.element;
+            }
+          }
+        
+          return set_piece;
+        });
+        // deal the set pieces into the backdrop.
+        _this.deal(_this.set_pieces, _this.backdrop.element).then(function() {
+          // once all the Cards are dealt, call finalize(), 
+          // so custom scripts will have access to them all.
+      		round.scene = _this;
+          _this.finalize(round);
+          _this.onstage = true;
+          // all round to move on.
+          dfd.resolve();
+        });
+      });
+    } else {
+      dfd.resolve();
     }
-  } catch (e) {
-    console.error("Scene error in responding to Round state transition.", evt, e, e.stack);
+  
+    return dfd.promise();
+  },
+
+  tearDown: function () {
+    $(this.cards).each(function () {
+      this.remove();
+    });
+    this.backdrop.remove();
+  },
+
+  finalize: function () {
+    // kept for custom code.
+  },
+
+  trackRound: function (evt, state_info) {
+    // game scenes can have a handler function named for entering or leaving any Round state,
+    // which will get executed at that point.
+    // if an appropriate handler is defined on the scene,
+    // call it, passing the event and the info object.
+    // don't interrupt the game if there are any problems, as
+    // this is all for decoration.
+    try {
+      if (typeof this[evt.namespace] === "function") {
+        return (this[evt.namespace]).bind(this)(evt, state_info);
+      }
+    } catch (e) {
+      console.error("Scene error in responding to Round state transition.", evt, e, e.stack);
+    }
   }
-}
+});
+
+
+
 
 /*
  * SetPieces are the Cards held by a Scene.
@@ -185,8 +185,6 @@ Game.Scene.SetPieceFactory = {
   }
 }
 
-Game.Scene.SetPiece.Basic = function (card_spec) {
+Game.Scene.SetPiece.Basic = Util.extendClass(Game.Card, function (card_spec) {
   Game.Card.call(this, card_spec)
-}
-Util.extend(Game.Scene.SetPiece.Basic, Game.Card);
-Game.Scene.SetPiece.Basic.prototype = new Game.Card(null); 
+});
