@@ -2,6 +2,9 @@
 color vars
 *********************************************/
 /*****
+width/height vars
+*********************************************/
+/*****
 basics
 *********************************************/
 .test {
@@ -18,178 +21,119 @@ body {
 /*****
 Header
 *********************************************/
-.header.full {
+.headerWrapper {
   position: fixed;
   width: 100%;
-  height: calc(100vw * .3);
-  top: 0;
-  left: 0;
-  padding: 0 0 10px 0;
-  overflow: hidden;
-  z-index: 999;
+  height: 38vw;
+  margin-bottom: 30px;
   background-color: #373737;
-  transition: height .3s; }
-  .header.full #logo {
-    display: inline-block;
-    position: relative;
-    background: url(../img/levl_logo.png) no-repeat;
-    background-size: contain;
-    width: 45vw;
-    height: calc(100vw * .2);
-    left: 27.5vw;
-    transition: all .3s; }
-  .header.full .main-nav.full {
-    position: relative;
-    width: 45vw;
-    height: calc((100vw * .2) / 2);
-    top: calc(100vw * .01);
-    left: 27.5vw;
-    padding: 0;
-    font-size: 2vw;
-    text-align: center;
-    transition: all .3s; }
-    .header.full .main-nav.full li {
-      display: inline-block;
-      width: calc(45vw / 3);
-      padding-top: calc((100vw * .2) / 8);
-      list-style: none; }
-    .header.full .main-nav.full a {
-      color: #9D9D9D; }
-      .header.full .main-nav.full a:hover {
-        color: #fff;
-        text-decoration: none; }
-  .header.full.smaller {
+  outline: 1px solid red;
+  transition: height .4s; }
+  @media (min-width: 992px) {
+    .headerWrapper {
+      height: 375px; } }
+  .headerWrapper.smaller {
     height: 65px;
     min-height: 65px;
-    padding: 0; }
-    .header.full.smaller #logo {
-      width: 150px;
-      height: 70px;
-      margin-left: 0px;
-      left: 0px; }
-    .header.full.smaller .main-nav {
-      width: 45vw;
-      height: 65px;
-      top: -7.75vw;
-      left: 50vw;
-      font-size: 1.75vw;
-      padding: 0;
-      margin: 0;
-      transition: left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.4s cubic-bezier(0.46, 0.03, 0.52, 0.96); }
-    .header.full.smaller nav a {
-      line-height: 75px; }
+    margin-bottom: 30px; }
+
+.spacer {
+  position: relative;
+  width: 100%;
+  height: 38vw;
+  margin-bottom: 30px;
+  transition: height .4s; }
+  @media (min-width: 992px) {
+    .spacer {
+      height: 375px; } }
+  .spacer.smaller {
+    height: 65px;
+    min-height: 65px;
+    margin-bottom: 30px; }
+
+.logo {
+  position: absolute;
+  width: 57vw;
+  height: 25vw;
+  left: calc((43vw - 20px) / 2);
+  display: block;
+  background: url("../img/levl_logo.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin: 0 auto;
+  transition: all .4s; }
+  @media (min-width: 992px) {
+    .logo {
+      width: 571px;
+      height: 250px;
+      left: calc((100vw - 571px - 20px) / 2); } }
+  .logo.smaller {
+    width: 150px;
+    height: 65px;
+    margin-left: 0;
+    left: 0;
+    transition: height 0.35s cubic-bezier(0.46, 0.03, 0.52, 0.96), width 0.35s cubic-bezier(0.46, 0.03, 0.52, 0.96), left 0.2s cubic-bezier(0.46, 0.03, 0.52, 0.96); }
+
+.navContainer {
+  position: relative;
+  transition: all; }
+  @media (max-width: 767px) {
+    .navContainer {
+      width: 100%;
+      padding: 0 10px 0 10px;
+      left: 0;
+      top: calc(25vw + 10%);
+      font-size: 1.35em;
+      transition: width 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
+  @media (min-width: 768px) and (max-width: 991px) {
+    .navContainer {
+      width: 80%;
+      left: 10%;
+      top: calc(25vw + 15%);
+      font-size: 1.65em;
+      transition: width 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
+  @media (min-width: 992px) {
+    .navContainer {
+      width: 57vw;
+      left: calc((43vw - 20px) / 2);
+      top: 300px;
+      font-size: 2em;
+      transition: width 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
+  @media (min-width: 992px) {
+    .navContainer {
+      width: 571px;
+      left: calc((100vw - 571px - 20px) / 2);
+      font-size: 2em;
+      transition: left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), width 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
+  @media (max-width: 767px) {
+    .navContainer.smaller {
+      outline: 1px solid blue; } }
+  @media (min-width: 768px) and (max-width: 991px) {
+    .navContainer.smaller {
+      outline: 1px solid red; } }
+  @media (min-width: 992px) {
+    .navContainer.smaller {
+      outline: 1px solid green; } }
+
+.pagesUL {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between; }
+  .pagesUL li {
+    display: inline-block;
+    line-height: 100%; }
+  .pagesUL li a {
+    color: #ffffff; }
 
 /*****
-main wrapper and cards
+Main content, aka .main-wrap
 *********************************************/
 .main-wrap {
-  background-color: rgba(229, 229, 230, 0.8);
-  min-height: 100%;
-  padding-bottom: 5rem;
-  margin-top: 150px; }
-
-hr {
-  width: 80%;
-  margin: 3rem auto;
-  height: 4px;
-  color: white;
-  z-index: 99; }
-
-.infosection {
-  padding: 10px;
-  background-color: #f2f2f3;
-  margin-bottom: 1.5rem;
-  border: 1px solid #bdbdc1; }
-
-/*****
-main blurb
-*********************************************/
-.main-blurb {
-  background-image: url(../img/siteImgs/apple-desk-laptop-working-large.jpg);
-  background-size: 100%;
-  background-repeat: no-repeat;
-  padding: 0 2rem; }
-  .main-blurb h1 {
-    color: white;
-    font-style: italic;
-    padding-top: 25%;
-    word-wrap: break-word;
-    hyphens: auto; }
-    @media screen and (max-width: 768px) {
-      .main-blurb h1 {
-        font-size: 1.75rem; } }
-
-.main-blurb .bgimage-inside {
-  padding-top: 63.1068%; }
-
-.whatis {
-  padding-top: 3rem;
-  padding-bottom: 3rem; }
-
-.whatis .infosection {
-  font-size: 2rem;
-  text-align: center; }
-
-/*****
-What is lev/l
-*********************************************/
-.whatis .infosection:first-child .bgimage {
-  background-image: url(../img/siteImgs/school-furniture-education-university-medium.jpg);
-  background-size: 100%;
-  margin-top: 2rem; }
-  .whatis .infosection:first-child .bgimage .bgimage-inside {
-    padding-top: 66.2879%; }
-
-.whatis .infosection:nth-child(2) .bgimage {
-  background-image: url(../img/siteImgs/hands-people-working-large.jpg);
-  background-size: 100%;
-  margin-top: 2rem; }
-  .whatis .infosection:nth-child(2) .bgimage .bgimage-inside {
-    padding-top: 66.2879%; }
-
-/*****
-teams
-*********************************************/
-/*****
-orig styles
-*********************************************/
-.rt-col-list {
-  margin-top: 4rem; }
-
-.public.container {
-  padding: 96px 0;
-  font-size: 1.5em; }
-
-.public.container ul {
-  list-style: none; }
-
-.public.container ul.outline > li {
-  margin: 1.5em 0; }
-
-.public.container li {
-  margin: 0.25em 0; }
-
-ul.options {
-  font-style: italic;
-  padding-bottom: 24px; }
-
-ul.options span {
-  font-weight: normal;
-  color: #92989B; }
-
-ul.outline h3 {
-  color: #92989B;
-  font-size: 20px;
-  margin-bottom: 2px; }
-
-.ctr {
-  text-align: center; }
-
-.float-ctr {
-  margin-left: auto;
-  margin-right: auto; }
-
-img.callout {
-  width: 100%; }
+  font-size: 1.7em;
+  color: #fff;
+  line-height: 1.4em; }
 
 /*# sourceMappingURL=public.css.map */

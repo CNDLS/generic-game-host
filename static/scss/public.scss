@@ -5,6 +5,23 @@ $blue1: #0083B6;
 // $blue1: rgba(0,131,182, 1);
 $gray1: #6D6E71;
 // $gray1: rgba(109,110,113, 1);
+$headerGray: #373737;
+
+
+/*****
+width/height vars
+*********************************************/
+$scrollBarWidth: 20px;
+
+$headerWrapperHeight: 38vw;
+$headerWrapperMaxHeight: 375px;
+
+$logoWidth: 57vw;
+$logoHeight: 25vw;
+$logoMaxWidth: 571px;
+$logoMaxHeight: 250px;
+$logoLeft: calc((43vw - 20px) / 2);
+
 
 /*****
 basics
@@ -28,235 +45,172 @@ body {
 /*****
 Header
 *********************************************/
-.header.full {
+.headerWrapper {
   position: fixed;
   width: 100%;
-  height: calc(100vw * .3);
-  top: 0;
-  left: 0;
-  padding: 0 0 10px 0;
-  overflow: hidden;
-  z-index: 999;
-  background-color: #373737;
-  transition: height .3s;
- 
-  & #logo {
-    display: inline-block;
-    position: relative;
-    background: url(../img/levl_logo.png) no-repeat;
-    background-size: contain;
-    width: 45vw;
-    // width: 45vw; //using svg
-    height: calc(100vw * .2);
-    // height: 20vw; //using svg
-    left: 27.5vw;
-    transition: all .3s;
+  height: $headerWrapperHeight;
+  
+  @media (min-width: 992px) {
+    height: $headerWrapperMaxHeight;
   }
 
-  & .main-nav.full {
-    position: relative;
-    width: 45vw;
-    height: calc((100vw * .2) / 2);
-    top: calc(100vw * .01);
-    left: 27.5vw;
-    padding: 0;
-    font-size: 2vw;
-    text-align: center;
-    transition: all .3s;
-
-    & li {
-      display: inline-block; 
-      width: calc(45vw / 3);
-      padding-top: calc((100vw * .2) / 8);
-      list-style: none;
-      // outline: 1px solid red;
-    }
-
-    & a {
-      color: #9D9D9D;
-      // transition: all .3s;
-
-      &:hover {
-        color: #fff;
-        text-decoration: none;
-      }
-    }
-  }
+  margin-bottom: 30px;
+  
+  background-color: $headerGray;
+  outline: 1px solid red;
+  transition: height .4s;
 
   &.smaller {
     height: 65px;
     min-height: 65px;
-    padding: 0;
+    margin-bottom: 30px;
+  }
+}
 
-    & #logo {
-      width: 150px;
-      height: 70px;
-      margin-left: 0px;
-      left: 0px;
-      
+.spacer {
+  position: relative;
+  width: 100%;
+  height: $headerWrapperHeight;
+  
+  @media (min-width: 992px) {
+    height: $headerWrapperMaxHeight;
+
+  }
+
+  margin-bottom: 30px;
+  transition: height .4s;
+  
+  &.smaller {
+    height: 65px;
+    min-height: 65px;
+    margin-bottom: 30px;
+  }
+}
+
+
+.logo {
+  position: absolute;
+  width: $logoWidth;
+  height: $logoHeight;
+  left: $logoLeft;
+
+  @media (min-width: 992px) {
+    width: $logoMaxWidth;
+    height: $logoMaxHeight;
+    left: calc((100vw - 571px - 20px) / 2)
+  }
+  
+  display: block;
+  background: url("../img/levl_logo.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin: 0 auto;
+  transition: all .4s;
+
+  
+
+  &.smaller {
+    width: 150px;
+    height: 65px;
+    margin-left: 0;
+    left: 0;
+    transition: height .35s cubic-bezier(0.46,0.03,0.52,0.96),
+                width .35s cubic-bezier(0.46,0.03,0.52,0.96),
+                left .2s cubic-bezier(0.46,0.03,0.52,0.96);
+                
+                
+  }
+}
+
+.navContainer {
+  position: relative;
+  transition: all;
+
+  @media (max-width: 767px) {
+    width: 100%;
+    padding: 0 10px 0 10px;
+    left: 0;
+    top: calc(25vw + 10%);
+    font-size: 1.35em;
+    transition: width .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                left .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                top .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                font-size .3s cubic-bezier(0.46,0.03,0.52,0.96);
+  }
+
+  @media (min-width: 768px) and (max-width: 991px) {
+    width: 80%;
+    left: 10%;
+    top: calc(25vw + 15%);
+    font-size: 1.65em;
+    transition: width .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                left .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                top .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                font-size .3s cubic-bezier(0.46,0.03,0.52,0.96);
+  }
+
+  @media (min-width: 992px) {
+    width: $logoWidth;
+    left: $logoLeft;
+    top: 300px;
+    font-size: 2em;
+    transition: width .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                left .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                top .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                font-size .3s cubic-bezier(0.46,0.03,0.52,0.96);
+  }
+
+
+
+  @media (min-width: 992px) {
+    width: $logoMaxWidth;
+    left: calc((100vw - 571px - 20px) / 2);
+    font-size: 2em;
+    transition: left .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                width .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                top .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                font-size .3s cubic-bezier(0.46,0.03,0.52,0.96);
+  }
+
+  &.smaller {
+    @media (max-width: 767px) {
+      outline: 1px solid blue;
     }
 
-    & .main-nav {
-      width: 45vw;
-      height: 65px;
-      top: -7.75vw;
-      left: 50vw;
-      font-size: 1.75vw;
-      padding: 0;
-      margin: 0;
-      transition: left .3s cubic-bezier(0.46,0.03,0.52,0.96),
-                top .4s cubic-bezier(0.46,0.03,0.52,0.96);
+    @media (min-width: 768px) and (max-width: 991px) {
+      outline: 1px solid red;
     }
 
-    & nav a {
-      line-height: 75px;
+    @media (min-width: 992px) {
+      outline: 1px solid green;
     }
+  }
+}
+
+.pagesUL {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+
+  & li {
+    display: inline-block;
+    line-height: 100%;
+  }
+  
+  & li a {
+    color: #ffffff;
   }
 }
 
 
 /*****
-main wrapper and cards
+Main content, aka .main-wrap
 *********************************************/
 .main-wrap {
-    background-color: hsla(255, 2, 90, .8);
-    // background-color: hsla(225, 2, 85, .8);
-    min-height: 100%;
-    padding-bottom: 5rem;
-    // box-shadow: 0 3px 10px rgba(0,0,0,.23),
-    // 0 3px 10px rgba(0,0,0,.16);
-    margin-top: 150px;
-}
-
-hr {
-    width: 80%;
-    margin: 3rem auto;
-    height: 4px;
-    // color: $gray1;
-    color: white;
-    z-index: 99;
-}
-
-.infosection {
-    padding: 10px;
-    background-color: hsla(240, 3, 95, 1);
-    // box-shadow: 0 8px 6px -6px black;
-    margin-bottom: 1.5rem;
-    border: 1px solid hsla(240, 3, 75, 1);
-}
-
-/*****
-main blurb
-*********************************************/
-.main-blurb {
-    background-image: url(../img/siteImgs/apple-desk-laptop-working-large.jpg);
-    background-size: 100%;
-    background-repeat: no-repeat;
-    padding: 0 2rem;
-
-    & h1 {
-        color: white;
-        font-style: italic;
-        padding-top: 25%;
-        word-wrap: break-word;
-        hyphens: auto;
-
-        @media screen and (max-width: 768px) {
-            font-size: 1.75rem;
-        }
-    }
-}
-
-.main-blurb .bgimage-inside {
-    padding-top: 63.1068%;
-}
-
-.whatis {
-    padding-top: 3rem;
-    padding-bottom: 3rem;
-}
-
-.whatis .infosection {
-    font-size: 2rem;
-    text-align: center;
-}
-
-/*****
-What is lev/l
-*********************************************/
-.whatis .infosection:first-child .bgimage {
-    background-image: url(../img/siteImgs/school-furniture-education-university-medium.jpg);
-    background-size: 100%;
-    margin-top: 2rem;
-
-    & .bgimage-inside {
-        padding-top: 66.2879%;
-    }
-}
-
-.whatis .infosection:nth-child(2) .bgimage {
-    background-image: url(../img/siteImgs/hands-people-working-large.jpg);
-    background-size: 100%;
-    margin-top: 2rem;
-
-    & .bgimage-inside {
-        padding-top: 66.2879%;
-    }
-}
-
-/*****
-teams
-*********************************************/
-.teams {
-    // font-size: 16px;
-}
-
-
-/*****
-orig styles
-*********************************************/
-.rt-col-list {
-  margin-top: 4rem;
-}
-
-.public.container {
-  padding: 96px 0;
-  font-size: 1.5em;
-}
-.public.container ul {
-  list-style: none;
-}
-.public.container ul.outline > li {
-  margin: 1.5em 0;
-}
-.public.container li {
-  margin: 0.25em 0;
-}
-
-ul.options {
-  font-style: italic;
-  padding-bottom: 24px;
-}
-
-ul.options span {
-  font-weight: normal;
-  color: #92989B;
-}
-
-ul.outline h3 {
-  color: #92989B;
-  font-size: 20px;
-  margin-bottom: 2px;
-}
-
-.ctr {
-  text-align: center;
-}
-.float-ctr {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-img.callout {
-  width: 100%;
+  font-size: 1.7em;
+  color: #fff;
+  line-height: 1.4em;
 }
