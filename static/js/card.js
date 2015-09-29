@@ -23,7 +23,14 @@ Game.Card = function(spec) {
 	
 	// some card-related constants.
 	Game.Card.SEND_TO_BACK = -1;
-	
+
+  // save any custom style passed in.
+  var css_class;
+  if (spec.hasOwnProperty("css_class")) {
+    css_class = spec.css_class;
+    delete spec.css_class
+  }
+  
 	// save the spec, in case we need to manipulate the card contents later on.
 	this.spec = spec;
 	
@@ -74,9 +81,9 @@ Game.Card = function(spec) {
 		this.element.addClass(card_type);
 	}
 	
-	// add any other specified css_classes.
-	if (spec.css_class || false) {
-		this.element.addClass(spec.css_class);
+	// add any other saved css_classes.
+	if (css_class || false) {
+		this.element.addClass(css_class);
 	}
 	
 	// respond to user and game actions and track what will get reported to the db.
