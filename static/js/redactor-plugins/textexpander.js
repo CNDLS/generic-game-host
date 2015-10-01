@@ -11,7 +11,6 @@ $.Redactor.prototype.textexpander = function()
 				if (key == this.keyCode.SPACE)
 				{
 					var current = this.textexpander.getCurrent();
-          console.log("current", current);
 					var cloned = $(current).clone();
 
 					var $div = $('<div>');

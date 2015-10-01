@@ -4,6 +4,7 @@
 {% block css %}
     <link href="{{ STATIC_URL }}css/editor.css" media="screen, print" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}css/redactor.css" media="screen, print" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/codemirror.css" media="screen, print" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block content %}
@@ -12,7 +13,7 @@
         
     </section>
     <section id="editor_column">
-        <div id="redactor">editor</div>
+        <textarea id="redactor"></textarea>
     </section>
 </div>
 {% endblock %}
@@ -21,7 +22,12 @@
     {{ block.super }}
     <script src="{{ STATIC_URL }}js/redactor.js"></script>
     <script src="{{ STATIC_URL }}js/redactor-plugins/textexpander.js"></script>
+    <script src="{{ STATIC_URL }}js/codemirror.js"></script>
+    <script src="{{ STATIC_URL }}js/mode/yaml/yaml.js"></script>
     <script src="{{ STATIC_URL }}js/editor.js"></script>
+    <script>
+    var username = "{{ USERNAME }}";
+	</script>
         
     <!-- game-type-specific js. -->
     {% for library_file in library_files %}

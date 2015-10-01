@@ -104,7 +104,7 @@ Util = {
 
 		function o() { this.constructor = subclass; }
 		o.prototype = superclass.prototype;
-    subclass.prototype = $.extend(new o(), prototype_extension || {});
+        subclass.prototype = $.extend(new o(), prototype_extension || {});
 		return subclass;
 	},
   

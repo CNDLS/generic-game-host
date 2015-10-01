@@ -1,14 +1,38 @@
 if (!RedactorPlugins) var RedactorPlugins = {};
 
+$.Redactor.prototype.classButton = function () {
+    return {
+        init: function() {
+            // remember, button is the name of the API scope we're using.
+            var element = this.button.add('class-button', 'Class Button');
+            this.button.addCallback(element, this.classButton.click);
+        },
+        click: function() {
+            console.log('class_button clicked');
+        }
+    };
+};
+
+var wysiwyg_editor;
 $(function () {
-  window.wysiwyg_editor = $('#redactor').redactor({
+  wysiwyg_editor = $('#redactor').redactor({
     focus: true,
-    buttons: ['formatting'],
-    plugins: ['textexpander'],
+    visual: false,
+    codemirror: true,
+    paragraphize: false,
+    buttons: ['indent', 'outdent'],
+    plugins: ['textexpander', 'classButton'],
     textexpander: [
         ['obj', "{" + $.render("p").html + "}"],
         ['arr', "[" + $.render("p").html + "]"]
     ]
+}).data("redactor");
+
+  
+  // init codemirror after redactor's call
+  my_code_mirror = CodeMirror.fromTextArea($("#redactor")[0], {
+    lineNumbers: true,
+    mode: 'yaml'
   });
 
   var read_url = $("script#reader").attr("read-from");
@@ -93,7 +117,6 @@ $(function () {
                 array_tag.children("span").remove();
               }
             } else if (isOnAddCntl(evt)) {
-              // console.log("add item to array")
               var new_li = $("<li/>").appendTo(this);
               activateTarget(new_li.get(0));
             }
@@ -131,7 +154,7 @@ $(function () {
 
         // delete key.
         $(document.body).keydown(function (evt) {
-          if (evt.target === $("#redactor").get(0)){ return; }
+            if ($(evt.target).parents(".redactor-box").length){ return; }
             if (evt.keyCode === 8) {
                 var active_element = $("[state=active]");
                 if (!active_element.is(":empty")) {
@@ -162,7 +185,6 @@ $(function () {
 
 
 function activateTarget (evt_target) {
-  // console.log(evt.target);
   $("#schema *").attr("state", null);
   $(evt_target).attr("state", "active");
   // line up the editor.
@@ -175,12 +197,20 @@ function activateTarget (evt_target) {
       });
       game_class = $.grep(game_class, function (gc) {
         return (gc);
-      }).pop()
+      }).pop();
+
+      var class_button = wysiwyg_editor.$toolbar.find("a[rel=class-button]");
+
       if (game_class) {
-        wysiwyg_editor.text(game_class);
+        class_button.html(game_class);
+        wysiwyg_editor.$toolbar.find(".redactor-button-disabled").removeClass("redactor-button-disabled");
+        wysiwyg_editor.code.set("--- # " + game_class + " object edited by " + username + " on " + Date().replace(/\sGMT-\d{4}/, ""));
+        wysiwyg_editor.selection.selectAll();
       } else {
-        wysiwyg_editor.text(" ");
+        // wysiwyg_editor.text(" ");
       }
+      // console.log($(evt_target), $(evt_target).data("yaml"), jsyaml.dump($(evt_target).data("yaml")))
+      // my_code_mirror.setValue(jsyaml.dump($(evt_target).data("yaml") || ""));
   }
 }
 
@@ -295,6 +325,7 @@ function renderYAML (yaml, container, context, current_scope) {
               renderable[m_key] = "";
               var str_container = container.render(renderable).find(":last");
               str_container.replaceWith(m_thing);
+              str_container.data("yaml", m_thing);
               break;
             
             case "number":
@@ -304,6 +335,7 @@ function renderYAML (yaml, container, context, current_scope) {
               }
               renderable[m_key] = m_thing;
               container.render(renderable);
+              container.find(":last").data("yaml", m_thing);
               break;
                 
             case "object":

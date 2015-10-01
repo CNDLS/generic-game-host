@@ -224,6 +224,10 @@
   display: none;
 }
 
+.redactor-toolbar li a.redactor-button-image.re-class-button {
+    width: inherit;
+}
+
 .editor-label {
   display: block;
   padding: 0.6em 1em;

@@ -190,9 +190,9 @@ $.fn.render = function (spec) {
 					}
 					// recurse into complex objects.
 					if (typeof spec[key] === "string") {
-						$(el).append(createElement(spec[key]));
+						el = $(el).append(createElement(spec[key]));
 					} else {
-						$(el).render(spec[key]);
+						el = $(el).render(spec[key]);
 					}
 					if (el instanceof jQuery) {
 						// only proceed upon success in adding.
