@@ -48,6 +48,9 @@ Game.Card = function(spec) {
 		
 		in_production_try(this, function () {
 			var card_scaffold = $(document.createElement("div"));
+            if (spec instanceof String) {
+                spec = spec.toString()
+            }
 			var rendered_element = card_scaffold.render(spec.content || spec);
 			this.load_promise = rendered_element.data().promise;
 	

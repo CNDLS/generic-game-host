@@ -2,19 +2,14 @@
 {% load staticfiles %}
 
 {% block css %}
-    <link href="{{ STATIC_URL }}css/editor_demo.css" media="screen, print" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/editor.css" media="screen, print" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}css/redactor.css" media="screen, print" rel="stylesheet" type="text/css" />
     <link href="{{ STATIC_URL }}css/codemirror.css" media="screen, print" rel="stylesheet" type="text/css" />
 {% endblock %}
 
 {% block content %}
 <div id="content">
-    <section id="schema">
-        
-    </section>
-    <section id="editor_column">
-        <textarea id="redactor"></textarea>
-    </section>
+    <textarea id="redactor"></textarea>
 </div>
 {% endblock %}
 
@@ -24,7 +19,7 @@
     <script src="{{ STATIC_URL }}js/redactor-plugins/textexpander.js"></script>
     <script src="{{ STATIC_URL }}js/codemirror.js"></script>
     <script src="{{ STATIC_URL }}js/mode/yaml/yaml.js"></script>
-    <script src="{{ STATIC_URL }}js/editor_demo.js"></script>
+    <script src="{{ STATIC_URL }}js/editor.js"></script>
     <script>
     var username = "{{ USERNAME }}";
 	</script>

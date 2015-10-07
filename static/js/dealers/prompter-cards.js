@@ -13,4 +13,4 @@ Game.PromptCard.Modal = Util.extendClass(Game.Card, function (args) {
 	var spec = args.shift();
 	Game.Card.Modal.call(this, spec);
 });
-Game.PromptCard.Modal.prototype = new Game.Card.Modal(null);
+// Game.PromptCard.Modal.prototype = new Game.Card.Modal(null);

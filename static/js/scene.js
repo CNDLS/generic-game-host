@@ -27,6 +27,7 @@ Game.SceneFactory = {
         scene_type = Game.Scene.Basic;
       }
       scene = new scene_type(scene_type_name, backdrop_spec, set_piece_specs, game);
+      scene.spec = scene_spec;
 
       if (events === "mock") { return scene; }
       
