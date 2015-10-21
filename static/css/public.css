@@ -27,7 +27,6 @@ Header
   height: 38vw;
   margin-bottom: 30px;
   background-color: #373737;
-  outline: 1px solid red;
   transition: height .4s; }
   @media (min-width: 992px) {
     .headerWrapper {
@@ -61,7 +60,7 @@ Header
   background-size: contain;
   background-repeat: no-repeat;
   margin: 0 auto;
-  transition: all .4s; }
+  transition: all .25s; }
   @media (min-width: 992px) {
     .logo {
       width: 571px;
@@ -94,26 +93,31 @@ Header
       transition: width 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
   @media (min-width: 992px) {
     .navContainer {
-      width: 57vw;
-      left: calc((43vw - 20px) / 2);
+      width: 571px;
+      left: calc((100vw - 571px - 20px) / 2);
       top: 300px;
       font-size: 2em;
       transition: width 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
-  @media (min-width: 992px) {
-    .navContainer {
-      width: 571px;
-      left: calc((100vw - 571px - 20px) / 2);
-      font-size: 2em;
-      transition: left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), width 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
   @media (max-width: 767px) {
     .navContainer.smaller {
-      outline: 1px solid blue; } }
+      width: 60%;
+      top: 25px;
+      left: 40%;
+      font-size: 1.25em;
+      transition: width 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
   @media (min-width: 768px) and (max-width: 991px) {
     .navContainer.smaller {
-      outline: 1px solid red; } }
+      width: 50%;
+      top: 15px;
+      left: 45%;
+      font-size: 1.6em;
+      transition: width 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
   @media (min-width: 992px) {
     .navContainer.smaller {
-      outline: 1px solid green; } }
+      top: 20px;
+      left: 50%;
+      font-size: 1.8em;
+      transition: top 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), left 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), font-size 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96); } }
 
 .pagesUL {
   position: relative;

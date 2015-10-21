@@ -57,7 +57,6 @@ Header
   margin-bottom: 30px;
   
   background-color: $headerGray;
-  outline: 1px solid red;
   transition: height .4s;
 
   &.smaller {
@@ -105,7 +104,7 @@ Header
   background-size: contain;
   background-repeat: no-repeat;
   margin: 0 auto;
-  transition: all .4s;
+  transition: all .25s;
 
   
 
@@ -150,8 +149,8 @@ Header
   }
 
   @media (min-width: 992px) {
-    width: $logoWidth;
-    left: $logoLeft;
+    width: $logoMaxWidth;
+    left: calc((100vw - 571px - 20px) / 2);
     top: 300px;
     font-size: 2em;
     transition: width .3s cubic-bezier(0.46,0.03,0.52,0.96),
@@ -160,29 +159,36 @@ Header
                 font-size .3s cubic-bezier(0.46,0.03,0.52,0.96);
   }
 
-
-
-  @media (min-width: 992px) {
-    width: $logoMaxWidth;
-    left: calc((100vw - 571px - 20px) / 2);
-    font-size: 2em;
-    transition: left .3s cubic-bezier(0.46,0.03,0.52,0.96),
-                width .3s cubic-bezier(0.46,0.03,0.52,0.96),
-                top .3s cubic-bezier(0.46,0.03,0.52,0.96),
-                font-size .3s cubic-bezier(0.46,0.03,0.52,0.96);
-  }
-
   &.smaller {
     @media (max-width: 767px) {
-      outline: 1px solid blue;
+      width: 60%;
+      top: 25px;
+      left: 40%;
+      font-size: 1.25em;
+      transition: width .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                  top .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                  left .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                  font-size .3s cubic-bezier(0.46,0.03,0.52,0.96);
     }
 
     @media (min-width: 768px) and (max-width: 991px) {
-      outline: 1px solid red;
+      width: 50%;
+      top: 15px;
+      left: 45%;
+      font-size: 1.6em;
+      transition: width .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                  top .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                  left .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                  font-size .3s cubic-bezier(0.46,0.03,0.52,0.96);
     }
 
     @media (min-width: 992px) {
-      outline: 1px solid green;
+      top: 20px;
+      left: 50%;
+      font-size: 1.8em;
+      transition: top .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                  left .3s cubic-bezier(0.46,0.03,0.52,0.96),
+                  font-size .3s cubic-bezier(0.46,0.03,0.52,0.96);
     }
   }
 }
