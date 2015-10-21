@@ -1,0 +1,31 @@
+{% extends "game_base.html" %}
+{% load staticfiles %}
+
+{% block css %}
+    <link href="{{ STATIC_URL }}css/editor.css" media="screen, print" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/redactor.css" media="screen, print" rel="stylesheet" type="text/css" />
+    <link href="{{ STATIC_URL }}css/codemirror.css" media="screen, print" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<div id="content">
+    <textarea id="redactor"></textarea>
+</div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script src="{{ STATIC_URL }}js/redactor.js"></script>
+    <script src="{{ STATIC_URL }}js/redactor-plugins/textexpander.js"></script>
+    <script src="{{ STATIC_URL }}js/codemirror.js"></script>
+    <script src="{{ STATIC_URL }}js/mode/yaml/yaml.js"></script>
+    <script src="{{ STATIC_URL }}js/editor.js"></script>
+    <script>
+    var username = "{{ USERNAME }}";
+	</script>
+        
+    <!-- game-type-specific js. -->
+    {% for library_file in library_files %}
+        <script type="text/javascript" src="{{ MEDIA_URL }}{{ library_file.file.name }}" ></script>
+    {% endfor %}
+{% endblock %}

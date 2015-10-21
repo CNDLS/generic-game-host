@@ -5,31 +5,30 @@
 
 
 /* FreeResponseCard just creates a card with a text input field and doesn't care about the answer. */
-Game.ListenerCard.FreeResponseCard = function (args) {
+Game.ListenerCard.FreeResponseCard = Util.extendClass(Game.Card, function (args) {
 	var round = args.shift();
-	Util.extend_properties(this, new Game.Card({ div:"input[type=text]" }));
-}
-Util.extend(Game.ListenerCard.FreeResponseCard, Game.Card);
-
-
-Game.ListenerCard.FreeResponseCard.prototype.dealTo = function (container) {
-	Game.Card.prototype.dealTo.call(this, container);
-	var _this = this;
-	this.element.find("input[type=text]").on("keypress", function (e) {
-        if (e.keyCode === 13) {
-			var answer = new Game.Round.Answer(e.target.value);
-			var score = 1; // any response is accepted.
-			$(_this.element).trigger("Card.userInput", { answer: answer, score: score });
-			e.target.blur();
-		}
-	});
-	this.element.find("input[type=text]").focus();
-}
+  Game.Card.call(this, { div:"input[type=text]" });
+},
+{
+  dealTo: function (container) {
+  	Game.Card.prototype.dealTo.call(this, container);
+  	var _this = this;
+  	this.element.find("input[type=text]").on("keypress", function (e) {
+          if (e.keyCode === 13) {
+  			var answer = new Game.Round.Answer(e.target.value);
+  			var score = 1; // any response is accepted.
+  			$(_this.element).trigger("Card.userInput", { answer: answer, score: score });
+  			e.target.blur();
+  		}
+  	});
+  	this.element.find("input[type=text]").focus();
+  }
+});
 
 
 
 /* MultipleChoiceCard creates a card with a list of radio buttons, labelled with Answers from YAML. */
-Game.ListenerCard.MultipleChoiceCard = function (args) {
+Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function (args) {
 	var round = args.shift();
 	var spec = args.shift() || {};
 	this.radio_btns = {};
@@ -55,27 +54,27 @@ Game.ListenerCard.MultipleChoiceCard = function (args) {
 		return btn.html;
 	}).join("\n");
 	radio_btn_html = "<ul>" + prompt_html + radio_btn_html + "</ul>";
-	Util.extend_properties(this, new Game.Card(radio_btn_html));
-}
-Util.extend(Game.ListenerCard.MultipleChoiceCard, Game.Card);
+	Game.Card.call(this, radio_btn_html);
+},
+{
+  dealTo: function (container) {
+  	Game.Card.prototype.dealTo.call(this, container);
+  	var respondToClick = this.respondToClick.bind(this);
+  	this.element.find("input[type=radio]").on("click", respondToClick);
+  },
 
+  respondToClick: function (e) {
+  	var clicked_radio_btn = this.radio_btns[e.target.id];
+  	// add classes, so we can style if need be.
+  	var correct = clicked_radio_btn.answer.correct || false;
+  	var value = clicked_radio_btn.answer.value || 1;
+  	var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
+  	var answer = new Game.Round.Answer(clicked_radio_btn.answer);
+  	var score = correct ? value : neg_value;
+  	$(this.element).trigger("Card.userInput", { card: this, answer: answer, score: score});
+  }
+});
 
-Game.ListenerCard.MultipleChoiceCard.prototype.dealTo = function (container) {
-	Game.Card.prototype.dealTo.call(this, container);
-	var respondToClick = this.respondToClick.bind(this);
-	this.element.find("input[type=radio]").on("click", respondToClick);
-}
-
-Game.ListenerCard.MultipleChoiceCard.prototype.respondToClick = function (e) {
-	var clicked_radio_btn = this.radio_btns[e.target.id];
-	// add classes, so we can style if need be.
-	var correct = clicked_radio_btn.answer.correct || false;
-	var value = clicked_radio_btn.answer.value || 1;
-	var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
-	var answer = new Game.Round.Answer(clicked_radio_btn.answer);
-	var score = correct ? value : neg_value;
-	$(this.element).trigger("Card.userInput", { card: this, answer: answer, score: score});
-}
 
 
 
@@ -85,7 +84,7 @@ Game.ListenerCard.MultipleChoiceCard.prototype.respondToClick = function (e) {
  * We should be able to create groupings. This could be used to populate
  * surveys as one round with multiple survey questions.
  */
-Game.ListenerCard.MultipleAnswerCard = function (args) {
+Game.ListenerCard.MultipleAnswerCard = Util.extendClass(Game.Card, function (args) {
 	var round = args.shift();
 	var spec = args.shift() || {};
 	var answers = spec.answers || round.answers;
@@ -113,9 +112,8 @@ Game.ListenerCard.MultipleAnswerCard = function (args) {
 	// wrap li's in a ul. add a submit button, to send state of checkboxes.
 	var submit_btn_html = "<li><button type='submit' form='" + group_name + "_form' value='submit'>Submit</button></li>"
 	checkbox_html = "<ul><form id='" + group_name + "_form'>" + prompt_html + checkbox_html + submit_btn_html + "</ul>";
-	Util.extend_properties(this, new Game.Card(checkbox_html));
-}
-Util.extend(Game.ListenerCard.MultipleAnswerCard, Game.Card);
+  Game.Card.call(this, checkbox_html);
+});
 
 
 
@@ -123,35 +121,34 @@ Util.extend(Game.ListenerCard.MultipleAnswerCard, Game.Card);
  * This card waits for a click on a link. 
  * args passed as an array.
  */
-Game.ListenerCard.LinkCard = function (args) {
+Game.ListenerCard.LinkCard = Util.extendClass(Game.Card, function (args) {
 	this.round = args.shift();
 	var elem = args.shift();
 	$(elem).attr("data-keep-in-dom", true);
-	Util.extend_properties(this, new Game.Card(elem));
-}
-Util.extend(Game.ListenerCard.LinkCard, Game.Card);
+	Game.Card.call(this, elem);
+},
+{
+  dealTo: function (container) {
+  	var _this = this;
+  	this.element.click(function (e) {
+  		// disable the link after one click (maybe will want a double-click option at some point?)
+  		$(this).prop('disabled', true);
+  		// get answer & score, and pass them when resolving my promise (dfd).
+  		var correct = _this.answer.correct || false;
+  		var value = _this.answer.value || 1;
+  		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
+  		var answer = new Game.Round.Answer(_this.answer);
+  		var score = correct ? value : neg_value;
+  		_this.element.trigger("Card.userInput", {answer: answer, score: score});
+  	});
+  }
+});
 
-
-Game.ListenerCard.LinkCard.prototype.dealTo = function (container) {
-	var _this = this;
-	this.element.click(function (e) {
-		// disable the link after one click (maybe will want a double-click option at some point?)
-		$(this).prop('disabled', true);
-		// get answer & score, and pass them when resolving my promise (dfd).
-		var correct = _this.answer.correct || false;
-		var value = _this.answer.value || 1;
-		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
-		var answer = new Game.Round.Answer(_this.answer);
-		var score = correct ? value : neg_value;
-		_this.element.trigger("Card.userInput", {answer: answer, score: score});
-	});
-}
 
 
 /* GroupedInputCard is just a holder for other cards. 
  * They all report together.
  */
-Game.ListenerCard.GroupedInputCard = function (args) {
-	Util.extend_properties(this, new Game.Card("div"));
-}
-Util.extend(Game.ListenerCard.GroupedInputCard, Game.Card);
+Game.ListenerCard.GroupedInputCard = Util.extendClass(Game.Card, function (args) {
+	Game.Card.call(this, "div");
+});

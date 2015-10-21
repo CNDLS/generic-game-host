@@ -3,19 +3,14 @@
  * but for the time being, we'll likely mostly use Simples and Modals.
  */
 
-Game.PromptCard.Simple = function (args) {
+Game.PromptCard.Simple = Util.extendClass(Game.Card, function (args) {
 	var spec = args.shift();
-	Util.extend_properties(this, new Game.Card(spec));
-}
-Util.extend(Game.PromptCard.Simple, Game.Card);
+	Game.Card.call(this, spec);
+});
 
 
-Game.PromptCard.Modal = function (args) {
+Game.PromptCard.Modal = Util.extendClass(Game.Card, function (args) {
 	var spec = args.shift();
-	Util.extend_properties(this, new Game.Card.Modal(spec));
-}
-Util.extend(Game.PromptCard.Modal, Game.Card.Modal);
-Game.PromptCard.Modal.prototype = new Game.Card.Modal(null); 
-
-
-
+	Game.Card.Modal.call(this, spec);
+});
+// Game.PromptCard.Modal.prototype = new Game.Card.Modal(null);

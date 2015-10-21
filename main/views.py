@@ -65,11 +65,15 @@ def edit(request, game_id):
     template_vars = { 'game': game,
                       'group_slug': game.game_group.slug,
                       'library_files': game.game_group.library_files.all(),
-                      'AJAX_PREFIX':AJAX_PREFIX }
+                      'AJAX_PREFIX': AJAX_PREFIX,
+                      'USERNAME': request.user.get_full_name }
     return render_to_response('editor_demo.html', template_vars, context_instance=RequestContext(request))
 
 def editormock(request):
     return render_to_response('editor_mock.html', context_instance=RequestContext(request))
+    
+def playermock(request):
+    return render_to_response('flowplayer/index.html', context_instance=RequestContext(request))
     
 # get a game file from which to construct a game.
 def read(request, game_id):

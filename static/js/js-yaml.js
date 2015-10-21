@@ -1962,6 +1962,18 @@ function composeNode(state, parentIndent, nodeContext, allowToSeek, allowCompact
       hasContent = allowBlockCollections && readBlockSequence(state, blockIndent);
     }
   }
+  
+  if (hasContent) {
+      var content;
+      try {
+          content = String.prototype.toString.call(state.input);
+      } catch (e) {
+          content = state.input;
+      }
+      if ( (state.result instanceof Object) && !(state.result instanceof Array) ) {
+          state.result.yaml_src = content;
+      }
+  }
 
   if (null !== state.tag && '!' !== state.tag) {
     if ('?' === state.tag) {
@@ -2140,7 +2152,7 @@ function loadDocuments(input, options) {
   }
 	
 	/**** track variable names for YAML editor. 09/05/15 bg ****/
-	for (m in state.anchorMap) {
+	for (var m in state.anchorMap) {
 		state.anchorMap[m].variable_name = m;
 	}
 

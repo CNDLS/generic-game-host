@@ -119,7 +119,7 @@ Game.prototype.introduce = function () {
 	
 	// introduce any explanatory note.
 	var intro_specs = this.read("Intro");
-	if (!intro_specs instanceof Array) {
+	if (!(intro_specs instanceof Array)) {
 		intro_specs = [intro_specs];
 	}
 	
@@ -127,8 +127,10 @@ Game.prototype.introduce = function () {
 	var _this = this;
 	var intro_cards = $.collect(intro_specs, function () {
 		var intro_spec = this;
-		if (typeof intro_spec === "string"){
+		if (typeof intro_spec === "string") {
 			intro_spec = { content: intro_spec };
+		} else if (intro_spec instanceof String) {
+		    intro_spec = { content: intro_spec.toString() };
 		}
 		// by default, use Game.Card.Modal to define the card.
 		// here, the default type "Modal" will be overwritten by any type in the intro_spec.

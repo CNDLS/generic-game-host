@@ -106,11 +106,18 @@ var GAME_SCHEMA = jsyaml.Schema.create([ GameFunctionType, ConcatType, LinkType 
  * Wrap parsed results in a YAML object, which we can customize (see get method).
  */
 function YAML(parsed_data) {
+    if (parsed_data.hasOwnProperty("yaml_src")) {
+        this.yaml_src = parsed_data.yaml_src;
+        delete parsed_data.yaml_src;
+    }
+    
 	// crawl through parsed_data & give all objects a custom get() function.
 	// for now, we're assuming they're all vanilla Objects.
+    var member;
 	for (var key in parsed_data) {
-		if ((parsed_data[key] instanceof Object) && !(parsed_data[key] instanceof Function)) {
-			parsed_data[key] = new YAML(parsed_data[key]);
+        member = parsed_data[key];
+		if ((member instanceof Object) && !(member instanceof Function)) {
+			parsed_data[key] = new YAML(member);
 		}
 	}
 	$.extend(this, parsed_data);
@@ -190,7 +197,7 @@ YAML.prototype.equals = function (obj) {
 }
 
 // don't show custom functions when the object is listed.
-$.each(["get", "shift", "join", "readOrEvaluate", "indexOf", "count", "equals"], function(){
+$.each(["get", "shift", "join", "readOrEvaluate", "indexOf", "count", "equals", "yaml_src"], function(){
 	Object.defineProperty(YAML.prototype, this, { enumerable: false });
 });
 

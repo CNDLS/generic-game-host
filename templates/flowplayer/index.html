@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block css %}
+   <!-- player skin -->
+   <link rel="stylesheet" href="{{ STATIC_URL }}js/flowplayer-6.0.3/skin/functional.css">
+
+   <!-- site specific styling -->
+   <style>
+   body { font: 12px "Myriad Pro", "Lucida Grande", sans-serif; text-align: center; padding-top: 5%; }
+   .flowplayer { width: 80%; }
+   </style>
+{% endblock %}
+
+
+{% block content %}
+   <!-- the player -->
+   <!-- eg; render({"video.flowplayer[src=...]": { clips: [{id: "bob", seek_to: 1220, play_to: 1443}] } }) -->
+   <div class="flowplayer">
+      <video>
+         <source type="video/webm" src="https://stream.flowplayer.org/bauhaus.webm">
+         <source type="video/mp4" src="https://stream.flowplayer.org/bauhaus.mp4">
+      </video>
+   </div>
+   <div class="flowplayer">
+      <video>
+         <source type="video/webm" src="https://stream.flowplayer.org/bauhaus.webm">
+         <source type="video/mp4" src="https://stream.flowplayer.org/bauhaus.mp4">
+      </video>
+   </div>
+   <div class="flowplayer">
+      <video>
+         <source type="video/webm" src="https://stream.flowplayer.org/bauhaus.webm">
+         <source type="video/mp4" src="https://stream.flowplayer.org/bauhaus.mp4">
+      </video>
+   </div>
+   <div class="flowplayer">
+      <video>
+         <source type="video/webm" src="https://stream.flowplayer.org/bauhaus.webm">
+         <source type="video/mp4" src="https://stream.flowplayer.org/bauhaus.mp4">
+      </video>
+   </div>
+   <div class="flowplayer">
+      <video>
+         <source type="video/webm" src="https://stream.flowplayer.org/bauhaus.webm">
+         <source type="video/mp4" src="https://stream.flowplayer.org/bauhaus.mp4">
+      </video>
+   </div>
+   <div class="flowplayer">
+      <video>
+         <source type="video/webm" src="https://stream.flowplayer.org/bauhaus.webm">
+         <source type="video/mp4" src="https://stream.flowplayer.org/bauhaus.mp4">
+      </video>
+   </div>
+{% endblock %}
+
+
+{% block js %}
+   <!-- include flowplayer -->
+   <script src="{{ STATIC_URL }}js/flowplayer-6.0.3/flowplayer.js"></script>
+   <script>
+       f = $(".flowplayer").flowplayer().data("flowplayer");
+   </script>
+{% endblock %}
