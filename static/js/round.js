@@ -140,6 +140,10 @@ Game.Round.prototype.setup = function () {
 				this.scene = $(this.game.scenes).select(function () {
 					return this.rounds.indexOf(round.nbr) > -1;
 				})[0];
+        // fallback to BasicScene with no SetPieces.
+        if (!this.scene) {
+          this.scene = Game.SceneFactory.create(this.game, {}, Game.Round.Events);
+        }
 				this.scene.setup(round).then(function () {
 					round.prompt();
 				});

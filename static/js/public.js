@@ -8,18 +8,17 @@ $(document).ready(function () {
 		var scroll = $(window).scrollTop();
 
 		if (scroll >= 30) {
-			console.log("300")
-			header.addClass("smaller");
-			spacer.addClass("smaller");
-			logo.addClass("smaller");
-			navContainer.addClass("smaller");
+      // header.addClass("smaller");
+      // spacer.addClass("smaller");
+      // logo.addClass("smaller");
+      // navContainer.addClass("smaller");
 		}
 
 		else {
-			header.removeClass("smaller");
-			spacer.removeClass("smaller");
-			logo.removeClass("smaller");
-			navContainer.removeClass("smaller");
+      header.removeClass("smaller");
+      spacer.removeClass("smaller");
+      logo.removeClass("smaller");
+      navContainer.removeClass("smaller");
 		}
 	});
 });

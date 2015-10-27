@@ -21,7 +21,6 @@ Game.ListenerCard.FreeResponseCard = Util.extendClass(Game.Card, function (args)
   			e.target.blur();
   		}
   	});
-  	this.element.find("input[type=text]").focus();
   }
 });
 

@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 
 from main.models import Game, GameReport
 from main.models import GameGroup, Membership, Role
-from host.settings import MEDIA_ROOT, AJAX_PREFIX
+from host.settings import MEDIA_ROOT, AJAX_PREFIX, ANONYMOUS_USER_ID
 
 import os, json
 from django.core.servers.basehttp import FileWrapper
@@ -107,7 +107,7 @@ def write_results(request, game_id):
     if not request.is_ajax():
         raise Http404
     else:
-        current_user = User.objects.get(pk=request.user.id)
+        current_user = User.objects.get(pk=(request.user.id or ANONYMOUS_USER_ID))
         game = Game.objects.get(pk=game_id)
         game_report = GameReport(payload=request.body, student=current_user, game=game)
         game_report.save()

@@ -108,9 +108,11 @@ Game.Scene.Basic = Util.extendClass(Game.Dealer, function (scene_type_name, back
         
           // if the set_piece has an id associated with it, save its jQuery object as a member of the scene.
           // (eg; div#tower yields this.tower).
-          if (set_piece_id = set_piece.element.attr("id").replace("-", "_")) {
-            if (!_this.hasOwnProperty(set_piece_id)) {
-              _this[set_piece_id] = set_piece.element;
+          if (set_piece.element.attr("id")) {
+            if (set_piece_id = set_piece.element.attr("id").replace("-", "_")) {
+              if (!_this.hasOwnProperty(set_piece_id)) {
+                _this[set_piece_id] = set_piece.element;
+              }
             }
           }
         

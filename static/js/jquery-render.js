@@ -58,7 +58,9 @@ $.fn.render = function (spec) {
 		var dfd = $.Deferred();
 		
 		if (matches === null) {
-			return str; // probably a space in the text.
+      el = $(document.createElement("div"));
+      el.html(str);
+			return el;
 		} else {
 			tag_name = matches[1] || "div"; // so we can use descriptors that are just ids and/or class names.
 			if (tag_name === "svg") {

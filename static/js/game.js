@@ -119,7 +119,7 @@ Game.prototype.introduce = function () {
 	
 	// introduce any explanatory note.
 	var intro_specs = this.read("Intro");
-	if (!(intro_specs instanceof Array)) {
+	if (!(intro_specs.hasOwnProperty("0"))) {
 		intro_specs = [intro_specs];
 	}
 	
