@@ -54,3 +54,9 @@ a.edit_link {
     margin: 0 0.5em;
     display: inline-block;
 }
+.left {
+  text-align: left;
+}
+.right {
+  text-align: right;
+}

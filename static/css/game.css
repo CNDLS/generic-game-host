@@ -176,6 +176,8 @@ textarea#scoreboard {
 #bottom {
   width: 100%;
   text-align: center;
+  position: absolute;
+  bottom: 6em;
 }
 
 #bottom_widgets {
