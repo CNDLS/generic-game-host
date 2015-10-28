@@ -7,18 +7,11 @@ $(document).ready(function () {
 	$(window).scroll(function () {
 		var scroll = $(window).scrollTop();
 
-		if (scroll >= 30) {
-      // header.addClass("smaller");
-      // spacer.addClass("smaller");
-      // logo.addClass("smaller");
-      // navContainer.addClass("smaller");
-		}
-
-		else {
-      header.removeClass("smaller");
-      spacer.removeClass("smaller");
-      logo.removeClass("smaller");
-      navContainer.removeClass("smaller");
+		if (scroll > 30) {
+      header.addClass("smaller");
+      spacer.addClass("smaller");
+      logo.addClass("smaller");
+      navContainer.addClass("smaller");
 		}
 	});
 });

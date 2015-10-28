@@ -39,3 +39,40 @@ Game.Round.Prompter.DEFAULTS = {
 	Type: "Simple", // just a text/html message in a Card.
 	AcceptUserInput: "none"
 }
+
+
+
+/* 
+ * The CallAndResponsePrompter handles some initial choice that defines a round.
+ * Typically, the choice triggers a change in the prompt message.
+ */
+
+Game.Round.CallAndResponsePrompter = Util.extendClass(Game.Round.Prompter, function (round, spec) {
+	Game.Round.Prompter.call(this, round, spec);
+  this.data = spec.data;
+	this.input_selector = spec.input_selector || Game.Round.CallAndResponsePrompter.DEFAULTS.InputSelector;
+	this.accept_user_input = spec.accept_user_input || Game.Round.CallAndResponsePrompter.DEFAULTS.AcceptUserInput;
+},
+{ 
+  init: function () {
+    Game.Round.Prompter.prototype.init.call(this);
+    var prompter = this;
+    $.each(this.cards, function () {
+      var card = this;
+      $(this.element).find(prompter.input_selector).click(function () {
+        $(card.element).find(prompter.input_selector).attr("disabled", "disabled");
+        $(this).addClass("chosen");
+        prompter.choice = $(this).html();
+        prompter.chosen_item = prompter.data[prompter.choice];
+        $(card.element)
+        .render({ p: prompter.chosen_item })
+        .trigger("Card.userInput", { choice: prompter.choice });
+      });
+    });
+  }
+});
+
+Game.Round.CallAndResponsePrompter.DEFAULTS = {
+	AcceptUserInput: "any",
+  InputSelector: "button"
+}

@@ -118,16 +118,22 @@ Game.Scene.Basic = Util.extendClass(Game.Dealer, function (scene_type_name, back
         
           return set_piece;
         });
-        // deal the set pieces into the backdrop.
-        _this.deal(_this.set_pieces, _this.backdrop.element).then(function() {
-          // once all the Cards are dealt, call finalize(), 
-          // so custom scripts will have access to them all.
-      		round.scene = _this;
+        if (_this.set_pieces.length) {
+          // deal the set pieces into the backdrop.
+          _this.deal(_this.set_pieces, _this.backdrop.element).then(function() {
+            // once all the Cards are dealt, call finalize(), 
+            // so custom scripts will have access to them all.
+        		round.scene = _this;
+            _this.finalize(round);
+            _this.onstage = true;
+            // all round to move on.
+            dfd.resolve();
+          });
+        } else {
           _this.finalize(round);
-          _this.onstage = true;
-          // all round to move on.
           dfd.resolve();
-        });
+        }
+
       });
     } else {
       dfd.resolve();
