@@ -228,5 +228,5 @@ Game.Round.Answer = function (spec) {
 
 
 Game.Round.Answer.prototype.getContents = function () {
-	return this.content;
+	return $.render(this.content).html;
 }

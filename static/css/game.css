@@ -417,6 +417,12 @@ table#detail td {
 .right{
 	float: right;
 }
+.left-text {
+  text-align: left;
+}
+.right-text {
+  text-align: right;
+}
 .clearfix{
     clear: both;
 *zoom:1}.clearfix:before,.clearfix:after{display:table;line-height:0;content:""}.clearfix:after{clear:both}

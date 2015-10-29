@@ -44,7 +44,7 @@ Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function (arg
 		var btn_id = "radio_btn_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
 		_this.radio_btns[btn_id] =
 			{ html: ("<li><input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"
-						+ "<label for=\"" + btn_id + "\">" + answer.content + "</label></input></li>"),
+						+ "<label for=\"" + btn_id + "\">" + answer.getContents() + "</label></input></li>"),
 			  answer: answer,
 			  btn_id: btn_id
 			}
