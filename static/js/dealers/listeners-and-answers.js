@@ -207,6 +207,27 @@ Game.Round.GroupedInputsListener = Util.extendClass(Game.Round.Listener, functio
 });
 
 
+/*
+ * DragAndDropListener -- uses interact.js to manage drag-and-drop interactions.
+ */
+Game.Round.DragAndDropListener = Util.extendClass(Game.Round.Listener, function (round, spec) {
+	// this will necessarily require more than one user action, 
+	// so we hide any 'continue' buttons, collect all user_input_promises, and resolve upon a click on our Submit button.
+	Game.Round.Listener.call(this, round, spec);
+  
+  if ((typeof interact === "function") && (typeof interact.pointerMoveTolerance === "function")) {
+    // we are good-to-go.
+  } else {
+    throw Error("DragAndDropListener requires interact.js to be loaded.");
+  }
+},
+{
+  init: function () {
+    // call super to load any group card.
+    Game.Round.Listener.prototype.init.call(this);
+  }
+});
+
 
 
 
@@ -228,5 +249,8 @@ Game.Round.Answer = function (spec) {
 
 
 Game.Round.Answer.prototype.getContents = function () {
+  // handle ref's to our media_url.
+  this.content = Util.replaceAll(this.content, /MEDIA_URL\+/g, MEDIA_URL);
+  
 	return $.render(this.content).html;
 }

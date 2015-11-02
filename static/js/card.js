@@ -31,6 +31,9 @@ Game.Card = function(spec) {
     delete spec.css_class
   }
   
+  // handle ref's to our media_url.
+  spec = Util.replaceAll(spec, /MEDIA_URL\+/g, MEDIA_URL);
+  
 	// save the spec, in case we need to manipulate the card contents later on.
 	this.spec = spec;
 	

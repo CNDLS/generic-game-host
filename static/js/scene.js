@@ -187,7 +187,6 @@ Game.Scene.SetPieceFactory = {
     } catch (e) {
       set_piece_type_name = "Basic";
     }
-    var set_piece_spec = Util.replaceAll(set_piece_spec, /MEDIA_URL\+/g, MEDIA_URL);
     return in_production_try(this, function () {
       return new Game.Scene.SetPiece[set_piece_type_name](set_piece_spec);
     });
