@@ -225,6 +225,11 @@ Game.Round.DragAndDropListener = Util.extendClass(Game.Round.Listener, function 
   init: function () {
     // call super to load any group card.
     Game.Round.Listener.prototype.init.call(this);
+  },
+  
+  deal: function (cards_to_be_dealt, container, dealing_dfd) {
+  	this.deactivateCards();
+  	return Game.Dealer.prototype.deal.call(this, [], container, dealing_dfd);
   }
 });
 
@@ -247,10 +252,16 @@ Game.Round.Answer = function (spec) {
 	$.extend(this, spec);
 }
 
-
+// allow answers to be pre-defined elements (eg; SetPieces or Widgets)
 Game.Round.Answer.prototype.getContents = function () {
   // handle ref's to our media_url.
   this.content = Util.replaceAll(this.content, /MEDIA_URL\+/g, MEDIA_URL);
-  
-	return $.render(this.content).html;
+
+  // check if content is a selector. if so, see if element exists.
+  var content_is_selector = $.render.tag_id_class_regexp.test(this.content);
+  if (content_is_selector && $(this.content).length) {
+    return $(this.content).html();
+  } else {
+    return $.render(this.content).html;
+  }
 }

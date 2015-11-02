@@ -48,7 +48,7 @@ Game.Card = function(spec) {
 		// remove 'type' from spec
 		var card_type = spec.type || "";
 		delete spec.type
-		
+    
 		in_production_try(this, function () {
 			var card_scaffold = $(document.createElement("div"));
             if (spec instanceof String) {

@@ -37,13 +37,13 @@ $.fn.render = function (spec) {
 	// ((?:\.\w[^\[]+)*)? == optional list of class names -- not capturing individual class names, just the whole list.
 	// ... note about above: you need both the * for matching 0 or more, and the ?, in order to get the whole thing & yet leave it optional.
 	// (\[\S+=\S+\])* == 0 or more attributes. done. whew.
-	var tag_id_class_regexp = /^(\w+)?(#\w[^\.\[]+)?((?:\.\w[^\[]+)*)?(\[\S+=\S+\])*$/;
+	$.render.tag_id_class_regexp = /^(\w+)?(#\w[^\.\[]+)?((?:\.\w[^\[]+)*)?(\[\S+=\S+\])*$/;
 	
-	var valid_html_tags = ["A", "ABBR", "ACRONYM", "ADDRESS", "APPLET", "AREA", "AUDIO", "B", "BASE", "BASEFONT", "BDO", "BIG", "BLOCKQUOTE", "BODY", "BR", "BUTTON", "CAPTION", "CENTER", "CITE", "CODE", "COL", "COLGROUP", "DD", "DEL", "DFN", "DIR", "DIV", "DL", "DT", "EM", "FIELDSET", "FONT", "FORM", "FRAME", "FRAMESET", "H1", "H2", "H3", "H4", "H5", "H6", "HEAD", "HR", "HTML", "I", "IFRAME", "IMG", "INPUT", "INS", "ISINDEX", "KBD", "LABEL", "LEGEND", "LI", "LINK", "MAP", "MENU", "META", "NOFRAMES", "NOSCRIPT", "OBJECT", "OL", "OPTGROUP", "OPTION", "P", "PARAM", "PRE", "Q", "S", "SAMP", "SCRIPT", "SELECT", "SMALL", "SOURCE", "SPAN", "STRIKE", "STRONG", "STYLE", "SUB", "SUP", "TABLE", "TBODY", "TD", "TEXTAREA", "TFOOT", "TH", "THEAD", "TITLE", "TR", "TT", "U", "UL", "VAR", "VIDEO"]
+	$.render.valid_html_tags = ["A", "ABBR", "ACRONYM", "ADDRESS", "APPLET", "AREA", "AUDIO", "B", "BASE", "BASEFONT", "BDO", "BIG", "BLOCKQUOTE", "BODY", "BR", "BUTTON", "CAPTION", "CENTER", "CITE", "CODE", "COL", "COLGROUP", "DD", "DEL", "DFN", "DIR", "DIV", "DL", "DT", "EM", "FIELDSET", "FONT", "FORM", "FRAME", "FRAMESET", "H1", "H2", "H3", "H4", "H5", "H6", "HEAD", "HR", "HTML", "I", "IFRAME", "IMG", "INPUT", "INS", "ISINDEX", "KBD", "LABEL", "LEGEND", "LI", "LINK", "MAP", "MENU", "META", "NOFRAMES", "NOSCRIPT", "OBJECT", "OL", "OPTGROUP", "OPTION", "P", "PARAM", "PRE", "Q", "S", "SAMP", "SCRIPT", "SELECT", "SMALL", "SOURCE", "SPAN", "STRIKE", "STRONG", "STYLE", "SUB", "SUP", "TABLE", "TBODY", "TD", "TEXTAREA", "TFOOT", "TH", "THEAD", "TITLE", "TR", "TT", "U", "UL", "VAR", "VIDEO"]
 	
 	
 	// test whether str can be added to an HTML element.
-	function is_valid_html (str) {
+	$.render.is_valid_html = function (str) {
 		var test_div = $('<div/>');
 		test_div.html(str);
 		return (test_div[0].childNodes.length) ? true : false;
@@ -53,7 +53,7 @@ $.fn.render = function (spec) {
 	// function to turn a descriptor into an empty HTML element.
 	// successful matches are of the form: [<whole str>, <tag name>, <id>, <class names separated by .>]
 	function createElement (str) {
-		var matches = tag_id_class_regexp.exec(str);
+		var matches = $.render.tag_id_class_regexp.exec(str);
 		var tag_name, el, id, classnames;
 		var dfd = $.Deferred();
 		
@@ -67,7 +67,7 @@ $.fn.render = function (spec) {
 				// make a div to hold the loaded svg.
 				el = $(document.createElement("div"));
 				el.addClass("svg");
-			} else if (valid_html_tags.indexOf(tag_name.toUpperCase()) > -1) {
+			} else if ($.render.valid_html_tags.indexOf(tag_name.toUpperCase()) > -1) {
 				el = $(document.createElement(tag_name));
 			} else {
 				return str;
@@ -150,8 +150,8 @@ $.fn.render = function (spec) {
 			// is_valid_html will return true for vanilla strings (eg; "some text"), 
 			// which are, in fact, valid HTML.
 			// we have to exclude our tag descriptors, though.
-			if (is_valid_html(spec)) {
-				if (tag_id_class_regexp.test(spec)) {
+			if ($.render.is_valid_html(spec)) {
+				if ($.render.tag_id_class_regexp.test(spec)) {
 					var el = createElement(spec);
 					$(this).append(el);
 					return el;

@@ -164,7 +164,9 @@ Util = {
 					for (var i=0; i < item.length; i++) {
 						item[i] = replaceAll(item[i], pattern, replacement_str);
 					}
-				} else {
+				} else if (item instanceof HTMLElement) {
+          return item;
+        } else {
 					// do any replacements in keys.
 					var keys = Object.keys(item);
 					var tmp_key;
@@ -182,6 +184,9 @@ Util = {
 				}
 				return item;
 				break;
+        
+      case "boolean":
+        return item;
 				
 			default:
 				throw new Error("Cannot do replacments on item: " + item);
@@ -195,6 +200,8 @@ Util = {
 			if (htmlElement.id) { descriptor += ("#" + htmlElement.id); }
 			descriptor += ("." + ($(htmlElement).attr("class") || "").replace(/\s/g, "."));
 			return descriptor;
+		} else {
+		  throw Error("Cannot create descriptor for non-HTMLElement.");
 		}
 	}
 }
