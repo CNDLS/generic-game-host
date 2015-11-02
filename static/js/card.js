@@ -115,61 +115,64 @@ Game.Card.DEFAULTS = {
 	timeout: null
 };
 
-Game.Card.prototype.style = function (css_classes) {
-	// remove card class and then add back those specified.
-	// this is done so we can keep cards out the 'clearCards' function.
-	// TODO: *** Look into a better way to do this. cards should remain '.card's ***
-	this.element.removeClass("card").addClass(css_classes);
-	return this; // for daisy-chaining.
-}
+Game.Card.prototype = {
+  
+  style: function (css_classes) {
+  	// remove card class and then add back those specified.
+  	// this is done so we can keep cards out the 'clearCards' function.
+  	// TODO: *** Look into a better way to do this. cards should remain '.card's ***
+  	this.element.removeClass("card").addClass(css_classes);
+  	return this; // for daisy-chaining.
+  },
 
-Game.Card.prototype.find = function (selector) {
-	// just pass to element.
-	return this.element.find(selector);
-}
+  find: function (selector) {
+  	// just pass to element.
+  	return this.element.find(selector);
+  },
 
-// default way to activate/deactivate card is to set disabled attr on any input(s) and/or link(s) in the card.
-// we also set disabled on the card, in case it IS the interactive element, or if we want to do css on the card.
-Game.Card.prototype.setActive = function (flag) {
-	$(this.element).find("input, a").addBack().prop( "disabled", !flag );
-}
+  // default way to activate/deactivate card is to set disabled attr on any input(s) and/or link(s) in the card.
+  // we also set disabled on the card, in case it IS the interactive element, or if we want to do css on the card.
+  setActive: function (flag) {
+  	$(this.element).find("input, a").addBack().prop( "disabled", !flag );
+  },
 
-Game.Card.prototype.dealTo = function (container) {
-	// find or create a place in the game in which to put the cards.
-	var container_spec = container || this.spec.container || this.dealer.container;
-	this.container = $(container_spec);
-	if (this.container.length == 0) {
-		this.container = $("#game");
-	}
-	$(this.container).append(this.element);
-}
+  dealTo: function (container) {
+  	// find or create a place in the game in which to put the cards.
+  	var container_spec = container || this.spec.container || this.dealer.container;
+  	this.container = $(container_spec);
+  	if (this.container.length == 0) {
+  		this.container = $("#game");
+  	}
+  	$(this.container).append(this.element);
+  },
 
-Game.Card.prototype.unbindEvents = function (in_event_names) {
-	// remove passed-in (or any) events bound to the card element, or any nested input or link elements.
-	var interactive_elements = this.element.find("input, a").addBack();
-	$(interactive_elements).each(function () {
-		var event_names = in_event_names || ( Object.keys($._data(this, "events") || {}).join(" ") );
-		$(this).off(event_names);
-	});
-}
+  unbindEvents: function (in_event_names) {
+  	// remove passed-in (or any) events bound to the card element, or any nested input or link elements.
+  	var interactive_elements = this.element.find("input, a").addBack();
+  	$(interactive_elements).each(function () {
+  		var event_names = in_event_names || ( Object.keys($._data(this, "events") || {}).join(" ") );
+  		$(this).off(event_names);
+  	});
+  },
 
-Game.Card.prototype.remove = function () {
-	this.unbindEvents();
-	this.element.remove();
-}
+  remove: function () {
+  	this.unbindEvents();
+  	this.element.remove();
+  },
 
-// what I tell the Reporter about myself.
-Game.Card.prototype.getHistory = function () {
-	return this.history;
-}
+  // what I tell the Reporter about myself.
+  getHistory: function () {
+  	return this.history;
+  },
 
-// return a descriptor string from the spec or create a jQuery descriptor for my element.
-Game.Card.prototype.getDescriptor = function () {
-	if (typeof this.spec === "string") { 
-		return this.spec;
-	} else {
-		return Util.createDescriptor(this.element.get(0));
-	}
+  // return a descriptor string from the spec or create a jQuery descriptor for my element.
+  getDescriptor: function () {
+  	if (typeof this.spec === "string") { 
+  		return this.spec;
+  	} else {
+  		return Util.createDescriptor(this.element.get(0));
+  	}
+  }
 }
 
 
