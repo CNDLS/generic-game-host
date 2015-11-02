@@ -163,10 +163,11 @@ span#clock_face {
   text-align: center;
   margin: 0.25em 0.125em;
 }
-textarea#scoreboard {
+.scoreboard textarea {
   background-color: #15CCC2;
   overflow: hidden;
 }
+
 #widgets > table {
   font-size: 0.8em;
   color: #333;

@@ -143,18 +143,6 @@ Game.Widget.CountdownClock.prototype = {
 
 
 
-/* 
- * Game.Widget.NullClock
- * If you don't want an onscreen clock, this will just fulfill the Clock commands without doing anything.
- * We may also decide at some point that we want some of these functions to actually do something.
- */
-Game.Widget.NullClock = function () {};
-Game.Widget.NullClock.prototype.init = function (game) {};
-Game.Widget.NullClock.prototype.start = function (max_time) {};
-Game.Widget.NullClock.prototype.tick = function () { return undefined; };
-Game.Widget.NullClock.prototype.stop = function () {};
-
-
 
 /* 
  * Game.Widget.Scoreboard
@@ -162,9 +150,14 @@ Game.Widget.NullClock.prototype.stop = function () {};
  * Custom scoreboards need to expose init(game), add(points), subtract(points), and a reset() functions.
  */
 Game.Widget.Scoreboard = function (game, spec) {
+  debugger;
   spec = spec || {};
-  this.display = new Game.Card("textarea#scoreboard[readonly=true]");
+  //make scoreboard a class
+  this.display = new Game.Card({"div.scoreboard": "textarea[readonly=true]"});
   this.display.dealTo(spec.container || game.widgets_container);
+  this.label = $.render({"div.label": spec.label} || null).html; //string, obj, array
+  this.display.element.append(this.label);
+
 	
 	this.game = game;
 	this.points = game.current_score;
@@ -184,12 +177,6 @@ Game.Widget.Scoreboard.prototype = {
   	return this.points;
   },
 
-  subtractPoints: function (points) {
-  	this.points -= points;
-  	this.refresh();
-  	return this.points;
-  },
-
   setPoints: function (e, points) {
   	if (typeof points === "number") {
   		this.points = points;
@@ -198,32 +185,14 @@ Game.Widget.Scoreboard.prototype = {
   	return this.points;
   },
 
-  reset: function () {
-  	this.points = 0;
-  	this.refresh();
-  	return this.points;
-  },
-
   refresh: function () {
   	// fold in any special message, then display.
-  	var addPointsMessage = this.game.read("AddPoints") || ":points";
+    var addPointsMessage = this.game.read("AddPoints") || ":points";
   	addPointsMessage = addPointsMessage.insert_values(this.points);
-  	this.display.element.val(addPointsMessage);
+  	this.display.find("textarea").val(addPointsMessage);
   }
 }
 
-
-/* 
- * Game.Widget.NullScoreboard
- * If you don't want a scoreboard, this will just fulfill the Scoreboard commands without doing anything.
- * We may also decide at some point that we want some of these functions to actually do something.
- */
-Game.Widget.NullScoreboard = function () {};
-Game.Widget.NullScoreboard.prototype.init = function (game) {};
-Game.Widget.NullScoreboard.prototype.add = function (points) {};
-Game.Widget.NullScoreboard.prototype.subtract = function (points) {};
-Game.Widget.NullScoreboard.prototype.reset = function () {};
-Game.Widget.NullScoreboard.prototype.refresh = function () {};
 
 
 
