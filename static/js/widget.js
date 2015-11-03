@@ -150,14 +150,26 @@ Game.Widget.CountdownClock.prototype = {
  * Custom scoreboards need to expose init(game), add(points), subtract(points), and a reset() functions.
  */
 Game.Widget.Scoreboard = function (game, spec) {
-  debugger;
   spec = spec || {};
-  //make scoreboard a class
-  this.display = new Game.Card({"div.scoreboard": "textarea[readonly=true]"});
-  this.display.dealTo(spec.container || game.widgets_container);
-  this.label = $.render({"div.label": spec.label} || null).html; //string, obj, array
-  this.display.element.append(this.label);
+  
+  // ... here is where you would write code to pop any functional (not to be rendered) keys off of spec.
+  
+  // set spec["div.scoreboard"] to be a textarea, plus whatever the passed-in spec describes.
+  var content_spec = { "div.scoreboard": ["textarea[readonly=true]"] };
 
+  var num_elements = Object.keys(spec).length;
+  if (num_elements > 0) {
+    if (spec.hasOwnProperty("0")) {
+      for (var i=0; i<num_elements; i++) {
+        content_spec["div.scoreboard"].push(spec[i]);
+      }
+    } else {
+      content_spec["div.scoreboard"].push(spec);
+    }
+  }
+  
+  this.display = new Game.Card(content_spec);
+  this.display.dealTo(spec.container || game.widgets_container);
 	
 	this.game = game;
 	this.points = game.current_score;

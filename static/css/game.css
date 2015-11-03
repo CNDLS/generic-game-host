@@ -143,8 +143,6 @@ label.form-label {
   line-height: 2em;
   margin: 0.25em 0.125em;
   text-align: center;
-  width: 70px;
-  height: 40px;
   resize: none;
   color: #fff;
   border-radius: 50%;
@@ -166,6 +164,13 @@ span#clock_face {
 .scoreboard textarea {
   background-color: #15CCC2;
   overflow: hidden;
+  text-align: center;
+  resize: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 2em;
+  height: 2em;
+  float: left;
 }
 
 #widgets > table {
