@@ -107,7 +107,7 @@ label.form-label {
 #top h1 {
   font-size: 2.5em;
   line-height: 2em;
-  margin-left: 0.3em;
+  margin-left: 1em;
   display: inline;
 }
 
@@ -137,14 +137,14 @@ label.form-label {
   float: left;
   margin: 0 0.125em;
 }
-#widgets > * {
+#widgets > div.widget {
+  background-color: #15CCC2;
   font-size: 2em;
   line-height: 2em;
-  margin: 0.25em 0.125em;
+  margin: 0.25em 0.5em;
   text-align: center;
-  resize: none;
   color: #fff;
-  border-radius: 50%;
+  border-radius: 1em;
   width: 2em;
   height: 2em;
   float: left;
@@ -160,27 +160,32 @@ span#clock_face {
   text-align: center;
   margin: 0.25em 0.125em;
 }
-.scoreboard textarea {
-  background-color: #15CCC2;
-  overflow: hidden;
-  text-align: center;
-  resize: none;
-  color: #fff;
-  border-radius: 50%;
-  width: 2em;
-  height: 2em;
-  float: left;
-}
 
 #widgets > table {
   font-size: 0.8em;
   color: #333;
 }
 
+#widgets textarea {
+  background: transparent;
+  resize: none;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+
 #widgets label {
   color: black;
   font-size: 0.45em;
   line-height: 1em;
+  position: relative;
+  top: -3em;
+  max-width: inherit;
+  display: inline-block;
+  margin-bottom: 0.5em;
+  font-weight: 700;
 }
 
 

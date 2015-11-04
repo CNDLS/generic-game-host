@@ -60,7 +60,7 @@ $.fn.render = function (spec) {
 		if (matches === null) {
       el = $(document.createElement("div"));
       el.html(str);
-			return el;
+			return el.html();
 		} else {
 			tag_name = matches[1] || "div"; // so we can use descriptors that are just ids and/or class names.
 			if (tag_name === "svg") {

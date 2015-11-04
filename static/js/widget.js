@@ -30,13 +30,21 @@ Game.WidgetFactory.create = function (game, widget_spec) {
 
 
 /* 
+ * Game.Widget.Base
+ * Provides some shared functionality for Widgets.
+ */
+Game.Widget.CountdownClock = function (game, spec) {
+}
+
+
+/* 
  * Game.Widget.CountdownClock
  * This onscreen (External) clock just puts numbers into a field, counting down from max_time for the Round.
  * Custom clocks need to expose start(max_time), stop(), and a tick() function, which should return the current time.
  */
 Game.Widget.CountdownClock = function (game, spec) {
   spec = spec || {};
-  this.clock_card = new Game.Card("div#clock");
+  this.clock_card = new Game.Card("div#clock.widget");
   this.clock_face = this.clock_card.element.render("span#clock_face");
   this.clock_backing = this.clock_card.element.render("svg#clock_backing[src=" + STATIC_URL + "img/clock.svg]");
   var clock_container = spec.container || game.widgets_container;
@@ -152,7 +160,7 @@ Game.Widget.CountdownClock.prototype = {
 Game.Widget.Scoreboard = function (game, spec) {
   spec = spec || {};
   
-  var content_spec;
+  var content_spec, css_class;
   if (spec.hasOwnProperty("content")) {
     content_spec = spec.content;
     // remaining spec hash gets merged with this object.
@@ -164,19 +172,24 @@ Game.Widget.Scoreboard = function (game, spec) {
   }
   
   // set spec["div.scoreboard"] to be a textarea, plus whatever the passed-in spec describes.
-  var card_spec = { "div.scoreboard": ["textarea[readonly=true]"] };
+  var card_spec = { "div.widget.scoreboard": ["textarea[readonly=true]"] };
 
-  var num_elements = Object.keys(spec).length;
+  var num_elements = Object.keys(content_spec).length;
+
   if (num_elements > 0) {
     if (content_spec.hasOwnProperty("0")) {
       for (var i=0; i<num_elements; i++) {
-        card_spec["div.scoreboard"].push(content_spec[i]);
+        card_spec["div.widget.scoreboard"].push(content_spec[i]);
       }
     } else {
-      card_spec["div.scoreboard"].push(content_spec);
+      card_spec["div.widget.scoreboard"].push(content_spec);
     }
   }
-  
+
+  if (spec.hasOwnProperty("css_class")) {
+    card_spec.css_class = spec.css_class;
+    delete spec.css_class;
+  }
   this.display = new Game.Card(card_spec);
   this.display.dealTo(spec.container || game.widgets_container);
 	
