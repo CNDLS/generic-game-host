@@ -184,7 +184,7 @@ span#clock_face {
   top: -3em;
   max-width: inherit;
   display: inline-block;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.5em    ;
   font-weight: 700;
 }
 

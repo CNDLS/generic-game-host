@@ -187,6 +187,7 @@ Util = {
 				break;
         
       case "boolean":
+      case "number":
         return item;
 				
 			default:
