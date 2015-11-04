@@ -45,7 +45,6 @@ $(function () {
       in_production_try(this,
         function () {
           // try to make a game from the parsed game data.
-          debugger;
           wysiwyg_editor.code.set(data)
         }
       );

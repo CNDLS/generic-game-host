@@ -1,3 +1,57 @@
+.navbar-brand {
+  padding: 0;
+}
+
+.navbar-brand #logo {
+  height: 50px;
+}
+.navbar-nav {
+  margin-left: 3em;
+}
+polygon.lev_bg {
+  fill: #15CCC2;
+}
+polygon.l_bg {
+  fill: #92989B;
+}
+ul#game_list {
+  font-size: 1.5em;
+}
+
+ul#game_list li {
+  margin: 0.25em 0;
+}
+
+ul#game_list a {
+  color: #92989B;
+  background-color: transparent;
+}
+
+
+ul#game_list a:hover {
+  text-decoration: none;
+  color: #ddd;
+}
+
+ul#game_list a.edit_link {
+    font-size: 0.6em;
+    letter-spacing: 0.1em;
+    color: #333;
+    background-color: #ccc;
+    padding: 0.125em 0.5em;
+    border-radius: 0.25em;
+    margin: 0 0.5em;
+    display: inline-block;
+}
+
+ul#game_list a.edit_link:hover {
+    background-color: #ddd;
+}
+
+#explanation {
+  color: #ddd;
+}
+
 #footer {
   position: fixed;
   bottom: 0;
@@ -21,10 +75,10 @@
   height: 40px;
 }
 .dialog h1 {
-  background-color: #15CCC2;
-  color: white;
+  border-bottom: 3px solid #15CCC2;
+  color: #ddd;
   padding: 0.25em 0.5em 0 0.5em;
-  margin-bottom: 0;
+  margin-bottom: 0.5em;
 }
 #logo-gu {
   padding-top: 0.75em;
@@ -42,15 +96,4 @@ div#login-box {
     text-align: center;
     min-width: 100%;
     display: block;
-}
-
-a.edit_link {
-    font-size: 0.6em;
-    letter-spacing: 0.1em;
-    color: white;
-    background-color: #ccc;
-    padding: 0.125em 0.5em;
-    border-radius: 0.25em;
-    margin: 0 0.5em;
-    display: inline-block;
 }

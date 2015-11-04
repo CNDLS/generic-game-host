@@ -50,6 +50,7 @@ Game.Widget.CountdownClock = function (game, spec) {
 	$(document).on("game.resetClock", this.reset.bind(this));
 };
 Game.Widget.CountdownClock.prototype = {
+  
   start: function (evt, max_time) {
   	clearInterval(this.clock);
   	if (typeof max_time === "number") {
@@ -124,7 +125,6 @@ Game.Widget.CountdownClock.prototype = {
       this.clock_backing.find("path").attr("d", path_cmds);
     
     } catch (e) {
-      debugger;
       // do nothing. it's just ornamentation.
     }
         
@@ -152,23 +152,32 @@ Game.Widget.CountdownClock.prototype = {
 Game.Widget.Scoreboard = function (game, spec) {
   spec = spec || {};
   
-  // ... here is where you would write code to pop any functional (not to be rendered) keys off of spec.
+  var content_spec;
+  if (spec.hasOwnProperty("content")) {
+    content_spec = spec.content;
+    // remaining spec hash gets merged with this object.
+    for (var m in spec) {
+      this[m] = spec[m];
+    }
+  } else {
+    content_spec = spec;
+  }
   
   // set spec["div.scoreboard"] to be a textarea, plus whatever the passed-in spec describes.
-  var content_spec = { "div.scoreboard": ["textarea[readonly=true]"] };
+  var card_spec = { "div.scoreboard": ["textarea[readonly=true]"] };
 
   var num_elements = Object.keys(spec).length;
   if (num_elements > 0) {
-    if (spec.hasOwnProperty("0")) {
+    if (content_spec.hasOwnProperty("0")) {
       for (var i=0; i<num_elements; i++) {
-        content_spec["div.scoreboard"].push(spec[i]);
+        card_spec["div.scoreboard"].push(content_spec[i]);
       }
     } else {
-      content_spec["div.scoreboard"].push(spec);
+      card_spec["div.scoreboard"].push(content_spec);
     }
   }
   
-  this.display = new Game.Card(content_spec);
+  this.display = new Game.Card(card_spec);
   this.display.dealTo(spec.container || game.widgets_container);
 	
 	this.game = game;
@@ -176,8 +185,10 @@ Game.Widget.Scoreboard = function (game, spec) {
 	this.refresh();
 	
 	// listen for addPoints events from the game.
-	$(document).on("game.addPoints", this.addPoints.bind(this));
-	$(document).on("game.setPoints", this.setPoints.bind(this));
+  if (!this.hasOwnProperty("detach")) {
+  	$(document).on("game.addPoints", this.addPoints.bind(this));
+  	$(document).on("game.setPoints", this.setPoints.bind(this));
+  }
 };
 
 Game.Widget.Scoreboard.prototype = {

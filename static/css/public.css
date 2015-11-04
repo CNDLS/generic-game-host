@@ -17,6 +17,18 @@ html {
 body {
   min-height: 100%;
   background-image: url("../img/bo_play_pattern.png"); }
+  
+.blurb {
+  position: relative;
+  top: 6em;
+  color: #ddd;
+  font-size: 1.2em;
+}
+
+.public.container {
+  position: relative;
+  top: 6em;
+}
 
 /*****
 Header

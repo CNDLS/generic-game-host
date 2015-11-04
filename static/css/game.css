@@ -25,7 +25,6 @@ textarea {
 
 .navbar-brand {
   width: 210px;
-  height: 92px;
   padding: 0;
 }
 
@@ -178,6 +177,12 @@ span#clock_face {
   color: #333;
 }
 
+#widgets label {
+  color: black;
+  font-size: 0.45em;
+  line-height: 1em;
+}
+
 
 #bottom {
   width: 100%;
@@ -280,24 +285,6 @@ ul.objectives li:nth-child(3) {
   text-align: left;
 }
 
-.report.dialog {
-  background: rgba(255,255,255,0.33);
-  min-width: 75%;
-}
-
-.report.dialog h1{
-  color: #6699cc;
-}
-
-.report.dialog #game_list a{
-  color: #92989B;
-  background-color: transparent;
-}
-
-.report.dialog #game_list a:hover{
-  color: white;
-  background-color: #92989B;
-}
 
 ul#summary {
   color: #6699cc;
