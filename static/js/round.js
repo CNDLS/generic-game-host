@@ -254,9 +254,9 @@ Game.Round.prototype.endResponding = function () {
 // if a particulate wrong answer is specified, though, use that.
 Game.Round.prototype.GiveWrongAnswer = function () {
 	var a_wrong_answer = 
-	$(this.answers).select(function () { return this.timeout_answer; })[0] ||
-	$(this.answers).select(function () { return !this.correct; })[0] ||
-	new Game.Round.Answer();
+	$(this.answers).select(function () { return this.timeout_answer; })[0]
+    || $(this.answers).select(function () { return !this.get("correct"); })[0]
+    || new Game.Round.Answer();
 	return { answer: a_wrong_answer, score: a_wrong_answer.negative_value || 0 }
 }
 
@@ -291,7 +291,7 @@ Game.Round.prototype.doTearDown = function () {
 	// do any 'tear down' of the round. do also for ending/interrupting game.
 	if ((this.tear_down instanceof YAML) && GameFunctionType.resolve(this.tear_down)) {
 		var game_fn = GameFunctionType.construct(this.tear_down);
-		game_fn.evaluate();
+		game_fn.evaluate(this);
 	} else if (typeof this.tear_down === "function") {
 		this.tear_down();
 	}

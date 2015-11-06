@@ -32,8 +32,10 @@ Game.WidgetFactory.create = function (game, widget_spec) {
 /* 
  * Game.Widget.Base
  * Provides some shared functionality for Widgets.
+ * Maybe we make Widget.Base a dealer, or have one general Widget dealer?
+ * No promises in dealTo, so none reflected in Widgets so far. 11/4/15 bg.
  */
-Game.Widget.CountdownClock = function (game, spec) {
+Game.Widget.Base = function (game, spec) {
 }
 
 
@@ -185,17 +187,29 @@ Game.Widget.Scoreboard = function (game, spec) {
       card_spec["div.widget.scoreboard"].push(content_spec);
     }
   }
-
+  
+  // apply any style.
   if (spec.hasOwnProperty("css_class")) {
     card_spec.css_class = spec.css_class;
     delete spec.css_class;
   }
+  // apply any initial value.
+  if (spec.hasOwnProperty("initial")) {
+    this.initial = spec.initial;
+    delete spec.initial;
+  }
+  
   this.display = new Game.Card(card_spec);
   this.display.dealTo(spec.container || game.widgets_container);
 	
 	this.game = game;
 	this.points = game.current_score;
-	this.refresh();
+  
+  if (this.initial) {
+    this.setPoints(null, this.initial);
+  } else {
+    this.refresh();
+  }
 	
 	// listen for addPoints events from the game.
   if (!this.hasOwnProperty("detach")) {

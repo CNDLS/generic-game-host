@@ -26,7 +26,58 @@ var GameFunctionType = new jsyaml.Type("!do", {
 		return new GameFunction(data.call, args);
 	}
 });
+
+
+
+function ConditionalResult (data) {
+  this.key_expr = data[0];
+  this.dict = data[1];
+  this.fn = function (key) {
+    try {
+      return this.dict[key];
+    } catch (e) {
+      console.warn("Cannot find '" + key + "' in dictionary obj.", this.dict);
+      return;
+    }
+  }
+}
+// we're asked to evaluate elements that may have dot notation.
+// these should only be things that are members (and sub-members) of context.
+ConditionalResult.prototype.evaluate = function (context) {
+  try {
+    var key_expr_elements = this.key_expr.match(/(\w+(?=\.){0,1})/g);
+    var key = context; // drill down, starting w context.
+    for (var i=0; i<key_expr_elements.length; i++) {
+      key = key[key_expr_elements[i]];
+    }
+  	return this.fn(key);
+  } catch (e) {
+    console.warn(e);
+    return;
+  }
+}
+
+var ConditionalResultType = new jsyaml.Type("!when", {
+	kind: "sequence",
+  instanceOf: ConditionalResult,
+	resolve: function (data) {
+    // this type is picky: data must be an array of exactly two members,
+    // first, something that resolves to a string, and second, and object.
+    is_valid = false;
+    if ((data instanceof Array) && (data.length === 2)) {
+      if ((typeof data[0] === "string") && (typeof data[1] === "object")) {
+        is_valid = true;
+      } 
+    }
+    return is_valid;
+	},
+	construct: function (data) {
+    return new ConditionalResult(data);
+	}
+});
+
 	
+  
 function EncodedLink (data) {
 	this.data = data;
 }
@@ -64,6 +115,7 @@ var LinkType = new jsyaml.Type("!link", {
 });
 
 
+
 function Concat (data) {
 	data.unshift([]);
 	this.data = Array.prototype.reduce.call(data, function (a, b) {
@@ -98,7 +150,7 @@ var ConcatType = new jsyaml.Type("!concat", {
 });
 
 /******************************************************************************/
-var GAME_SCHEMA = jsyaml.Schema.create([ GameFunctionType, ConcatType, LinkType ]);
+var GAME_SCHEMA = jsyaml.Schema.create([ GameFunctionType, ConcatType, LinkType, ConditionalResultType ]);
 /******************************************************************************/
 
 
@@ -135,7 +187,7 @@ YAML.prototype.count = function () {
 /*
  * YAML.get() method, to be more forgiving about object keys, and to evaluate functions named in the YAML.
  */
-YAML.prototype.get = function (key) {
+YAML.prototype.get = function (key, context) {
 	key = key.toString();
 	var value;
 	if (this.hasOwnProperty(key)) {
@@ -149,7 +201,7 @@ YAML.prototype.get = function (key) {
 		return undefined;
 	}
 	if (value.hasOwnProperty('evaluate') && (typeof value.evaluate === 'function')){
-		return value.evaluate();
+		return value.evaluate(context);
 	} else {
 		return value;
 	}

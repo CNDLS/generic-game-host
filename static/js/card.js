@@ -115,7 +115,7 @@ Game.Card.DEFAULTS = {
 	timeout: null
 };
 
-Game.Card.prototype = {
+Game.Card.prototype = $.extend(Game.Card.prototype, {
   
   style: function (css_classes) {
   	// remove card class and then add back those specified.
@@ -173,7 +173,7 @@ Game.Card.prototype = {
   		return Util.createDescriptor(this.element.get(0));
   	}
   }
-}
+});
 
 
 // a create method for basic Card types (as opposed to those controlled by Dealers).

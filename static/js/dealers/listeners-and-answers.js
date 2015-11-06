@@ -77,7 +77,7 @@ Game.Round.PromptLinkListener = Util.extendClass(Game.Round.Listener, function (
   			var card_elem = prompt_links[i];
   			var link_card = Game.DealersCardFactory.create("ListenerCard", "LinkCard", _this, _this.round, card_elem);
   			_this.addCard(link_card);
-  			link_card.answer = new Game.Round.Answer(answer_spec);
+  			link_card.answer = new Game.Round.Answer(answer_spec, _this.round);
   		} catch (e) {
   			console.log(e)
   		}
@@ -171,7 +171,7 @@ Game.Round.GroupedInputsListener = Util.extendClass(Game.Round.Listener, functio
   			this.promptUserForMoreInput();
   		} else {
   			// send grouped answers and scores.
-  			var answer = new Game.Round.Answer({ content: answers });
+  			var answer = new Game.Round.Answer({ content: answers }, this.round);
   			$(this.group_card.element).trigger("Card.userInput", { answer: answer, score: scores });
   			this.user_input_dfd.resolve({ answer: answer, score: scores });
   		}
@@ -207,33 +207,6 @@ Game.Round.GroupedInputsListener = Util.extendClass(Game.Round.Listener, functio
 });
 
 
-/*
- * DragAndDropListener -- uses interact.js to manage drag-and-drop interactions.
- */
-Game.Round.DragAndDropListener = Util.extendClass(Game.Round.Listener, function (round, spec) {
-	// this will necessarily require more than one user action, 
-	// so we hide any 'continue' buttons, collect all user_input_promises, and resolve upon a click on our Submit button.
-	Game.Round.Listener.call(this, round, spec);
-  
-  if ((typeof interact === "function") && (typeof interact.pointerMoveTolerance === "function")) {
-    // we are good-to-go.
-  } else {
-    throw Error("DragAndDropListener requires interact.js to be loaded.");
-  }
-},
-{
-  init: function () {
-    // call super to load any group card.
-    Game.Round.Listener.prototype.init.call(this);
-  },
-  
-  deal: function (cards_to_be_dealt, container, dealing_dfd) {
-  	this.deactivateCards();
-  	return Game.Dealer.prototype.deal.call(this, [], container, dealing_dfd);
-  }
-});
-
-
 
 
 /* 
@@ -245,23 +218,40 @@ Game.Round.DragAndDropListener = Util.extendClass(Game.Round.Listener, function 
  * own types.
  * Answers originate in the YAML spec, and they can specify feedback.
  */
-Game.Round.Answer = function (spec) {
+Game.Round.Answer = function (spec, context) {
 	if (typeof spec === "string") {
 		spec = { content: spec };
 	}
+  // keep track of params.
+  this.spec = spec;
+  this.context = context;
+  
 	$.extend(this, spec);
 }
 
-// allow answers to be pre-defined elements (eg; SetPieces or Widgets)
-Game.Round.Answer.prototype.getContents = function () {
-  // handle ref's to our media_url.
-  this.content = Util.replaceAll(this.content, /MEDIA_URL\+/g, MEDIA_URL);
 
-  // check if content is a selector. if so, see if element exists.
-  var content_is_selector = $.render.tag_id_class_regexp.test(this.content);
-  if (content_is_selector && $(this.content).length) {
-    return $(this.content).html();
-  } else {
-    return $.render(this.content).html;
+Game.Round.Answer.prototype = $.extend(Game.Round.Answer.prototype, {
+
+  // allow answers to be pre-defined elements (eg; SetPieces or Widgets)
+  getContents: function () {
+    // handle ref's to our media_url.
+    this.content = Util.replaceAll(this.content, /MEDIA_URL\+/g, MEDIA_URL);
+
+    // check if content is a selector. if so, see if element exists.
+    var content_is_selector = $.render.tag_id_class_regexp.test(this.content);
+    if (content_is_selector && $(this.content).length) {
+      return $(this.content).html();
+    } else {
+      return $.render(this.content).html;
+    }
+  },
+  
+  get: function (key, context) {
+    if (typeof this.spec["get"] === "function") {
+      return this.spec.get(key, context || this.context);
+    } else {
+      return this.spec[key] || null;
+    }
+    
   }
-}
+});

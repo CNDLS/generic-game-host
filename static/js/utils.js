@@ -162,7 +162,6 @@ Util = {
 					return item.toString().replace(pattern, replacement_str);
 				} else if (item instanceof Array) {
 					for (var i=0; i < item.length; i++) {
-
 						item[i] = Util.replaceAll(item[i], pattern, replacement_str);
 					}
 				} else if (item instanceof HTMLElement) {

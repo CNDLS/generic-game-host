@@ -14,8 +14,8 @@ Game.ListenerCard.FreeResponseCard = Util.extendClass(Game.Card, function (args)
   	Game.Card.prototype.dealTo.call(this, container);
   	var _this = this;
   	this.element.find("input[type=text]").on("keypress", function (e) {
-          if (e.keyCode === 13) {
-  			var answer = new Game.Round.Answer(e.target.value);
+      if (e.keyCode === 13) {
+  			var answer = new Game.Round.Answer(e.target.value, _this.dealer.round);
   			var score = 1; // any response is accepted.
   			$(_this.element).trigger("Card.userInput", { answer: answer, score: score });
   			e.target.blur();
@@ -40,7 +40,7 @@ Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function (arg
 	
 	var _this = this;
 	$.each(answers, function (i, answer_spec) {
-		var answer = new Game.Round.Answer(answer_spec);
+		var answer = new Game.Round.Answer(answer_spec, _this.dealer.round);
 		var btn_id = "radio_btn_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
 		_this.radio_btns[btn_id] =
 			{ html: ("<li><input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"
@@ -65,10 +65,10 @@ Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function (arg
   respondToClick: function (e) {
   	var clicked_radio_btn = this.radio_btns[e.target.id];
   	// add classes, so we can style if need be.
-  	var correct = clicked_radio_btn.answer.correct || false;
+  	var correct = clicked_radio_btn.answer.get("correct", this.dealer.round) || false;
   	var value = clicked_radio_btn.answer.value || 1;
   	var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
-  	var answer = new Game.Round.Answer(clicked_radio_btn.answer);
+  	var answer = new Game.Round.Answer(clicked_radio_btn.answer, this.dealer.round);
   	var score = correct ? value : neg_value;
   	$(this.element).trigger("Card.userInput", { card: this, answer: answer, score: score});
   }
@@ -96,7 +96,7 @@ Game.ListenerCard.MultipleAnswerCard = Util.extendClass(Game.Card, function (arg
 	var group_name = "checkbox_group_" + round.nbr + S4();
 	var _this = this;
 	$.each(answers, function (i, answer_spec) {
-		var answer = new Game.Round.Answer(answer_spec);
+		var answer = new Game.Round.Answer(answer_spec, _this.dealer.round);
 		var checkbox_id = "checkbox_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
 		_this.checkboxes[checkbox_id] =
 			{ html: ("<li><input type=\"checkbox\" id=\"" + checkbox_id + "\" name=\"" + group_name + "\" value=\"\">"
@@ -133,10 +133,10 @@ Game.ListenerCard.LinkCard = Util.extendClass(Game.Card, function (args) {
   		// disable the link after one click (maybe will want a double-click option at some point?)
   		$(this).prop('disabled', true);
   		// get answer & score, and pass them when resolving my promise (dfd).
-  		var correct = _this.answer.correct || false;
+  		var correct = _this.answer.get.bind(_this.dealer)("correct") || false;
   		var value = _this.answer.value || 1;
   		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
-  		var answer = new Game.Round.Answer(_this.answer);
+  		var answer = new Game.Round.Answer(_this.answer, _this.dealer.round);
   		var score = correct ? value : neg_value;
   		_this.element.trigger("Card.userInput", {answer: answer, score: score});
   	});

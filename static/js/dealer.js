@@ -32,7 +32,7 @@ Game.Dealer = function (game_or_round, container) {
 }
 
 
-Game.Dealer.prototype = {
+Game.Dealer.prototype = $.extend(Game.Dealer.prototype, {
   init: function () {
   	// stub.
   },
@@ -292,7 +292,7 @@ Game.Dealer.prototype = {
   		return Game.getClassName(this);
   	}
   }
-}
+});
 
 
 

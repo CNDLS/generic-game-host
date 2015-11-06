@@ -6,7 +6,10 @@
   height: 50px;
 }
 .navbar-nav {
-  margin-left: 3em;
+  margin-left: -3.8em;
+}
+.navbar-nav li a{
+  padding: 0.9em 1.8em;
 }
 polygon.lev_bg {
   fill: #15CCC2;
