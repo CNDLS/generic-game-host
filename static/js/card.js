@@ -19,6 +19,8 @@ Game.Card = function(spec) {
 		return; // this is when we are creating a Card to be a prototype for another type of object.
 	} else if (spec instanceof String) {
 		spec = spec.toString();
+	} else if (spec instanceof Error) {
+	  throw spec;
 	}
 	
 	// some card-related constants.
@@ -47,9 +49,9 @@ Game.Card = function(spec) {
 	} else {
 		// remove 'type' from spec
 		var card_type = spec.type || "";
-		delete spec.type
+		delete spec.type;
     
-		in_production_try(this, function () {
+		in_production_try(this, function createCardElement () {
 			var card_scaffold = $(document.createElement("div"));
             if (spec instanceof String) {
                 spec = spec.toString()
@@ -62,7 +64,7 @@ Game.Card = function(spec) {
 			var nodes_in_card = card_scaffold.get(0).childNodes;
 			switch (nodes_in_card.length) {
 				case 0:
-					throw new Error("Failed to create Card.");
+					console.log("Failed to create Card.", spec);
 					break;
 			
 				case 1:

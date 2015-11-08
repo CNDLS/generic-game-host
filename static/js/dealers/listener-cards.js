@@ -40,7 +40,7 @@ Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function (arg
 	
 	var _this = this;
 	$.each(answers, function (i, answer_spec) {
-		var answer = new Game.Round.Answer(answer_spec, _this.dealer.round);
+		var answer = new Game.Round.Answer(answer_spec, round);
 		var btn_id = "radio_btn_" + round.nbr + "_" + (i + 1) + "_" + S4(); // random 4-character code.
 		_this.radio_btns[btn_id] =
 			{ html: ("<li><input type=\"radio\" id=\"" + btn_id + "\" name=\"" + group_name + "\" value=\"\">"

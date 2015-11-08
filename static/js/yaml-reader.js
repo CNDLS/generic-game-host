@@ -188,8 +188,16 @@ YAML.prototype.count = function () {
  * YAML.get() method, to be more forgiving about object keys, and to evaluate functions named in the YAML.
  */
 YAML.prototype.get = function (key, context) {
-	key = key.toString();
 	var value;
+	key = key.toString();
+  if (key.match(/^\(.+\)$/g)) { // key is in parens.
+    var key_expr_elements = this.key_expr.match(/(\w+(?=\.){0,1})/g);  // key is of the form (a.b..x)
+    var value = context; // drill down, starting w context.
+    for (var i=0; i<key_expr_elements.length; i++) {
+      value = value[key_expr_elements[i]];
+    }
+    return value;
+  }
 	if (this.hasOwnProperty(key)) {
 		value = this[key];
 	} else if (this.hasOwnProperty(key.underscore())) {

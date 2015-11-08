@@ -311,7 +311,7 @@ Game.DealersCardFactory = {
 		var dealer_card_scope = Game[dealer_card_scope_name];
 		var card_type = args.shift();
 		var dealer = args.shift();
-		return in_production_try(this, function () {
+		return in_production_try(this, function createDealerCard () {
 			if (typeof card_type !== "string") {
 				throw new Error("Invalid Card Type.");
 			}

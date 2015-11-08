@@ -28,7 +28,7 @@ $.extend(Game, {
 		}
 	},
 	
-	withCard: function (queried_selector, test_selector, return_value, default_value) {
+	withElement: function (queried_selector, test_selector, return_value, default_value) {
 		// do these two different selectors resolve to the same set of elements in jQuery?
 		// eg; is first child element yield an element that has some particular id/class combination?
 		if ($(queried_selector).is(test_selector)) {

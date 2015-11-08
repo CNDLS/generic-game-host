@@ -36,12 +36,7 @@ function in_production_try(context, try_func, catch_func) {
 			break;
 			
 		case "development":
-			try {
-				return try_func.call(context);
-			} catch (e) {
-				console.error(e.stack);
-				debugger; // allow failure to interrupt execution & drop into debugger.
-			}
+      return try_func.call(context);
 			break;
 	}
 }
