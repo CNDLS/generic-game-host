@@ -121,6 +121,39 @@ var ConditionalResultType = new jsyaml.Type("!when", {
 	}
 });
 
+
+function ConditionalOnElement (data) {
+  this.game_element_selector = data.shift();
+  this.options = data;
+}
+
+ConditionalOnElement.prototype.evaluate = function (context) {
+  var game_element = YAML.prototype.get.call(this, this.game_element_selector, context);
+  var option;
+  for (var i=0; i < this.options.length; i++) {
+    option = this.options[i];
+    for (var m in option) {
+      if ($(m).is(game_element)) {
+       return option[m];
+      }
+    }
+  }
+}
+	
+var ConditionalOnElementType = new jsyaml.Type("!whenElement", {
+	kind: "sequence",
+  instanceOf: ConditionalOnElement,
+	resolve: function (data) {
+    if (!(data instanceof Array)) { return false; }
+    if (data.length < 2) { return false; }
+    if (typeof data[0] !== "string") { return false; }
+    return true;
+  },
+	construct: function (data) {
+    return new ConditionalOnElement(data);
+	}
+});
+
 	
   
 function EncodedLink (data) {
@@ -195,7 +228,7 @@ var ConcatType = new jsyaml.Type("!concat", {
 });
 
 /******************************************************************************/
-var GAME_SCHEMA = jsyaml.Schema.create([ GameFunctionType, ConcatType, LinkType, ConditionalResultType, FunctionSequenceType ]);
+var GAME_SCHEMA = jsyaml.Schema.create([ GameFunctionType, ConcatType, LinkType, ConditionalResultType, ConditionalOnElementType, FunctionSequenceType ]);
 /******************************************************************************/
 
 

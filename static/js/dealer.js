@@ -172,7 +172,7 @@ Game.Dealer.prototype = $.extend(Game.Dealer.prototype, {
   },
 
   waitForAnyUserInput: function () {
-  	var user_input_dfd = $.Deferred();
+  	this.user_input_dfd = $.Deferred();
   	// react to first user action.
   	var _this = this;
   	$(this.cards).each(function () {
@@ -181,10 +181,10 @@ Game.Dealer.prototype = $.extend(Game.Dealer.prototype, {
   			// this is the default behavior; a listener would have to override if inputs should stay active
   			// past this point.
   			_this.deactivateCards(data.card);
-  			user_input_dfd.resolve(data);
+  			_this.user_input_dfd.resolve(data);
   		});
   	});
-  	return user_input_dfd.promise();
+  	return this.user_input_dfd.promise();
   },
 
   // this refers to presenting one card at-a-time to the user,
@@ -209,6 +209,7 @@ Game.Dealer.prototype = $.extend(Game.Dealer.prototype, {
   	if (this.cards.length) {
   		// return the promise that will get fulfilled when the user interacts with the last Card.
   		var last_card = this.cards[this.cards.length-1];
+      this.user_input_dfd = last_card.user_input_dfd;
   		return last_card.user_input_dfd.promise();
   	} else {
   		// return a generic promise.
@@ -217,7 +218,7 @@ Game.Dealer.prototype = $.extend(Game.Dealer.prototype, {
   },
 
   waitForAllUserInput: function () {
-  	var user_input_dfd = $.Deferred();
+  	this.user_input_dfd = $.Deferred();
   	// react only after user acts on all available cards.
   	var _this = this;
   	var collected_data = [];
@@ -228,11 +229,11 @@ Game.Dealer.prototype = $.extend(Game.Dealer.prototype, {
   			// collect all answers and scores
   			collected_data.push(data);
   			if (collected_data.length === card_elements.length) {
-  				user_input_dfd.resolve(collected_data);
+  				_this.user_input_dfd.resolve(collected_data);
   			}
   		});
   	});
-  	return user_input_dfd.promise();
+  	return this.user_input_dfd.promise();
   },
 
   // ONLY USE THIS WHERE ANOTHER MECHANISM PROVIDES A PROMISE

@@ -206,7 +206,7 @@ Game.Round.prototype.onListenForPlayer = function () {
 				var collected_scores = $(data).collect(function () {
 					return this.score;
 				});
-				data = { answer: new Answer(collected_answer_content), score: collected_scores }
+				data = { answer: new Game.Round.Answer(collected_answer_content), score: collected_scores }
 			}
 			_this.endListening(data.answer, data.score);
 		});

@@ -182,6 +182,7 @@ Util = {
         
       case "boolean":
       case "number":
+      case "undefined":
         return item;
 				
 			default:
