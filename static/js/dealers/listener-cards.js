@@ -133,7 +133,13 @@ Game.ListenerCard.LinkCard = Util.extendClass(Game.Card, function (args) {
   		// disable the link after one click (maybe will want a double-click option at some point?)
   		$(this).prop('disabled', true);
   		// get answer & score, and pass them when resolving my promise (dfd).
-  		var correct = _this.answer.get.bind(_this.dealer)("correct") || false;
+      // answer.correct may be a boolean or a function that returns one.
+      var correct
+      if (typeof _this.answer["correct"] === "boolean") {
+        correct = _this.answer.correct;
+      } else {
+  		  correct = _this.answer.get("correct", _this.dealer.round) || false;
+      }
   		var value = _this.answer.value || 1;
   		var neg_value = _this.answer.negative_value || 0; // any penalty for answering incorrectly?
   		var answer = new Game.Round.Answer(_this.answer, _this.dealer.round);

@@ -10,7 +10,9 @@
  ************************************************************/
 $.render = function (spec) {
 	var div = $("<div/>");
-	return { promise: div.render(spec).data("promise"), html: div.html() }
+  var rendered = div.render(spec);
+  var promise = (rendered instanceof jQuery) ? rendered.data("promise") : Promise.resolve();
+	return { promise: promise, html: div.html() }
 }
 
 $.fn.render = function (spec) {

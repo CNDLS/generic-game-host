@@ -10,6 +10,7 @@ function GameFunction (fname, params) {
 	this.fn = Game[fname];
 	this.params = params;
 }
+
 GameFunction.prototype.evaluate = function () {
 	return this.fn.apply(window.game, this.params);
 }
@@ -27,6 +28,50 @@ var GameFunctionType = new jsyaml.Type("!do", {
 	}
 });
 
+
+function FunctionSequence (data) {
+  this.fnames = data;
+}
+// make a promise for each fname in my list.
+// resolve the fname to a fn, and call it upon the promise resolving.
+FunctionSequence.prototype.evaluate = function (context) {
+  var _this = this;
+  return function enactSequence () {
+    var dfd = $.Deferred();
+    dfd.resolve();
+    var p = dfd.promise();
+    for (var i=0; i < _this.fnames.length; i++) {
+      var fname = _this.fnames[i];
+      var fn = YAML.prototype.get(fname, context);
+      console.log(fname, fn);
+      if (typeof fn === "function") {
+        dfd = $.Deferred();
+        p = p.then(fn());
+      }
+    }
+    return dfd;
+  }
+}
+	
+var FunctionSequenceType = new jsyaml.Type("!call", {
+	kind: "sequence",
+  instanceOf: FunctionSequence,
+	resolve: function (data) {
+    var is_valid = false;
+    if (data instanceof Array) {
+      is_valid = true; // provisionally
+      for (var i=0; i<data.length; i++) {
+        if (typeof data[i] !== "string") {
+          is_valid = false;
+        }
+      }
+    }
+    return is_valid;
+  },
+	construct: function (data) {
+    return new FunctionSequence(data);
+	}
+});
 
 
 function ConditionalResult (data) {
@@ -150,7 +195,7 @@ var ConcatType = new jsyaml.Type("!concat", {
 });
 
 /******************************************************************************/
-var GAME_SCHEMA = jsyaml.Schema.create([ GameFunctionType, ConcatType, LinkType, ConditionalResultType ]);
+var GAME_SCHEMA = jsyaml.Schema.create([ GameFunctionType, ConcatType, LinkType, ConditionalResultType, FunctionSequenceType ]);
 /******************************************************************************/
 
 
@@ -191,7 +236,7 @@ YAML.prototype.get = function (key, context) {
 	var value;
 	key = key.toString();
   if (key.match(/^\(.+\)$/g)) { // key is in parens.
-    var key_expr_elements = this.key_expr.match(/(\w+(?=\.){0,1})/g);  // key is of the form (a.b..x)
+    var key_expr_elements = key.match(/(\w+(?=\.){0,1})/g);  // key is of the form (a.b..x)
     var value = context; // drill down, starting w context.
     for (var i=0; i<key_expr_elements.length; i++) {
       value = value[key_expr_elements[i]];
@@ -208,9 +253,19 @@ YAML.prototype.get = function (key, context) {
 		// console.log("Could not find " + key + " in ", this);
 		return undefined;
 	}
+  if ((value === undefined) || (value === null)) {
+    return;
+  }
 	if (value.hasOwnProperty('evaluate') && (typeof value.evaluate === 'function')){
 		return value.evaluate(context);
-	} else {
+	} else if ((typeof value === "string") && (value.match(/^\(.+\)$/g))) { // value is in parens.
+    var val_expr_elements = value.match(/(\w+(?=\.){0,1})/g);  // value is of the form (a.b..x)
+    var val = context; // drill down, starting w context.
+    for (var i=0; i<val_expr_elements.length; i++) {
+      val = val[val_expr_elements[i]];
+    }
+    return val;
+  } else {
 		return value;
 	}
 };
