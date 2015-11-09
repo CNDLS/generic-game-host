@@ -43,7 +43,6 @@ FunctionSequence.prototype.evaluate = function (context) {
     for (var i=0; i < _this.fnames.length; i++) {
       var fname = _this.fnames[i];
       var fn = YAML.prototype.get(fname, context);
-      console.log(fname, fn);
       if (typeof fn === "function") {
         dfd = $.Deferred();
         p = p.then(fn());
@@ -243,24 +242,73 @@ function YAML(parsed_data) {
     
 	// crawl through parsed_data & give all objects a custom get() function.
 	// for now, we're assuming they're all vanilla Objects.
-    var member;
+  var member;
 	for (var key in parsed_data) {
-        member = parsed_data[key];
-		if ((member instanceof Object) && !(member instanceof Function)) {
-			parsed_data[key] = new YAML(member);
+    member = parsed_data[key];
+		if ((member instanceof Object) && (typeof member !== "function")) {
+      if (member instanceof Array) {
+        parsed_data[key] = new YAML.Array(member);
+      } else  {
+  			parsed_data[key] = new YAML(member);
+      }
 		}
 	}
 	$.extend(this, parsed_data);
 }
 
 /*
+ * Just give ourselves a way to type-check YAML arrays.
+ */
+YAML.Array = Util.extendClass(YAML, function (parsed_data) {
+  YAML.call(this, parsed_data);
+});
+
+/*
  * Return the numbef of items remaining in a YAML array.
  */
-YAML.prototype.count = function () {
+YAML.Array.prototype.count = function () {
 	var keys = Object.keys(this);
 	keys = $(keys).reject(function () { return ["default_context"].indexOf(this.toString()) > -1; });
 	return keys.length;
 };
+YAML.Array.prototype.shift = function () {
+	return Array.prototype.shift.call(this);
+};
+
+YAML.Array.prototype.join = function () {
+	return Array.prototype.join.call(this);
+};
+
+YAML.Array.prototype.indexOf = function (obj) {
+	var i = 0;
+	for (var m in this) {
+		if ( (this[m] instanceof YAML) && (this[m].equals(obj)) ) {
+			return i;
+		} else if (this[m] === obj) {
+			return i;
+		}
+		i++;
+	}
+	return -1;
+};
+
+// be compatible with objects and arrays.
+Object.defineProperty(YAML.Array.prototype, "length", {
+	enumerable: false,
+	get: function () {
+		// count enumerable elements.
+		var i = 0;
+		for (var key in this) {
+			if (this.hasOwnProperty(key)) { i++; }
+		}
+		return i;
+	},
+	set: function (val) {
+		if (!val) {
+			throw new Error("Can't set object length to " + val);
+		}
+	}
+});
 
 /*
  * YAML.get() method, to be more forgiving about object keys, and to evaluate functions named in the YAML.
@@ -303,26 +351,6 @@ YAML.prototype.get = function (key, context) {
 	}
 };
 
-YAML.prototype.shift = function () {
-	return Array.prototype.shift.call(this);
-};
-
-YAML.prototype.join = function () {
-	return Array.prototype.join.call(this);
-};
-
-YAML.prototype.indexOf = function (obj) {
-	var i = 0;
-	for (var m in this) {
-		if ( (this[m] instanceof YAML) && (this[m].equals(obj)) ) {
-			return i;
-		} else if (this[m] === obj) {
-			return i;
-		}
-		i++;
-	}
-	return -1;
-};
 
 YAML.prototype.equals = function (obj) {
 	if (obj === undefined) {
@@ -345,24 +373,9 @@ YAML.prototype.equals = function (obj) {
 }
 
 // don't show custom functions when the object is listed.
-$.each(["get", "shift", "join", "readOrEvaluate", "indexOf", "count", "equals", "yaml_src"], function(){
+$.each(["get", "readOrEvaluate", "equals", "yaml_src"], function(){
 	Object.defineProperty(YAML.prototype, this, { enumerable: false });
 });
-
-// be compatible with objects and arrays.
-Object.defineProperty(YAML.prototype, "length", {
-	enumerable: false,
-	get: function () {
-		// count enumerable elements.
-		var i = 0;
-		for (var key in this) {
-			if (this.hasOwnProperty(key)) { i++; }
-		}
-		return i;
-	},
-	set: function (val) {
-		if (!val) {
-			throw new Error("Can't set object length to " + val);
-		}
-	}
+$.each(["shift", "join", "indexOf", "count", "constructor"], function(){
+	Object.defineProperty(YAML.Array.prototype, this, { enumerable: false });
 });

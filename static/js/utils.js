@@ -155,7 +155,7 @@ Util = {
 			case "object":
 				if (item instanceof String) {
 					return item.toString().replace(pattern, replacement_str);
-				} else if (item instanceof Array) {
+				} else if ((item instanceof Array) || (item instanceof YAML.Array)) {
 					for (var i=0; i < item.length; i++) {
 						item[i] = Util.replaceAll(item[i], pattern, replacement_str);
 					}
@@ -183,6 +183,7 @@ Util = {
       case "boolean":
       case "number":
       case "undefined":
+      case "function":
         return item;
 				
 			default:

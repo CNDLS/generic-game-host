@@ -33,8 +33,6 @@ Game.Round = function (game, round_spec, mock) {
 	this.prompter = this.read("Prompter");
 	this.listener = this.read("Listener");
 	this.responder = this.read("Responder");
-
-	this.tear_down = this.read("Teardown");
 		 
 	// *** MESSAGING ***
 	// This is where we attach animations, etc through objects like the Scene object.
@@ -289,10 +287,16 @@ Game.Round.prototype.onEnd = function (eventname, from, to, next_round) {
 
 Game.Round.prototype.doTearDown = function () {
 	// do any 'tear down' of the round. do also for ending/interrupting game.
-	if ((this.tear_down instanceof YAML) && GameFunctionType.resolve(this.tear_down)) {
-		var game_fn = GameFunctionType.construct(this.tear_down);
-		game_fn.evaluate(this);
-	} else if (typeof this.tear_down === "function") {
-		this.tear_down();
-	}
+	this.tear_down = this.read("Teardown");
+  if (typeof this.tear_down["evaluate"] === "function") {
+    this.tear_down.evaluate(this);
+  } else if (typeof this.tear_down === "function") {
+    this.tear_down();
+  }
+  // if ((this.tear_down instanceof YAML) && GameFunctionType.resolve(this.tear_down)) {
+  //   var game_fn = GameFunctionType.construct(this.tear_down);
+  //   game_fn.evaluate(this);
+  // } else if (typeof this.tear_down === "function") {
+  //   this.tear_down();
+  // }
 }

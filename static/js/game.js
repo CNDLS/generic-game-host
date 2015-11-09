@@ -126,7 +126,7 @@ Game.prototype = $.extend(Game.prototype, {
 	
   	// introduce any explanatory note.
   	var intro_specs = this.read("Intro");
-  	if (!(intro_specs.hasOwnProperty("0"))) {
+  	if (!(intro_specs instanceof YAML.Array)) {
   		intro_specs = [intro_specs];
   	}
 	
@@ -222,7 +222,7 @@ Game.prototype = $.extend(Game.prototype, {
   	// fall back to defaults defined on Game or Game.Round,
   	// whoever is calling this.
   	var default_value = arguments[1] || undefined;
-  	var rtn_val = this.spec.get(field_name);
+  	var rtn_val = this.spec.get(field_name, this);
   	// first, try falling back to a passed-in return value.
   	if (rtn_val === undefined && (typeof default_value !== "undefined")) { rtn_val = default_value; }
   	// then, check the defaults for the Game or Game.Round.

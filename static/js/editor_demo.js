@@ -353,7 +353,7 @@ function renderYAML (yaml, container, context, current_scope) {
               var li_container = container.render(m_key); //.find(":last");
               // check whether its name refers to an object defined on the current context.
               // check if m_thing is defined on the current context.
-              if (m_thing.hasOwnProperty("0")) {
+              if (m_thing instanceof YAML.Array) {
                 context = context.replace("Factory", "");
               }
               m_class = getAssociatedClass(context, m_type);
@@ -366,7 +366,7 @@ function renderYAML (yaml, container, context, current_scope) {
                     li_container.render({ "div.pointer": m_thing.variable_name });
                     break;
                     
-                  } else if (m_thing.hasOwnProperty("0")) {
+                  } else if (m_thing instanceof YAML.Array) {
                     li_container.attr("type", "array");
                     var ul_spec = "ul[type=array]"
                     // if the array is named for an object defined on the current context, note that.

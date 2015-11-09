@@ -34,16 +34,17 @@ Game.Round.Responder = Util.extendClass(Game.Dealer, function (round, spec) {
   	// careful, as 'feedback' is a mass noun: they are feedback; it is feedback.
   	var _this = this;
   	this.cards = $.map(feedback, function (feedback) {
-  		var feedback_type = feedback.type || Game.Round.Responder.DEFAULTS.FeedbackType
-  		return Game.DealersCardFactory.create("ResponderCard", feedback_type, _this, _this.round, answer, score);
+  		var feedback_type = feedback.type || _this.constructor.DEFAULTS.FeedbackType
+      return Game.DealersCardFactory.create("ResponderCard", feedback_type, _this, _this.round, feedback, answer, score);
   	});
   },
 
   respond: function () {
-  	var _this = this;
-  	return this.deal().then(function () {
-  		return _this.waitForUserInput(_this.accept_user_input);
-  	});
+    return this.waitForUserInput(this.accept_user_input);
+    // var _this = this;
+    // return this.deal().then(function () {
+    //   return _this.waitForUserInput(_this.accept_user_input);
+    // });
   }
 });
 

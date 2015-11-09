@@ -179,7 +179,7 @@ Game.Widget.Scoreboard = function (game, spec) {
   var num_elements = Object.keys(content_spec).length;
 
   if (num_elements > 0) {
-    if (content_spec.hasOwnProperty("0")) {
+    if (content_spec instanceof YAML.Array) {
       for (var i=0; i<num_elements; i++) {
         card_spec["div.widget.scoreboard"].push(content_spec[i]);
       }
@@ -264,7 +264,7 @@ Game.Widget.Table = function (game, spec) {
   
   // headings.
   var headings = spec.headings;
-  if (!(headings.hasOwnProperty("0"))) {
+  if (!(headings instanceof YAML.Array)) {
     headings = [headings];
   }
   
@@ -280,7 +280,7 @@ Game.Widget.Table = function (game, spec) {
     
   // rows.
   var rows = spec.rows;
-  if (!(rows.hasOwnProperty("0"))) {
+  if (!(rows instanceof YAML.Array)) {
     rows = [rows];
   }
   
@@ -289,14 +289,9 @@ Game.Widget.Table = function (game, spec) {
   $.each(rows, function () {
     var row = this;
     var row_spec = { tr: [] };
-    if (typeof row === "object") {
-      $.each(headings, function () {
-        var heading = this;
-        var row_contents = row[heading];
-        if (row_contents instanceof String) {
-          row_contents = row_contents.toString();
-        }
-        row_spec.tr.push({ td: row_contents || "" });
+    if (row instanceof YAML.Array) {
+      $.each(row, function () {
+        row_spec.tr.push({ td: this.toString() || "" });
       });
     } else {
       console.warn("Can't process table row.", this);

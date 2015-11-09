@@ -51,6 +51,7 @@ Game.Round.CallAndResponsePrompter = Util.extendClass(Game.Round.Prompter, funct
 	Game.Round.Prompter.call(this, round, spec);
   this.data = spec.data;
 	this.input_selector = spec.input_selector || Game.Round.CallAndResponsePrompter.DEFAULTS.InputSelector;
+  this.choice_selector = spec.choice_selector || Game.Round.CallAndResponsePrompter.DEFAULTS.ChoiceSelector;
 	this.accept_user_input = spec.accept_user_input || Game.Round.CallAndResponsePrompter.DEFAULTS.AcceptUserInput;
 },
 { 
@@ -62,7 +63,12 @@ Game.Round.CallAndResponsePrompter = Util.extendClass(Game.Round.Prompter, funct
       $(this.element).find(prompter.input_selector).click(function () {
         $(card.element).find(prompter.input_selector).attr("disabled", "disabled");
         $(this).addClass("chosen");
-        prompter.choice = $(this).html();
+        if (prompter.choice_selector) {
+          prompter.choice = $(this).find(prompter.choice_selector).html();
+        } else {
+          prompter.choice = $(this).html();
+        }
+        
         prompter.chosen_item = prompter.data[prompter.choice];
         $(card.element)
         .render({ p: prompter.chosen_item })
@@ -74,5 +80,6 @@ Game.Round.CallAndResponsePrompter = Util.extendClass(Game.Round.Prompter, funct
 
 Game.Round.CallAndResponsePrompter.DEFAULTS = {
 	AcceptUserInput: "any",
-  InputSelector: "button"
+  InputSelector: "button",
+  ChoiceSelector: null,
 }

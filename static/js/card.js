@@ -46,7 +46,10 @@ Game.Card = function(spec) {
 	if ( ((spec instanceof HTMLElement) || (spec instanceof jQuery)) 
 		&& ($(spec).attr("data-keep-in-dom") === "true")) {
 		this.element = $(spec);
-	} else {
+	} else if (spec["element"] instanceof jQuery) {
+    this.element = spec.element;
+    this.user_input_dfd = $.Deferred();
+  } else {
 		// remove 'type' from spec
 		var card_type = spec.type || "";
 		delete spec.type;
@@ -223,5 +226,20 @@ Game.Card.Modal = Util.extendClass(Game.Card, function (spec) {
   		_this.remove();
   	});
   	ok_button.appendTo(this.element);
+  }
+});
+
+
+Game.Card.Action = Util.extendClass(Game.Card, function (spec) {
+  spec.element = spec.element || $();
+  Game.Card.call(this, spec);
+  this.action = spec.action || $.noop;
+}, {
+  dealTo: function (container) {
+    if (typeof this.action === "function") {
+      this.action(this.dealer.round, this);
+    } else if (typeof this.action['evaluate'] === "function") {
+      this.action.evaluate(this.dealer.round, this);
+    }
   }
 });

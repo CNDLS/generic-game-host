@@ -113,7 +113,7 @@ Game.Round.GroupedInputsListener = Util.extendClass(Game.Round.Listener, functio
   	var answer_groups = this.round.read("AnswerGroups");
   	var s8 = S8();
   	var _this = this;
-  	if ((typeof answer_groups === "object") && (answer_groups.hasOwnProperty("0"))) {
+  	if ((typeof answer_groups === "object") && (answer_groups instanceof YAML.Array)) {
   		// each Answer object in this case is a group of inputs and a mini-prompt.
   		for (var i=0; i < answer_groups.length; i++) {
   			var answer_group_spec = answer_groups[i];
