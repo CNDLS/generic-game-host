@@ -40,12 +40,23 @@ FunctionSequence.prototype.evaluate = function (context) {
     var dfd = $.Deferred();
     dfd.resolve();
     var p = dfd.promise();
+    var fname, fn;
+    var fn_context = context;
     for (var i=0; i < _this.fnames.length; i++) {
-      var fname = _this.fnames[i];
-      var fn = YAML.prototype.get(fname, context);
+      fname = _this.fnames[i];
+      fn = YAML.prototype.get(fname, context);
+      // use the second-last element of fname (eg; game, if fname is '(game.end)')
+      // to set the context in which fn gets executed.
+      fname = fname.replace("(", "").replace(")", "");
+      var fname_arr = fname.split(".");
+      fname_arr.pop();
+      if (fname_arr !== []) {
+        fn_context = YAML.prototype.get("(" + fname_arr.join(".") + ")", context);
+      }
       if (typeof fn === "function") {
         dfd = $.Deferred();
-        p = p.then(fn());
+        debugger;
+        p = p.then(fn.call(fn_context));
       }
     }
     return dfd;
