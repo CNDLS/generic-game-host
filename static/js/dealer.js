@@ -12,16 +12,12 @@
 
 Game.Dealer = function (game_or_round, container) {
 	// keep references to game and round, if applicable.
-	switch (true) {
-		case (game_or_round instanceof Game):
+	if (game_or_round instanceof Game) {
 			this.round = null;
 			this.game = game_or_round;
-			break;
-			
-		case (game_or_round instanceof Game.Round):
-			this.round == game_or_round;
+  } else if (game_or_round instanceof Game.Round) {
+			this.round = game_or_round;
 			this.game = game_or_round.game;
-			break;
 	}
 
 	this.container = container;

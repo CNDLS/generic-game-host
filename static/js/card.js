@@ -239,7 +239,10 @@ Game.Card.Action = Util.extendClass(Game.Card, function (spec) {
     if (typeof this.action === "function") {
       this.action(this.dealer.round, this);
     } else if (typeof this.action['evaluate'] === "function") {
-      this.action.evaluate(this.dealer.round, this);
+      var generated_action = this.action.evaluate(this.dealer.round);
+      if (typeof generated_action === "function") {
+        return generated_action(this.dealer.round, this);
+      }
     }
   }
 });

@@ -293,10 +293,4 @@ Game.Round.prototype.doTearDown = function () {
   } else if (typeof this.tear_down === "function") {
     this.tear_down();
   }
-  // if ((this.tear_down instanceof YAML) && GameFunctionType.resolve(this.tear_down)) {
-  //   var game_fn = GameFunctionType.construct(this.tear_down);
-  //   game_fn.evaluate(this);
-  // } else if (typeof this.tear_down === "function") {
-  //   this.tear_down();
-  // }
 }
