@@ -55,7 +55,6 @@ FunctionSequence.prototype.evaluate = function (context) {
       }
       if (typeof fn === "function") {
         dfd = $.Deferred();
-        debugger;
         p = p.then(fn.call(fn_context));
       }
     }

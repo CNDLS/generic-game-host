@@ -29,6 +29,14 @@ Game.Round.Responder = Util.extendClass(Game.Dealer, function (round, spec) {
   			}];
   		}
   	}
+    
+    if (typeof feedback["evaluate"] === "function") {
+      feedback = feedback.evaluate(this.round);
+    }
+    
+    if (!(feedback instanceof Array)) {
+      feedback = [feedback];
+    }
 
   	// assemble cards made by all the feedback into my cards array.
   	// careful, as 'feedback' is a mass noun: they are feedback; it is feedback.
