@@ -30,6 +30,14 @@ body {
   top: 6em;
 }
 
+.video_container {
+  width: 100vw;
+  text-align: center;
+}
+
+.video_container video {
+  margin: 10em auto 0;
+}
 /*****
 Header
 *********************************************/

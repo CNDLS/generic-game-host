@@ -38,6 +38,9 @@ def publicsitechanges(request):
     return render_to_response('sitechanges.html', context_instance=RequestContext(request))
     
     
+def recorderWorker(request):
+    return render_to_response('recorderWorker.js', context_instance=RequestContext(request))
+    
 def getGamesByGroupMembership():
     Game.objects.filter()
     

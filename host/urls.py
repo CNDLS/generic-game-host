@@ -28,6 +28,8 @@ urlpatterns = patterns('',
     url(r'^browse/(?P<game_id>\d+)/$', 'browser.views.report', name='report'),
     url(r'^browse/(?P<game_id>\d+)/(?P<student_netID>[a-zA-Z0-9_.-]+)/$', 'browser.views.report_for_student', name='report_for_student'),
     url(r'^summarize/(?P<game_id>\d+)/$', 'browser.views.summarize', name='summarize'),
+    
+    url(r'^recorder-worker$', 'main.views.recorderWorker', name='recorderWorker'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
