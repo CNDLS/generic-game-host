@@ -25,16 +25,21 @@ ul#game_list li {
   margin: 0.25em 0;
 }
 
-ul#game_list a {
-  color: #92989B;
-  background-color: transparent;
+a {
+  color: #07f;
+}
+a:hover, a.selected,
+a.btn:hover, a.btn.selected
+{
+  color: #fc0;
+  text-decoration: none;
 }
 
 
-ul#game_list a:hover {
+/*ul#game_list a:hover {
   text-decoration: none;
   color: #ddd;
-}
+}*/
 
 ul#game_list a.edit_link {
     font-size: 0.6em;
@@ -53,7 +58,9 @@ ul#game_list a.edit_link:hover {
 
 #explanation {
   color: #ddd;
+  margin-top: 6.2em;
 }
+
 
 #footer {
   position: fixed;
@@ -78,7 +85,7 @@ ul#game_list a.edit_link:hover {
   height: 40px;
 }
 .dialog h1 {
-  border-bottom: 3px solid #15CCC2;
+  border-bottom: 3px solid #92989B;
   color: #ddd;
   padding: 0.25em 0.5em 0 0.5em;
   margin-bottom: 0.5em;

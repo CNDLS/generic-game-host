@@ -222,9 +222,10 @@ Game.Card.Modal = Util.extendClass(Game.Card, function (spec) {
   										.attr("href", "#")
   										.addClass("continue")
   										.html("Continue").click(function () {
-  		_this.user_input_dfd.resolve();
-  		_this.remove();
-  	});
+                        _this.element.trigger("Card.userInput");
+                    		_this.user_input_dfd.resolve();
+                    		_this.remove();
+                    	});
   	ok_button.appendTo(this.element);
   }
 });
@@ -241,6 +242,7 @@ Game.Card.Action = Util.extendClass(Game.Card, function (spec) {
     } else if (typeof this.action['evaluate'] === "function") {
       var generated_action = this.action.evaluate(this.dealer.round);
       if (typeof generated_action === "function") {
+        // generated action must return a Promise.
         return generated_action(this.dealer.round, this);
       }
     }

@@ -22,7 +22,7 @@ urlpatterns = patterns('',
     url(r'^play/(?P<game_id>\d+)/$', 'main.views.play', name='play'),
     url(r'^write/(?P<game_id>\d+)/$', 'main.views.write_results', name='write'),
     url(r'^accounts/login/$', 'django.contrib.auth.views.login', name='login'),
-    url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', name='logout'),
+    url(r'^accounts/logout/$', 'main.views.levl_logout', name='logout' ),
 	
     url(r'^browse/$', 'browser.views.index', name='browse'),
     url(r'^browse/(?P<game_id>\d+)/$', 'browser.views.report', name='report'),

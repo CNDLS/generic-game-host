@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="100%" height="100%" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
-        <circle fill="#BBBBBB" r="50" cx="50" cy="50"></circle>
-				<path id="clock_face" fill="none" d="M50,50 L50,0, A50, 50 0 0,1 86.44843137107057, 84.22735529643444 z"/>
+<!-- Generator: Adobe Illustrator 19.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%" height="100%" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve">
+<style type="text/css">
+	.st2{font-family:'MyriadPro-Regular';}
+	.st3{font-size:50px;}
+</style>
+<circle id="clock_bg" fill="#BBBBBB" r="50" cx="50" cy="50"/>
+<path id="clock_face" fill="none" d="M50,50 L50,0, A50, 50 0 0,1 86.44843137107057, 84.22735529643444 z"/>
+<text id="clock_display" x="25" transform="matrix(1 0 0 1 23 66)" class="st2 st3" text-anchor="middle"></text>
 </svg>

@@ -50,6 +50,11 @@ Game.Round = function (game, round_spec, mock) {
 		var from = args.shift();
 		var to = args.shift();
 		var event_info = { round: this, name: name, from: from, to: to, args: args, continue: true };
+    // do any action stored in the YAML for this round.
+    var stored_action = this.spec.get("enter" + to) || false;
+    if (stored_action && (typeof stored_action === 'function')) {
+      stored_action.call(this, this, new $.Event(), event_info);
+    }
 		$.event.trigger("Round.enter" + to, event_info);
 	}
 
@@ -60,6 +65,12 @@ Game.Round = function (game, round_spec, mock) {
 		var to = args.shift();
 		var event_info = { round: this, name: name, from: from, to: to, args: args, continue: true };
 		var evt_rtn = $.event.trigger("Round.leave" + from, event_info);
+
+    // do any action stored in the YAML for this round.
+    var stored_action = this.spec.get("leave" + to) || false;
+    if (stored_action && (typeof stored_action === 'function')) {
+      stored_action.call(this, new $.Event(), event_info);
+    }
 		return (event_info.continue) ? null : StateMachine.ASYNC;
 	};
 
@@ -253,7 +264,9 @@ Game.Round.prototype.endResponding = function () {
 Game.Round.prototype.GiveWrongAnswer = function () {
 	var a_wrong_answer = 
 	$(this.answers).select(function () { return this.timeout_answer; })[0]
-    || $(this.answers).select(function () { return !this.get("correct"); })[0]
+    || $(this.answers).select(function () { 
+      if (typeof this["get"] === "function") { return !this.get("correct") }; 
+    })[0]
     || new Game.Round.Answer();
 	return { answer: a_wrong_answer, score: a_wrong_answer.negative_value || 0 }
 }

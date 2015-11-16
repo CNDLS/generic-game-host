@@ -5,6 +5,8 @@ from django.core import serializers
 from django.core.context_processors import csrf
 from django.views.decorators.csrf import ensure_csrf_cookie, requires_csrf_token, csrf_protect
 from django.contrib.auth.models import User
+from django.contrib.auth.views import logout
+from django.shortcuts import redirect
 
 from main.models import Game, GameReport
 from main.models import GameGroup, Membership, Role
@@ -43,6 +45,12 @@ def recorderWorker(request):
     
 def getGamesByGroupMembership():
     Game.objects.filter()
+    
+@login_required
+def levl_logout(request):
+    logout(request)
+    # Take the user back to the homepage.
+    return redirect('list')
     
     
 # list all the games that are available to the current user.

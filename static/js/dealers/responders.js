@@ -48,11 +48,11 @@ Game.Round.Responder = Util.extendClass(Game.Dealer, function (round, spec) {
   },
 
   respond: function () {
-    return this.waitForUserInput(this.accept_user_input);
-    // var _this = this;
-    // return this.deal().then(function () {
-    //   return _this.waitForUserInput(_this.accept_user_input);
-    // });
+    // return this.waitForUserInput(this.accept_user_input);
+    var _this = this;
+    return this.deal().then(function () {
+      return _this.waitForUserInput(_this.accept_user_input);
+    });
   }
 });
 

@@ -45,42 +45,51 @@ Game.Widget.Base = function (game, spec) {
  * Custom clocks need to expose start(max_time), stop(), and a tick() function, which should return the current time.
  */
 Game.Widget.CountdownClock = function (game, spec) {
-  spec = spec || {};
-  this.clock_card = new Game.Card("div#clock.widget");
-  this.clock_face = this.clock_card.element.render("span#clock_face");
-  this.clock_backing = this.clock_card.element.render("svg#clock_backing[src=" + STATIC_URL + "img/clock.svg]");
-  var clock_container = spec.container || game.widgets_container;
-  // clock_container.render("svg[src=" + STATIC_URL + "img/clock.svg]");
-  this.clock_card.dealTo(clock_container);
-	
 	this.game = game;
+  spec = spec || {};
+  this.clock_container = spec.container || game.widgets_container;
+
 	// listen for startClock and stopClock events from the game.
 	$(document).on("game.startClock", this.start.bind(this));
 	$(document).on("game.stopClock", this.stop.bind(this));
 	$(document).on("game.resetClock", this.reset.bind(this));
+  
+  this.clock_card = new Game.Card("svg#clock.widget[src=" + STATIC_URL + "img/clock.svg]");
+  this.clock_card.load_promise.then(this.init.bind(this));
 };
 Game.Widget.CountdownClock.prototype = {
+  
+  init: function () {
+    this.clock_card.dealTo(this.clock_container);
+    this.clock_display = $("#clock svg text#clock_display");
+    this.clock_face = $("#clock svg path#clock_face"); 
+    this.clock_bg = $("#clock svg circle#clock_bg");
+
+    this.clock_display.attr("fill", "#FFFFFF");
+    // this.clock_face.attr("fill", "#CCCCCC");
+    // this.clock_bg.attr("fill", "#BBBBBB");
+  },
   
   start: function (evt, max_time) {
   	clearInterval(this.clock);
   	if (typeof max_time === "number") {
   		this.clock = setInterval(this.tick.bind(this), 1000);
-  		this.clock_face.html(max_time);
+  		this.clock_display.get(0).textContent = max_time;
       this.max_time = max_time;
   	}
   },
 
   tick: function () {
-  	var current_time = parseInt(this.clock_face.html()) - 1;
-  	this.clock_face.html(current_time);
+    var clock_text = this.clock_display.get(0);
+  	var current_time = parseInt(clock_text.textContent) - 1;
+  	clock_text.textContent = current_time;
   	if (current_time === 0) { 
   		this.stop();
   		game.timeoutRound(); 
   	}
     // cf. http://jsfiddle.net/lensco/ScURE/
     // get the svg cmds and separate out the part we'll change.
-    this.clock_backing.find("path").attr("fill", "#CCCCCC");
-    var path_cmds = this.clock_backing.find("path").attr("d");
+    var path_cmds = this.clock_face.attr("d");
     // eg, w/ groups: A(50), (50) (0) (0),1 86.44843137107057, 84.22735529643444
     // ERROR example: A50, 50 1, 0 1, 1, 1 51.82463258982846, 51.82463258982846, 187.63066800438637
     var elliptical_arc_regex = /A(\d+)\,\s?(\d+)\s(\d+)\s(\d+)\,\s?(\d+)\s(\d+\.*\d*)\,\s?(\d+\.*\d*)/;
@@ -132,10 +141,11 @@ Game.Widget.CountdownClock.prototype = {
         }
       }
       path_cmds = path_cmds.replace(elliptical_arc_regex, new_path_cmds.join(""));
-      this.clock_backing.find("path").attr("d", path_cmds);
-    
+      this.clock_face.attr("d", path_cmds);
+      this.clock_face.attr("fill", "#CCCCCC");
     } catch (e) {
       // do nothing. it's just ornamentation.
+      console.log(e)
     }
         
   	return current_time;
@@ -147,7 +157,8 @@ Game.Widget.CountdownClock.prototype = {
 
   reset: function () {
   	this.stop();
-  	this.clock_face.val(null);
+  	this.clock_display.get(0).textContent = "";
+    this.clock_face.attr("fill", "none");
   }
 }
 

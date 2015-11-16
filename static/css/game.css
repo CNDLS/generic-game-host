@@ -138,7 +138,7 @@ label.form-label {
   margin: 0 0.125em;
 }
 #widgets > div.widget {
-  background-color: #15CCC2;
+  background-color: transparent;
   font-size: 2em;
   line-height: 2em;
   margin: 0.25em;
@@ -149,16 +149,18 @@ label.form-label {
   height: 2em;
   float: left;
 }
-div#clock {
-  overflow: hidden;
-}
-span#clock_face {
-  position: absolute;
-  left: 2em;
+div#clock svg {
+  position: relative;
   width: 2em;
-  top: 0;
+  height: 2em;
+}
+div#clock svg path#clock_face {
+  left: 0;
+  width: 2em;
+  top: -2.6em;
   text-align: center;
   margin: 0.25em 0.125em;
+  position: relative;
 }
 
 #widgets > table {
@@ -174,6 +176,7 @@ span#clock_face {
   text-align: center;
   font-size: 0.8em;
   white-space: nowrap;
+  z-index: 100;
 }
 
 #widgets label {
