@@ -66,8 +66,8 @@ Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function (arg
   	var clicked_radio_btn = this.radio_btns[e.target.id];
   	// add classes, so we can style if need be.
   	var correct = clicked_radio_btn.answer.get("correct", this.dealer.round) || false;
-  	var value = clicked_radio_btn.answer.value || 1;
-  	var neg_value = clicked_radio_btn.answer.negative_value || 0; // any penalty for answering incorrectly?
+  	var value = clicked_radio_btn.answer.get("value") || 1;
+  	var neg_value = clicked_radio_btn.answer.get("negative_value") || 0; // any penalty for answering incorrectly?
   	var answer = new Game.Round.Answer(clicked_radio_btn.answer, this.dealer.round);
   	var score = correct ? value : neg_value;
   	$(this.element).trigger("Card.userInput", { card: this, answer: answer, score: score});
