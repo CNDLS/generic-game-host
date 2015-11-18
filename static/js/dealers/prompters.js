@@ -3,7 +3,7 @@
  * It provides whatever information a Player needs to play the round.
  */
 
-Game.Round.Prompter = Util.extendClass(Game.Dealer, function (round, spec) {
+Game.Round.Prompter = Util.extendClass(Game.Dealer, function Game_Round_Prompter (round, spec) {
 	this.round = round;
 	spec = spec || {};
 	this.spec = spec;
@@ -47,7 +47,7 @@ Game.Round.Prompter.DEFAULTS = {
  * Typically, the choice triggers a change in the prompt message.
  */
 
-Game.Round.CallAndResponsePrompter = Util.extendClass(Game.Round.Prompter, function (round, spec) {
+Game.Round.CallAndResponsePrompter = Util.extendClass(Game.Round.Prompter, function Game_Round_CallAndResponsePrompter (round, spec) {
 	Game.Round.Prompter.call(this, round, spec);
   this.data = spec.data;
 	this.input_selector = spec.input_selector || Game.Round.CallAndResponsePrompter.DEFAULTS.InputSelector;

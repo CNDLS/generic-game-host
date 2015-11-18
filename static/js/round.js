@@ -4,7 +4,7 @@ Game = Game || function () {};
 /* 
  * Rounds of the Game.
  */
-Game.Round = function (game, round_spec, mock) {
+Game.Round = function Game_Round (game, round_spec, mock) {
 	if (round_spec === undefined) {
 		console.log("no round_spec provided");
 		return;

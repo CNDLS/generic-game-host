@@ -14,7 +14,7 @@ Game = Game || function () {};
  * Alternately, other Card prototypes can be defined on the Game object,
  * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
-Game.Card = function(spec) {
+Game.Card = function Game_Card (spec) {
 	if (spec === null) {
 		return; // this is when we are creating a Card to be a prototype for another type of object.
 	} else if (spec instanceof String) {
@@ -198,7 +198,7 @@ Game.Card.create = function (spec) {
  * Game.Card.Modal
  * Cards which 'stop the action' & require a user response.
  */
-Game.Card.Modal = Util.extendClass(Game.Card, function (spec) {
+Game.Card.Modal = Util.extendClass(Game.Card, function Game_Card_Modal (spec) {
   Game.Card.call(this, spec);
 	// add the bit where we wait for the user.
 	this.user_input_dfd = $.Deferred();
@@ -231,7 +231,7 @@ Game.Card.Modal = Util.extendClass(Game.Card, function (spec) {
 });
 
 
-Game.Card.Action = Util.extendClass(Game.Card, function (spec) {
+Game.Card.Action = Util.extendClass(Game.Card, function Game_Card_Action (spec) {
   spec.element = spec.element || $();
   Game.Card.call(this, spec);
   this.action = spec.action || $.noop;

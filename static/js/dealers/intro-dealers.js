@@ -1,7 +1,7 @@
 /* 
  * Game.IntroDealer sets up the game & gives UI instructions.
  */
-Game.IntroDealer = Util.extendClass(Game.Dealer, function (game, container) {
+Game.IntroDealer = Util.extendClass(Game.Dealer, function Game_IntroDealer (game, container) {
   Game.Dealer.call(this, game, container);
 },
 {

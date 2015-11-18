@@ -96,10 +96,10 @@ Util = {
 	
 	extendClass: function (superclass, subclass, prototype_extension) {
 		"use strict";
-
+    var fn = subclass.prototype.constructor.name;
 		function o() { this.constructor = subclass; }
 		o.prototype = superclass.prototype;
-        subclass.prototype = $.extend(new o(), prototype_extension || {});
+    subclass.prototype = $.extend(new o(), prototype_extension || {});
 		return subclass;
 	},
   

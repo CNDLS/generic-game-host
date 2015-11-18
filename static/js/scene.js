@@ -64,7 +64,7 @@ Game.SceneFactory = {
   }
 }
 
-Game.Scene.Basic = Util.extendClass(Game.Dealer, function (scene_type_name, backdrop_spec, set_piece_specs, game) {
+Game.Scene.Basic = Util.extendClass(Game.Dealer, function Game_Scene_Basic (scene_type_name, backdrop_spec, set_piece_specs, game) {
   Game.Dealer.call(this, game);
   this.scene_type_name = scene_type_name;
   this.backdrop = new Game.Card(backdrop_spec);
@@ -193,6 +193,6 @@ Game.Scene.SetPieceFactory = {
   }
 }
 
-Game.Scene.SetPiece.Basic = Util.extendClass(Game.Card, function (card_spec) {
+Game.Scene.SetPiece.Basic = Util.extendClass(Game.Card, function Game_Scene_SetPiece_Basic (card_spec) {
   Game.Card.call(this, card_spec)
 });

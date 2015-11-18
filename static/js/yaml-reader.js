@@ -269,7 +269,7 @@ function YAML(parsed_data) {
 /*
  * Just give ourselves a way to type-check YAML arrays.
  */
-YAML.Array = Util.extendClass(YAML, function (parsed_data) {
+YAML.Array = Util.extendClass(YAML, function YAML_Array (parsed_data) {
   YAML.call(this, parsed_data);
 });
 

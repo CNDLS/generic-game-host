@@ -3,7 +3,7 @@
  * The Responder deals card(s) which give feedback to the user, based on their answer & its score.
  * TODO: add possibility of tailoring Responder w/in YAML, as is done with Prompter and Listener.
  */
-Game.Round.Responder = Util.extendClass(Game.Dealer, function (round, spec) {
+Game.Round.Responder = Util.extendClass(Game.Dealer, function Game_Round_Responder (round, spec) {
 	spec = spec || {};
 	this.spec = spec;
 	

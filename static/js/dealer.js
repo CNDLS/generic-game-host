@@ -10,7 +10,7 @@
  * They all borrow functionality from the Dealer prototype.
  */
 
-Game.Dealer = function (game_or_round, container) {
+Game.Dealer = function Game_Dealer (game_or_round, container) {
 	// keep references to game and round, if applicable.
 	if (game_or_round instanceof Game) {
 			this.round = null;

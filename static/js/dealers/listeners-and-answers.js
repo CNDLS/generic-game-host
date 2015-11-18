@@ -7,7 +7,7 @@
  * NOTE: It may seem weird to define user_input_types as an array, but in the case of multiple concurrent valid inputs, where
  * the answers are not specified ahead of time (eg; are calculated on-the-fly), this gets us whatever cards we'll need.
  */
-Game.Round.Listener = Util.extendClass(Game.Dealer, function (round, spec) {
+Game.Round.Listener = Util.extendClass(Game.Dealer, function Game_Round_Listener (round, spec) {
 	this.round = round;
 	spec = spec || {};
 	this.spec = spec;
@@ -53,7 +53,7 @@ Game.Round.Listener.DEFAULTS = {
 /*
  * PromptLinkListener -- listens for clicks on links embedded in the Prompt card(s).
  */
-Game.Round.PromptLinkListener = Util.extendClass(Game.Round.Listener, function (round, spec) {
+Game.Round.PromptLinkListener = Util.extendClass(Game.Round.Listener, function Game_Round_PromptLinkListener (round, spec) {
 	spec = spec || {};
 	spec.user_input_types = []; // we don't want any Listener Cards created; we just use the links in the Prompt(s).
 	Game.Round.Listener.call(this, round, spec);
@@ -90,7 +90,7 @@ Game.Round.PromptLinkListener = Util.extendClass(Game.Round.Listener, function (
 /*
  * GroupedInputsListener -- listens for clicks on inputs (eg; checkboxes) in groups.
  */
-Game.Round.GroupedInputsListener = Util.extendClass(Game.Round.Listener, function (round, spec) {
+Game.Round.GroupedInputsListener = Util.extendClass(Game.Round.Listener, function Game_Round_GroupedInputsListener (round, spec) {
 	// this will necessarily require more than one user action, 
 	// so we hide any 'continue' buttons, collect all user_input_promises, and resolve upon a click on our Submit button.
 	spec.user_input_types = ["GroupedInput"];
@@ -218,7 +218,7 @@ Game.Round.GroupedInputsListener = Util.extendClass(Game.Round.Listener, functio
  * own types.
  * Answers originate in the YAML spec, and they can specify feedback.
  */
-Game.Round.Answer = function (spec, context) {
+Game.Round.Answer = function Game_Round_Answer (spec, context) {
 	if (typeof spec === "string") {
 		spec = { content: spec };
 	}
@@ -229,8 +229,8 @@ Game.Round.Answer = function (spec, context) {
 	$.extend(this, spec);
 }
 
-
-Game.Round.Answer.prototype = $.extend(Game.Round.Answer.prototype, {
+// add things to Game.Round.Answer.prototype.
+Game.Round.Answer.prototype = $.extend(Game.Round.Answer.prototype.prototype, {
 
   // allow answers to be pre-defined elements (eg; SetPieces or Widgets)
   getContents: function () {

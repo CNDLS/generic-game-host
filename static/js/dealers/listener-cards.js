@@ -5,7 +5,7 @@
 
 
 /* FreeResponseCard just creates a card with a text input field and doesn't care about the answer. */
-Game.ListenerCard.FreeResponseCard = Util.extendClass(Game.Card, function (args) {
+Game.ListenerCard.FreeResponseCard = Util.extendClass(Game.Card, function Game_ListenerCard_FreeResponseCard (args) {
 	var round = args.shift();
   Game.Card.call(this, { div:"input[type=text]" });
 },
@@ -27,7 +27,7 @@ Game.ListenerCard.FreeResponseCard = Util.extendClass(Game.Card, function (args)
 
 
 /* MultipleChoiceCard creates a card with a list of radio buttons, labelled with Answers from YAML. */
-Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function (args) {
+Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function Game_ListenerCard_MultipleChoiceCard (args) {
 	var round = args.shift();
 	var spec = args.shift() || {};
 	this.radio_btns = {};
@@ -83,7 +83,7 @@ Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function (arg
  * We should be able to create groupings. This could be used to populate
  * surveys as one round with multiple survey questions.
  */
-Game.ListenerCard.MultipleAnswerCard = Util.extendClass(Game.Card, function (args) {
+Game.ListenerCard.MultipleAnswerCard = Util.extendClass(Game.Card, function Game_ListenerCard_MultipleAnswerCard (args) {
 	var round = args.shift();
 	var spec = args.shift() || {};
 	var answers = spec.answers || round.answers;
@@ -120,7 +120,7 @@ Game.ListenerCard.MultipleAnswerCard = Util.extendClass(Game.Card, function (arg
  * This card waits for a click on a link. 
  * args passed as an array.
  */
-Game.ListenerCard.LinkCard = Util.extendClass(Game.Card, function (args) {
+Game.ListenerCard.LinkCard = Util.extendClass(Game.Card, function Game_ListenerCard_LinkCard (args) {
 	this.round = args.shift();
 	var elem = args.shift();
 	$(elem).attr("data-keep-in-dom", true);
@@ -154,6 +154,6 @@ Game.ListenerCard.LinkCard = Util.extendClass(Game.Card, function (args) {
 /* GroupedInputCard is just a holder for other cards. 
  * They all report together.
  */
-Game.ListenerCard.GroupedInputCard = Util.extendClass(Game.Card, function (args) {
+Game.ListenerCard.GroupedInputCard = Util.extendClass(Game.Card, function Game_ListenerCard_GroupedInputCard (args) {
 	Game.Card.call(this, "div");
 });
