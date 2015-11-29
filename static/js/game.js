@@ -156,7 +156,7 @@ Game.prototype = $.extend(Game.prototype, {
   	this.sendMessage("ran out of time.");
   	$.event.trigger("game.stopClock");
   	if (!this.current_round){ return; } // safety.
-  	var timeout_fn = this.current_round.read("OnTimeout"); // default is GiveWrongAnswer.
+  	var timeout_fn = this.current_round.read("OnTimeout"); // default is giveWrongAnswer.
   	var timeout_obj = this.current_round[timeout_fn]();
   	this.current_round.respond(timeout_obj.answer, timeout_obj.score);
   },
@@ -230,27 +230,26 @@ Game.prototype = $.extend(Game.prototype, {
   	if (rtn_val === undefined && (typeof defaults[field_name] !== "undefined")) {
   		rtn_val = defaults[field_name];
   	}
-  	// NOTE: Keep track of ordering -- are we always falling back on defaults correctly?
-  	if (rtn_val === undefined) {
-  		// console.log("Cannot provide a '" + field_name + "' from Game spec or defaults.");
-  		// not really helpful in most cases, as it's not clear whether field_name represents a nec. var.
-  	} else if (rtn_val instanceof YAML) {
+    // respond to different types of YAML rtn_val.
+  	if (rtn_val instanceof YAML) {
+      // if rtn_val specifies a type defined on the current object, construct one of that type.
+      // eg; type: "DragAndDropListener" in a round spec yields a Game.Round.DragAndDropListener
   		if (rtn_val.hasOwnProperty("type") && Object.hasFunction(this, rtn_val.type)) {
   			// call constructor (value of type must be a function defined on this), and pass remaining values.
   			var rtn_val_constructor = this.constructor[rtn_val.type];
-  			delete rtn_val.type;
   			rtn_val = new rtn_val_constructor(this, rtn_val);
   		} else if (Object.hasFunction(this, field_name)) {
-  			// if it is YAML for something that can be created on the Game or Game.Round, create the object for it.
-  			// (eg; field_name is "Prompter").
+  			// if field_name specifies a type deFined on the curent object (usually Game or Game.Round),
+        // create the object for it. (eg; field_name "Prompter" yields a Game.Round.Prompter).
   			rtn_val = new this.constructor[field_name](this, rtn_val);
   		} 
   	} else if (this.constructor.hasOwnProperty(rtn_val)) {
   		// if rtn_val is the name of something that is defined on the Game, Game.Round, etc. object, use that.
   		rtn_val = new this.constructor[rtn_val](this);
   	} 
-  	// if rtn_val is a function, instantiate it, passing in the Game object.
-  	if (typeof rtn_val === "function") { 
+  	// if rtn_val is a function (other than our enactSequence function), 
+    // instantiate it, passing in the Game object.
+  	if ((typeof rtn_val === "function") && (rtn_val.name !== "enactSequence")) {
   		rtn_val = new rtn_val(this); 
   	}
 
@@ -288,7 +287,7 @@ Game.prototype = $.extend(Game.prototype, {
   					game.current_round = new Game.Round(game, next_round);
   				} else {
   					++game.round_nbr;
-  					game.current_round = new Game.Round(game, game.rounds.get(game.round_nbr - 1));
+  					game.current_round = new Game.Round(game, game.rounds.get(game.round_nbr - 1, game));
   				}
   				$.event.trigger("Game.newRound", { round: game.current_round });
   			}

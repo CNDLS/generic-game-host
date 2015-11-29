@@ -93,5 +93,9 @@ $.extend(Game, {
 				}
 			}
 		}
+  }, 
+
+  getSpec: function (obj) {
+    return obj.spec; // eg; for replaying current round, without creating an infinite YAML parse loop.
   }
 });

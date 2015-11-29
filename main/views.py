@@ -56,18 +56,20 @@ def levl_logout(request):
 # list all the games that are available to the current user.
 def list(request):
     user_id = request.user.id if request.user.is_authenticated() else -1
+    user_memberships = Membership.objects.filter(user=user_id)
+    
     if request.user.is_authenticated() and request.user.is_superuser:
         games = Game.objects.all()
     else:
-        user_memberships = Membership.objects.filter(user=user_id)
-        games = Game.objects.filter(game_group__in=user_memberships.prefetch_related('game_group'))
-    
-        for game in games:
-            # temporarily set a role value on the game object, to control edit access in the template.
-            game.role = str(user_memberships.get(game_group=game.game_group).role)
+        games = []
+        for user_membership in user_memberships:
+            game = Game.objects.get(game_group=user_membership.game_group)
+            game.role = str(user_membership.role)
+            games.append(game)
     
     return render_to_response('list.html', { 'games': games,
                                              'current_user': request.user,
+                                             'user_memberships': user_memberships,
                                             }, context_instance=RequestContext(request))
 
 

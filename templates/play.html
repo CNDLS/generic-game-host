@@ -16,7 +16,11 @@
     
       <div class="right">
         <span class="replay"><a href="#" onclick="window.location.reload();"><img src="{{ STATIC_URL }}img/reload.png"/>replay</a></span>
-        <a href="{% url 'logout' %}">logout</a>
+        {% if current_user.is_authenticated %}
+            <a href="{% url 'logout' %}">Log Out</a>
+         {% else %}
+             <a href="{% url 'login' %}">Log In</a>
+         {% endif %}
       </div>
 
     </div><!-- end of #top --> 

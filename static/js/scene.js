@@ -83,7 +83,7 @@ Game.Scene.Basic = Util.extendClass(Game.Dealer, function Game_Scene_Basic (scen
   
     var _this = this;
     $(document).on(round_events, function (evt, state_info) {
-      return _this.trackRound(evt, state_info)
+      return _this.followRoundEvent(evt, state_info)
     });
   },
 
@@ -153,7 +153,7 @@ Game.Scene.Basic = Util.extendClass(Game.Dealer, function Game_Scene_Basic (scen
     // kept for custom code.
   },
 
-  trackRound: function (evt, state_info) {
+  followRoundEvent: function (evt, state_info) {
     // game scenes can have a handler function named for entering or leaving any Round state,
     // which will get executed at that point.
     // if an appropriate handler is defined on the scene,

@@ -20,9 +20,23 @@ body {
   
 .blurb {
   position: relative;
-  top: 6em;
+  top: 3em;
   color: #ddd;
-  font-size: 1.2em;
+  font-size: 1.3em;
+}
+
+.blurb h1 {
+  font-size: 2em;
+}
+
+.blurb a {
+  color: #12ada5;
+} 
+.blurb a:hover {
+  color: #15CCC2;
+}
+.blurb a:active {
+  color: #d6a716;
 }
 
 .public.container {
@@ -36,7 +50,8 @@ body {
 }
 
 .video_container video {
-  margin: 10em auto 0;
+  margin: 6em auto 0;
+  width: 80vw;
 }
 /*****
 Header

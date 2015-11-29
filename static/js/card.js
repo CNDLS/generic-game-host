@@ -15,6 +15,9 @@ Game = Game || function () {};
  * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
 Game.Card = function Game_Card (spec) {
+  // save a copy of the spec, in case we need to manipulate the card contents later on.
+	this.spec = $.extend({}, spec);
+  
 	if (spec === null) {
 		return; // this is when we are creating a Card to be a prototype for another type of object.
 	} else if (spec instanceof String) {
@@ -35,9 +38,6 @@ Game.Card = function Game_Card (spec) {
   
   // handle ref's to our media_url.
   spec = Util.replaceAll(spec, /MEDIA_URL\+/g, MEDIA_URL);
-  
-	// save the spec, in case we need to manipulate the card contents later on.
-	this.spec = spec;
 	
 	// make space to save any dealer I'm associated with.
 	this.dealer = {};

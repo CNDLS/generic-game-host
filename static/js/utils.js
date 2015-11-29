@@ -201,5 +201,10 @@ Util = {
 		} else {
 		  throw Error("Cannot create descriptor for non-HTMLElement.");
 		}
-	}
+	},
+  
+  reload_js: function (src) {
+      $('script[src="' + src + '"]').remove();
+      $('<script>').attr('src', src).appendTo('body');
+  }
 }

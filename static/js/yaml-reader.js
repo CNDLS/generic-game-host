@@ -11,8 +11,17 @@ function GameFunction (fname, params) {
 	this.params = params;
 }
 
-GameFunction.prototype.evaluate = function () {
-	return this.fn.apply(window.game, this.params);
+GameFunction.prototype.evaluate = function (context) {
+  // resolve values of any params.
+  var params = [];
+  for (var i=0; i < this.params.length; i++) {
+    params[i] = YAML.prototype.get(this.params[i], context);
+    // if we've just nuked a param (eg; context is the Game object, rather than an instance), restore it.
+    if ((this.params[i] !== undefined) && (params[i] === undefined)) {
+      params[i] = this.params[i];
+    }
+  }
+	return this.fn.apply(context || Game, params);
 }
 
 	
@@ -24,6 +33,7 @@ var GameFunctionType = new jsyaml.Type("!do", {
 	},
 	construct: function (data) {
 		var args = data['pass'] || [];
+    if (!(args instanceof Array)) { args = [args]; }
 		return new GameFunction(data.call, args);
 	}
 });
@@ -31,6 +41,7 @@ var GameFunctionType = new jsyaml.Type("!do", {
 
 function FunctionSequence (data) {
   this.fnames = data;
+  this.fnames_length = data.length;
 }
 // make a promise for each fname in my list.
 // resolve the fname to a fn, and call it upon the promise resolving.
@@ -42,7 +53,7 @@ FunctionSequence.prototype.evaluate = function (context) {
     var p = dfd.promise();
     var fname, fn;
     var fn_context = context;
-    for (var i=0; i < _this.fnames.length; i++) {
+    for (var i=0; i < _this.fnames_length; i++) {
       fname = _this.fnames[i];
       fn = YAML.prototype.get(fname, context);
       // use the second-last element of fname (eg; game, if fname is '(game.end)')
@@ -263,7 +274,11 @@ function YAML(parsed_data) {
       }
 		}
 	}
-	$.extend(this, parsed_data);
+  if (parsed_data instanceof Array) {
+    $.extend(this, YAML.Array, parsed_data);
+  } else {
+    $.extend(this, parsed_data);
+  }
 }
 
 /*
@@ -330,7 +345,9 @@ YAML.prototype.get = function (key, context) {
     var key_expr_elements = key.match(/(\w+(?=\.){0,1})/g);  // key is of the form (a.b..x)
     var value = context; // drill down, starting w context.
     for (var i=0; i<key_expr_elements.length; i++) {
-      value = value[key_expr_elements[i]];
+      if (key_expr_elements[i] !== "this") {
+        value = value[key_expr_elements[i]];
+      }
     }
     return value;
   }

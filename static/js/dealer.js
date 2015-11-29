@@ -25,6 +25,8 @@ Game.Dealer = function Game_Dealer (game_or_round, container) {
 	this.deal_promises = [];
 	
 	Game.Dealer.NO_DEAL = [];
+	
+	this.read = Game.prototype.read.bind(this);
 }
 
 
