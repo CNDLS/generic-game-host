@@ -36,6 +36,10 @@ Game.Round.Responder = Util.extendClass(Game.Dealer, function Game_Round_Respond
     if (!(feedback instanceof Array)) {
       feedback = [feedback];
     }
+    
+    // remove any null or undefined (falsy) feedback elements.
+    feedback = feedback.filter(function (e) { return !!e; });
+    if (!feedback.length){ return; }
 
   	// assemble cards made by all the feedback into my cards array.
   	// careful, as 'feedback' is a mass noun: they are feedback; it is feedback.
