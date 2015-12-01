@@ -96,7 +96,10 @@ var FunctionSequenceType = new jsyaml.Type("!call", {
 
 function ConditionalResult (data) {
   this.key_expr = data[0];
-  this.dict = data[1];
+  this.dict = {};
+  for (var i=1; i<data.length; i++) {  
+    $.extend(this.dict, data[i]);
+  }
   this.fn = function (key) {
     try {
       return this.dict[key];
@@ -126,13 +129,18 @@ var ConditionalResultType = new jsyaml.Type("!when", {
 	kind: "sequence",
   instanceOf: ConditionalResult,
 	resolve: function (data) {
-    // this type is picky: data must be an array of exactly two members,
-    // first, something that resolves to a string, and second, and object.
+    // data must be an array of two or more members,
+    // first, something that resolves to a string, and after that, objects.
     is_valid = false;
-    if ((data instanceof Array) && (data.length === 2)) {
-      if ((typeof data[0] === "string") && (typeof data[1] === "object")) {
+    if ((data instanceof Array) && (data.length >= 2)) {
+      if (typeof data[0] === "string") {
         is_valid = true;
-      } 
+        for (var i=0; i<data.length; i++) {
+          if (typeof data[1] !== "object") {
+             is_valid = false;
+           } 
+        }
+      }
     }
     return is_valid;
 	},

@@ -29,7 +29,6 @@ Game.Round.Responder = Util.extendClass(Game.Dealer, function Game_Round_Respond
   			}];
   		}
   	}
-    
     if (typeof feedback["evaluate"] === "function") {
       feedback = feedback.evaluate(this.round);
     }
