@@ -295,7 +295,23 @@ Game.Round.prototype = $.extend(Game.Round.prototype, {
   		// if a next_round is passed in, use that, or
   		// if Round YAML specifies a "Next" round to go to, use that, or
   		// the game will just read the next one in the list, or will conclude if there is none.
-  		_this.game.newRound(next_round || _this.read("Next"));
+      if (!next_round) {
+        next_round = _this.read("Next");
+        var round_var;
+        if ((typeof next_round === "string") && (round_var = next_round.match(/(?!\$).+/))) {
+          // resolve from match.
+          round_var = round_var[0];
+          // search for round_var in the specs' variable_name fields.
+          next_round = $(_this.game.rounds).select(function () {
+            if (this.hasOwnProperty("variable_name")) {
+              return this.variable_name === round_var;
+            }
+          });
+          // resolve from selected array.
+          next_round = next_round.pop();
+        }
+      }
+      _this.game.newRound(next_round);
   	});
   },
 

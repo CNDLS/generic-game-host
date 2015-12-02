@@ -34,7 +34,7 @@ Game.SceneFactory = {
       scene.init(events);
 
       // associate scene w the rounds it is used in.
-      scene.rounds = scene_spec.rounds || [];
+      scene.rounds = scene_spec.rounds || "all";
       // pull rounds spec from scene YAML.
       if ((typeof scene.rounds === "object") && (scene.rounds[0])) {
         scene.rounds = scene.rounds[0];

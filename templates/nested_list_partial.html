@@ -1,0 +1,12 @@
+ 1 <ol class="list-group">
+ 2     {% for task in task_list %}
+ 3     <li class='task-list-item'>
+ 4         <!-- Display necessary task information/fields here -->
+ 5         {% if task.children %}
+ 6             {% with task_list=task.children %}
+ 7                 {% include "todo/task_item.html" %}
+ 8             {% endwith %}
+ 9         {% endif %}
+10     </li>
+11     {% endfor %}
+12 </ol>

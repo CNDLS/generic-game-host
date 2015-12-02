@@ -202,6 +202,7 @@ div#clock svg path#clock_face {
 #bottom_widgets {
   width: 50vw;
   margin: 0 auto;
+  font-size: 1.5em;
 }
 
 h1.title {

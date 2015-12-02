@@ -64,6 +64,7 @@ Game.ListenerCard.MultipleChoiceCard = Util.extendClass(Game.Card, function Game
 
   respondToClick: function (e) {
   	var clicked_radio_btn = this.radio_btns[e.target.id];
+    $(e.target).parent("li").addClass("chosen");
   	// add classes, so we can style if need be.
   	var correct = clicked_radio_btn.answer.get("correct", this.dealer.round) || false;
   	var value = clicked_radio_btn.answer.get("value") || 1;

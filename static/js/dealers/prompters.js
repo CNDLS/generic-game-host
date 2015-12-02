@@ -71,7 +71,7 @@ Game.Round.CallAndResponsePrompter = Util.extendClass(Game.Round.Prompter, funct
         
         prompter.chosen_item = prompter.data[prompter.choice];
         $(card.element)
-        .render({ p: prompter.chosen_item })
+        .render({ 'p.secondary_prompt': prompter.chosen_item })
         .trigger("Card.userInput", { choice: prompter.choice });
       });
     });
