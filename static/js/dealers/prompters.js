@@ -19,11 +19,11 @@ Game.Round.Prompter = Util.extendClass(Game.Dealer, function Game_Round_Prompter
   	// deliver the prompt card(s) from the current Round spec.
   	var prompts = this.round.read("Prompt");
   	if ( !(prompts instanceof Array) ){ prompts = $.makeArray(prompts); }
-
+     
   	var _this = this;
   	this.cards = $.map(prompts, function (prompt, i) {
   		var prompt_card_type = prompt.prompt_type || Game.Round.Prompter.DEFAULTS.Type;
-  		return Game.DealersCardFactory.create("PromptCard", prompt_card_type, _this, prompt);
+  		return Game.DealersCardFactory.create("PromptCard", prompt_card_type, _this, prompt, _this.round);
   	});
   },
 
@@ -70,6 +70,9 @@ Game.Round.CallAndResponsePrompter = Util.extendClass(Game.Round.Prompter, funct
         }
         
         prompter.chosen_item = prompter.data[prompter.choice];
+        if (prompter.chosen_item.hasOwnProperty("evaluate") && (typeof prompter.chosen_item.evaluate === "function")) {
+          prompter.chosen_item = prompter.chosen_item.evaluate(prompter.round);
+        }
         $(card.element)
         .render({ 'p.secondary_prompt': prompter.chosen_item })
         .trigger("Card.userInput", { choice: prompter.choice });

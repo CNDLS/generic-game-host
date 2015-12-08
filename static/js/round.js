@@ -23,7 +23,6 @@ Game.Round = function Game_Round (game, round_spec, mock) {
 	this.pointValue = this.read("Points");
 	this.threshold_score = this.read("Threshold");
 	this.resources = this.read("Resources");
-	this.answers = this.read("Answers");
 	this.max_time = this.read("MaxTime");
 	this.played_round = { guid: this.roundID }; // to store data of what happened in the round.
   
@@ -194,6 +193,7 @@ Game.Round.prototype = $.extend(Game.Round.prototype, {
   },
 
   onListenForPlayer: function () {
+  	this.answers = this.read("Answers");
   	if (this.listener instanceof Game.Round.Listener) {
   		this.listener.init();
   		var _this = this;

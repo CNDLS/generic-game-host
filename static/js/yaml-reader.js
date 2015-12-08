@@ -104,8 +104,12 @@ function ConditionalResult (data) {
     try {
       return this.dict[key];
     } catch (e) {
-      console.warn("Cannot find '" + key + "' in dictionary obj.", this.dict);
-      return;
+      if (this.dict.hasOwnProperty("default")) {
+        return this.dict.default;
+      } else {
+        console.warn("Cannot find '" + key + "' in dictionary obj.", this.dict);
+        return; // undefined.
+      }
     }
   }
 }
@@ -120,7 +124,10 @@ ConditionalResult.prototype.evaluate = function (context) {
     }
   	return this.fn(key);
   } catch (e) {
-    console.warn(e);
+    // console.warn(e);
+    // Error.captureStackTrace(e);
+    // console.log(e.stack);
+ debugger
     return;
   }
 }
@@ -414,3 +421,19 @@ $.each(["get", "readOrEvaluate", "equals", "yaml_src"], function(){
 $.each(["shift", "join", "indexOf", "count", "constructor"], function(){
 	Object.defineProperty(YAML.Array.prototype, this, { enumerable: false });
 });
+
+
+/*** Utils. ***/
+YAML.evaluateAll = function (spec, context) {
+  if (spec.hasOwnProperty('evaluate') && (typeof spec.evaluate === 'function')){
+    spec = spec.evaluate(context);
+  }
+  
+  if (typeof spec === "object") {
+    for (var m in spec) {
+      spec[m] = YAML.evaluateAll(spec[m], context);
+    }
+  }
+  
+  return spec;
+}

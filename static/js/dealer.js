@@ -107,7 +107,7 @@ Game.Dealer.prototype = $.extend(Game.Dealer.prototype, {
   addCard: function (card_or_spec) {
   	var card = card_or_spec;
   	if ( !(card_or_spec instanceof Game.Card) ){
-  		card = Game.Card.create(card_or_spec);
+  		card = Game.Card.create(card_or_spec, this);
   	}
   	this.cards.push(card);
   	return card;
@@ -321,7 +321,7 @@ Game.DealersCardFactory = {
 				try {
 					card = new dealer_card_scope[card_type](args);
 				} catch (e) {
-					card = new Game.Card(e); // report the error through the game UI.
+          card = new Game.Card(e); // report the error through the game UI.
 				}
 				// add css classes for dealer_card_scope & card_type.
 				var css_classes = [

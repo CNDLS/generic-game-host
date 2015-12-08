@@ -14,7 +14,7 @@ Game = Game || function () {};
  * Alternately, other Card prototypes can be defined on the Game object,
  * specifying animations, interactivity, even peer-to-peer communications through "cards."
  */
-Game.Card = function Game_Card (spec) {
+Game.Card = function Game_Card (spec, context) {
   // save a copy of the spec, in case we need to manipulate the card contents later on.
 	this.spec = $.extend({}, spec);
   
@@ -59,7 +59,12 @@ Game.Card = function Game_Card (spec) {
             if (spec instanceof String) {
                 spec = spec.toString()
             }
-			var rendered_element = card_scaffold.render(spec.content || spec);
+            
+      var rendered_element;
+      if (spec instanceof YAML) {
+        spec = YAML.evaluateAll(spec, context);
+      }
+      rendered_element = card_scaffold.render(spec.content || spec);
 			this.load_promise = rendered_element.data().promise;
 	
 			// we want to always have a single HTML element to represent each Card.
@@ -182,13 +187,13 @@ Game.Card.prototype = $.extend(Game.Card.prototype, {
 
 
 // a create method for basic Card types (as opposed to those controlled by Dealers).
-Game.Card.create = function (spec) {
+Game.Card.create = function (spec, context) {
 	var card_class = spec["type"] || "Card";
 	var card;
 	if (card_class === "Card"){
-		card = new Game.Card(spec);
+		card = new Game.Card(spec, context);
 	} else {
-		card = new Game.Card[card_class](spec);
+		card = new Game.Card[card_class](spec, context);
 	}
 	return card;
 }

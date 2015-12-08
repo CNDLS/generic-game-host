@@ -107,3 +107,29 @@ div#login-box {
     min-width: 100%;
     display: block;
 }
+
+/* utility stuff */
+.unselectable{
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: -moz-none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.selectable-text{
+  -webkit-touch-callout: text;
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: -moz-text;
+  -ms-user-select: text;
+  user-select: text;
+}
+.selectable{
+  -webkit-touch-callout: all;
+  -webkit-user-select: all;
+  -khtml-user-select: all;
+  -moz-user-select: -moz-all;
+  -ms-user-select: all;
+  user-select: all;
+}

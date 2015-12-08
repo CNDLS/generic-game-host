@@ -1,8 +1,8 @@
 /* 
  * Listener
- * Each response_type creates a different drives the loading of some kind of widget. Lots of customization will probably happen here,
+ * Each response_type creates a different drives the loading of some Cards. Lots of customization will probably happen here,
  * so expect this to get refactored over time.
- * Basic response widget types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
+ * Basic response Card types are: MultipleChoice (radio buttons), MultipleAnswer (check boxes), and FreeResponse (text field).
  * Other types can be defined in a game_utils.js file for a particular instance. 
  * NOTE: It may seem weird to define user_input_types as an array, but in the case of multiple concurrent valid inputs, where
  * the answers are not specified ahead of time (eg; are calculated on-the-fly), this gets us whatever cards we'll need.
@@ -225,6 +225,10 @@ Game.Round.Answer = function Game_Round_Answer (spec, context) {
   // keep track of params.
   this.spec = spec;
   this.context = context;
+
+  if (typeof spec['evaluate'] === 'function') {
+    spec = spec.evaluate(context);
+  }
   
 	$.extend(this, spec);
 }

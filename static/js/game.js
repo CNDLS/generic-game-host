@@ -205,7 +205,7 @@ Game.prototype = $.extend(Game.prototype, {
   		content: gameFeedbackMessage,
   		css_class: "game_summary"
   	};
-  	var feedback_card = Game.Card.create(feedback_spec);
+  	var feedback_card = Game.Card.create(feedback_spec, this);
   	feedback_card.dealTo(feedback_spec.container);
   	setTimeout(function () {
   		feedback_card.element.addClass("appear");
