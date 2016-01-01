@@ -101,9 +101,9 @@ function ConditionalResult (data) {
     $.extend(this.dict, data[i]);
   }
   this.fn = function (key) {
-    try {
+    if (this.dict.hasOwnProperty(key)) {
       return this.dict[key];
-    } catch (e) {
+    } else {
       if (this.dict.hasOwnProperty("default")) {
         return this.dict.default;
       } else {

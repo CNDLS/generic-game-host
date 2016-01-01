@@ -61,7 +61,8 @@ Game.Round.CallAndResponsePrompter = Util.extendClass(Game.Round.Prompter, funct
     $.each(this.cards, function () {
       var card = this;
       $(this.element).find(prompter.input_selector).click(function () {
-        $(card.element).find(prompter.input_selector).attr("disabled", "disabled");
+        $(card.element).find('p.secondary_prompt').remove();
+        $(card.element).find(prompter.input_selector).blur().removeClass("chosen");
         $(this).addClass("chosen");
         if (prompter.choice_selector) {
           prompter.choice = $(this).find(prompter.choice_selector).html();

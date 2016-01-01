@@ -49,6 +49,10 @@ $.extend(Game, {
 		});
 	},
 	
+	disable: function (tag, selector) {
+    $(tag + selector).attr("disabled", "disabled");
+  },
+	
 	/*** Returns for ex; "Game.Round.Prompter" For reporting. ***/
 	getClassName: function (obj, scope, scope_names) {
 		if (obj === undefined) { return undefined; }
