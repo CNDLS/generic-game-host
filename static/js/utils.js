@@ -69,7 +69,8 @@ String.prototype.past_tense = function () {
 
 
 Object.hasFunction = function (obj, fname) {
-	return (obj.constructor.hasOwnProperty(fname) && typeof obj.constructor[fname] === "function");
+	return (obj.hasOwnProperty(fname) && typeof obj[fname] === "function") 
+    || (obj.constructor.hasOwnProperty(fname) && typeof obj.constructor[fname] === "function");
 }
 
 // return an array with no duplicates.

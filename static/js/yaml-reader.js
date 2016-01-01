@@ -101,21 +101,29 @@ function ConditionalResult (data) {
     $.extend(this.dict, data[i]);
   }
   this.fn = function (key) {
+    // remember: the dict member may also need to be evaluated.
+    var rtn_val;
     if (this.dict.hasOwnProperty(key)) {
-      return this.dict[key];
+      rtn_val = this.dict[key];
     } else {
       if (this.dict.hasOwnProperty("default")) {
-        return this.dict.default;
+        rtn_val = this.dict.default;
       } else {
         console.warn("Cannot find '" + key + "' in dictionary obj.", this.dict);
         return; // undefined.
       }
+    }
+    if (rtn_val && Object.hasFunction(rtn_val, "evaluate")) {
+      return rtn_val.evaluate(this.context);
+    } else {
+      return rtn_val;
     }
   }
 }
 // we're asked to evaluate elements that may have dot notation.
 // these should only be things that are members (and sub-members) of context.
 ConditionalResult.prototype.evaluate = function (context) {
+  this.context = context;
   try {
     var key_expr_elements = this.key_expr.match(/(\w+(?=\.){0,1})/g);
     var key = context; // drill down, starting w context.
@@ -124,10 +132,9 @@ ConditionalResult.prototype.evaluate = function (context) {
     }
   	return this.fn(key);
   } catch (e) {
-    // console.warn(e);
-    // Error.captureStackTrace(e);
-    // console.log(e.stack);
- debugger
+    console.warn(e);
+    Error.captureStackTrace(e);
+    console.log(e.stack);
     return;
   }
 }
